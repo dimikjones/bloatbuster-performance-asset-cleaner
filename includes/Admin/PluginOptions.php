@@ -125,6 +125,14 @@ class PluginOptions extends AdminPageMain {
 				'description' => __( 'It prevents WordPress from auto-correcting "wordpress" to "WordPress."', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
+		$this->add_field(
+			[
+				'type'        => 'toggle',
+				'id'          => 'disable_comments',
+				'label'       => 'Disable comments',
+				'description' => __( 'Disable comments, pingbacks and trackbacks across the entire site, including the admin area.', 'bloatbuster-performance-asset-cleaner' ),
+			]
+		);
 
 		// Add settings section.
 		add_settings_section(

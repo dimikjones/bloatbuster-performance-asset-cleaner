@@ -34,6 +34,7 @@ final class OptionsDispatch {
 		add_action( 'pre_ping', array( __CLASS__, 'disable_self_pingbacks' ) );
 		add_filter( 'wp_revisions_to_keep', array( __CLASS__, 'limit_post_revisions' ) );
 		add_action( 'init', array( __CLASS__, 'disable_capital_p_dangit' ) );
+		add_action( 'init', array( __CLASS__, 'disable_comments' ) );
 	}
 
 	public static function get_option_value( $value ) {
@@ -225,12 +226,18 @@ final class OptionsDispatch {
 	 * Limit WordPress post revisions to 5.
 	 *
 	 * This reduces unnecessary database storage while retaining useful revisions for editing.
+	 *
+	 * @param int $num - Number of revisions to store.
+	 *
+	 * @return int - Number of revisions to store.
 	 */
-	public static function limit_post_revisions() {
+	public static function limit_post_revisions( $num ) {
 		if ( self::get_option_value( 'limit_post_revisions' ) ) {
 			// Set the max number of revisions.
 			return 5;
 		}
+
+		return $num;
 	}
 
 	/**
@@ -248,5 +255,146 @@ final class OptionsDispatch {
 			remove_filter( 'widget_text_content', 'capital_P_dangit', 11 );
 			remove_filter( 'comment_text', 'capital_P_dangit', 31 );
 		}
+	}
+
+	/**
+	 * Disables all WordPress comments across the entire site.
+	 *
+	 * Hooks all actions and filters needed to fully disable comments,
+	 * pingbacks and trackbacks in the admin area, front-end, feeds, REST API and XML-RPC.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_comments() {
+		if ( ! self::get_option_value( 'disable_comments' ) ) {
+			return;
+		}
+
+		// Admin logic.
+		\add_action( 'admin_init', array( __CLASS__, 'admin_disable_comments' ) );
+
+		// Front-end close comments.
+		\add_filter( 'comments_open', '__return_false', 20 );
+		\add_filter( 'pings_open', '__return_false', 20 );
+
+		// Hide existing comments and their count.
+		\add_filter( 'comments_array', '__return_empty_array', 20 );
+		\add_filter( 'get_comments_number', '__return_zero', 20 );
+
+		// Block themes query comments directly, so hide the Comments block output.
+		\add_filter( 'render_block_core/comments', '__return_empty_string' );
+
+		// Remove comments feed link.
+		\add_filter( 'feed_links_show_comments_feed', '__return_false' );
+
+		// Remove comment reply script.
+		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'deregister_comment_reply_script' ), 100 );
+
+		// Remove REST API and XML-RPC comment endpoints.
+		\add_filter( 'rest_endpoints', array( __CLASS__, 'remove_comments_rest_endpoints' ) );
+		\add_filter( 'xmlrpc_methods', array( __CLASS__, 'remove_comments_xmlrpc_methods' ) );
+
+		// Remove menu items.
+		\add_action( 'admin_menu', array( __CLASS__, 'remove_comments_menu' ) );
+
+		// Remove admin bar item.
+		\add_action( 'admin_bar_menu', array( __CLASS__, 'remove_admin_bar_comments' ), 999 );
+	}
+
+	/**
+	 * Disable comments in the admin area.
+	 *
+	 * Redirects comment admin screens, removes the dashboard widget
+	 * and comment support from all post types.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function admin_disable_comments() {
+		global $pagenow;
+
+		if ( 'edit-comments.php' === $pagenow || 'options-discussion.php' === $pagenow ) {
+			\wp_safe_redirect( \admin_url() );
+			exit;
+		}
+
+		\remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+
+		foreach ( \get_post_types() as $post_type ) {
+			if ( \post_type_supports( $post_type, 'comments' ) ) {
+				\remove_post_type_support( $post_type, 'comments' );
+				\remove_post_type_support( $post_type, 'trackbacks' );
+			}
+		}
+	}
+
+	/**
+	 * Remove Comments and Discussion admin menu items.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_comments_menu() {
+		\remove_menu_page( 'edit-comments.php' );
+		\remove_submenu_page( 'options-general.php', 'options-discussion.php' );
+	}
+
+	/**
+	 * Remove Comments item from the admin bar.
+	 *
+	 * @param \WP_Admin_Bar $wp_admin_bar - Admin bar instance.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_admin_bar_comments( $wp_admin_bar ) {
+		$wp_admin_bar->remove_node( 'comments' );
+	}
+
+	/**
+	 * Deregister the comment reply script on the front-end.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function deregister_comment_reply_script() {
+		\wp_deregister_script( 'comment-reply' );
+	}
+
+	/**
+	 * Remove comments endpoints from the REST API.
+	 *
+	 * @param array $endpoints - Registered REST API endpoints.
+	 *
+	 * @return array - Filtered endpoints.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_comments_rest_endpoints( $endpoints ) {
+		unset( $endpoints['/wp/v2/comments'] );
+		unset( $endpoints['/wp/v2/comments/(?P<id>[\d]+)'] );
+
+		return $endpoints;
+	}
+
+	/**
+	 * Remove comment creation method from XML-RPC.
+	 *
+	 * @param array $methods - Registered XML-RPC methods.
+	 *
+	 * @return array - Filtered methods.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_comments_xmlrpc_methods( $methods ) {
+		unset( $methods['wp.newComment'] );
+
+		return $methods;
 	}
 }
