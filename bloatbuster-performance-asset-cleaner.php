@@ -14,7 +14,7 @@
  * @wordpress-plugin
  * Plugin Name: BloatBuster – Performance & Asset Cleaner
  * Plugin URI:  http://example.com/bloatbuster-performance-asset-cleaner-uri/
- * Description: Improves speed of a WordPress website by tweaking various options.
+ * Description: Strip away WordPress bloat, cut HTTP requests and tune background API execution for a faster, lighter frontend.
  * Version:     1.0.0
  * Author:      Marko Dimitrijevic
  * Author URI:  https://www.linkedin.com/in/diwebdeveloper/
