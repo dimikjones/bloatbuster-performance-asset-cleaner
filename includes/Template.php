@@ -4,10 +4,10 @@
  *
  * @class       Template
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,7 +31,7 @@ final class Template {
 
 		$template = '';
 
-		// Look in yourtheme/slug-name.php and yourtheme/core-speed-optimizer/slug-name.php .
+		// Look in yourtheme/slug-name.php and yourtheme/bloatbuster-performance-asset-cleaner/slug-name.php .
 		if ( $name ) {
 			$template = locate_template( array( "{$slug}-{$name}.php", Utils::template_path() . "{$slug}-{$name}.php" ) );
 		}
@@ -41,13 +41,13 @@ final class Template {
 			$template = Utils::plugin_path() . "/templates/{$slug}-{$name}.php";
 		}
 
-		// If template file doesn't exist, look in yourtheme/slug.php and yourtheme/core-speed-optimizer/slug.php .
+		// If template file doesn't exist, look in yourtheme/slug.php and yourtheme/bloatbuster-performance-asset-cleaner/slug.php .
 		if ( ! $template ) {
 			$template = locate_template( array( "{$slug}.php", Utils::template_path() . "{$slug}.php" ) );
 		}
 
 		// Allow 3rd party plugins to filter template file from their plugin.
-		$template = apply_filters( 'core_speed_optimizer_get_template_part', $template, $slug, $name );
+		$template = apply_filters( 'bloatbuster_performance_asset_cleaner_get_template_part', $template, $slug, $name );
 
 		if ( $template ) {
 			load_template( $template, false );
@@ -80,15 +80,15 @@ final class Template {
 		}
 
 		// Allow 3rd party plugin filter template file from their plugin.
-		$located = apply_filters( 'core_speed_optimizer_get_template', $located, $template_name, $args, $template_path, $default_path );
+		$located = apply_filters( 'bloatbuster_performance_asset_cleaner_get_template', $located, $template_name, $args, $template_path, $default_path );
 
 		// Perform other actions before template part is included.
-		do_action( 'core_speed_optimizer_before_template_part', $template_name, $template_path, $located, $args );
+		do_action( 'bloatbuster_performance_asset_cleaner_before_template_part', $template_name, $template_path, $located, $args );
 
 		include $located;
 
 		// Perform other actions after template part is included.
-		do_action( 'core_speed_optimizer_after_template_part', $template_name, $template_path, $located, $args );
+		do_action( 'bloatbuster_performance_asset_cleaner_after_template_part', $template_name, $template_path, $located, $args );
 	}
 
 
@@ -152,6 +152,6 @@ final class Template {
 		}
 
 		// Return what we found.
-		return apply_filters( 'core_speed_optimizer_locate_template', $template, $template_name, $template_path );
+		return apply_filters( 'bloatbuster_performance_asset_cleaner_locate_template', $template, $template_name, $template_path );
 	}
 }

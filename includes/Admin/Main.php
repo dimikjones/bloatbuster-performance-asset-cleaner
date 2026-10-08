@@ -4,10 +4,10 @@
  *
  * @class       Admin
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer\Admin;
+namespace BloatBuster_Performance_Asset_Cleaner\Admin;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

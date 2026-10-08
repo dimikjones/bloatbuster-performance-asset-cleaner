@@ -4,10 +4,10 @@
  *
  * @class       Block
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,7 +37,7 @@ final class Block {
 	public static function register_blocks() {
 
 		// A register block for each existing block.
-		$blocks = apply_filters( 'core_speed_optimizer_gutenberg_blocks', array() );
+		$blocks = apply_filters( 'bloatbuster_performance_asset_cleaner_gutenberg_blocks', array() );
 
 		foreach ( $blocks as $key => $block ) {
 
@@ -72,7 +72,7 @@ final class Block {
 		$asset_block = include Utils::plugin_path() . '/assets/build/' . $block_path . 'index.asset.php';
 
 		wp_register_script(
-			'core-speed-optimizer-' . $block_name . '-blocks',
+			'bloatbuster-performance-asset-cleaner-' . $block_name . '-blocks',
 			Utils::plugin_url() . '/assets/build/' . $block_path . 'index.js',
 			$asset_block['dependencies'],
 			$asset_block['version'],
@@ -105,18 +105,18 @@ final class Block {
 		}
 
 		// Set editor styles.
-		$editor_style = 'core-speed-optimizer-' . $block_name . '-blocks';
+		$editor_style = 'bloatbuster-performance-asset-cleaner-' . $block_name . '-blocks';
 		if ( ! empty( $args['editor_style'] ) ) {
 			$editor_style = $args['editor_style'];
 		}
 
 		register_block_type(
-			'core-speed-optimizer/' . $block_name,
+			'bloatbuster-performance-asset-cleaner/' . $block_name,
 			array(
 				'style'         => $styles,
 				'script'        => $script,
 				'editor_style'  => $editor_style,
-				'editor_script' => 'core-speed-optimizer-' . $block_name . '-blocks',
+				'editor_script' => 'bloatbuster-performance-asset-cleaner-' . $block_name . '-blocks',
 			)
 		);
 	}

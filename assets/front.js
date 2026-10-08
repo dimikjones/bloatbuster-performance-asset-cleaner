@@ -9,24 +9,24 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./assets/source/js/front/core-speed-optimizer.js":
+/***/ "./assets/source/js/front/bloatbuster-performance-asset-cleaner.js":
 /*!********************************************************!*\
-  !*** ./assets/source/js/front/core-speed-optimizer.js ***!
+  !*** ./assets/source/js/front/bloatbuster-performance-asset-cleaner.js ***!
   \********************************************************/
 /***/ (() => {
 
-eval("(function ($) {\n  'use strict';\n\n  /**\r\n   * All of the code for your admin-facing JavaScript source\r\n   * should reside in this file.\r\n   *\r\n   * Note: It has been assumed you will write jQuery code here, so the\r\n   * $ function reference has been prepared for usage within the scope\r\n   * of this function.\r\n   *\r\n   * This enables you to define handlers, for when the DOM is ready:\r\n   *\r\n   * $(function() {\r\n   *\r\n   * });\r\n   *\r\n   * When the window is loaded:\r\n   *\r\n   * $( window ).load(function() {\r\n   *\r\n   * });\r\n   *\r\n   * ...and/or other possibilities.\r\n   *\r\n   * Ideally, it is not considered best practise to attach more than a\r\n   * single DOM-ready or window-load handler for a particular page.\r\n   * Although scripts in the WordPress core, Plugins and Themes may be\r\n   * practising this, we should strive to set a better example in our own work.\r\n   */\n})(jQuery);\n\n//# sourceURL=webpack://core-speed-optimizer/./assets/source/js/front/core-speed-optimizer.js?");
+eval("(function ($) {\n  'use strict';\n\n  /**\r\n   * All of the code for your admin-facing JavaScript source\r\n   * should reside in this file.\r\n   *\r\n   * Note: It has been assumed you will write jQuery code here, so the\r\n   * $ function reference has been prepared for usage within the scope\r\n   * of this function.\r\n   *\r\n   * This enables you to define handlers, for when the DOM is ready:\r\n   *\r\n   * $(function() {\r\n   *\r\n   * });\r\n   *\r\n   * When the window is loaded:\r\n   *\r\n   * $( window ).load(function() {\r\n   *\r\n   * });\r\n   *\r\n   * ...and/or other possibilities.\r\n   *\r\n   * Ideally, it is not considered best practise to attach more than a\r\n   * single DOM-ready or window-load handler for a particular page.\r\n   * Although scripts in the WordPress core, Plugins and Themes may be\r\n   * practising this, we should strive to set a better example in our own work.\r\n   */\n})(jQuery);\n\n//# sourceURL=webpack://bloatbuster-performance-asset-cleaner/./assets/source/js/front/bloatbuster-performance-asset-cleaner.js?");
 
 /***/ }),
 
-/***/ "./assets/source/sass/front/core-speed-optimizer.scss":
+/***/ "./assets/source/sass/front/bloatbuster-performance-asset-cleaner.scss":
 /*!************************************************************!*\
-  !*** ./assets/source/sass/front/core-speed-optimizer.scss ***!
+  !*** ./assets/source/sass/front/bloatbuster-performance-asset-cleaner.scss ***!
   \************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n// extracted by mini-css-extract-plugin\n\n\n//# sourceURL=webpack://core-speed-optimizer/./assets/source/sass/front/core-speed-optimizer.scss?");
+eval("__webpack_require__.r(__webpack_exports__);\n// extracted by mini-css-extract-plugin\n\n\n//# sourceURL=webpack://bloatbuster-performance-asset-cleaner/./assets/source/sass/front/bloatbuster-performance-asset-cleaner.scss?");
 
 /***/ })
 
@@ -52,9 +52,9 @@ eval("__webpack_require__.r(__webpack_exports__);\n// extracted by mini-css-extr
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module can't be inlined because the eval devtool is used.
-/******/ 	__webpack_modules__["./assets/source/js/front/core-speed-optimizer.js"](0, {}, __webpack_require__);
+/******/ 	__webpack_modules__["./assets/source/js/front/bloatbuster-performance-asset-cleaner.js"](0, {}, __webpack_require__);
 /******/ 	var __webpack_exports__ = {};
-/******/ 	__webpack_modules__["./assets/source/sass/front/core-speed-optimizer.scss"](0, __webpack_exports__, __webpack_require__);
+/******/ 	__webpack_modules__["./assets/source/sass/front/bloatbuster-performance-asset-cleaner.scss"](0, __webpack_exports__, __webpack_require__);
 /******/ 	
 /******/ })()
 ;

@@ -4,12 +4,12 @@
  *
  * @class       OptionsDispatch
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
-use Core_Speed_Optimizer\Admin\PluginOptions as Options;
+use BloatBuster_Performance_Asset_Cleaner\Admin\PluginOptions as Options;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,7 +37,7 @@ final class OptionsDispatch {
 	}
 
 	public static function get_option_value( $value ) {
-		$plugin_options = get_option( 'core_speed_optimizer_options' );
+		$plugin_options = get_option( 'bloatbuster_performance_asset_cleaner_options' );
 
 		if ( ! empty( $plugin_options ) && ! empty( $plugin_options[ $value ] ) ) {
 			return $plugin_options[ $value ];

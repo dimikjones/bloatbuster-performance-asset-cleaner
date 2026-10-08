@@ -5,12 +5,12 @@ const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const config = {
 	entry: {
 		admin: [
-			'./assets/source/js/admin/core-speed-optimizer-admin.js',
-			'./assets/source/sass/admin/core-speed-optimizer-admin.scss'
+			'./assets/source/js/admin/bloatbuster-performance-asset-cleaner-admin.js',
+			'./assets/source/sass/admin/bloatbuster-performance-asset-cleaner-admin.scss'
 		],
 		front: [
-			'./assets/source/js/front/core-speed-optimizer.js',
-			'./assets/source/sass/front/core-speed-optimizer.scss'
+			'./assets/source/js/front/bloatbuster-performance-asset-cleaner.js',
+			'./assets/source/sass/front/bloatbuster-performance-asset-cleaner.scss'
 		]
 	},
 	output: {

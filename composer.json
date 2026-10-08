@@ -1,5 +1,5 @@
 {
-	"name": "marko/core-speed-optimizer",
+	"name": "marko/bloatbuster-performance-asset-cleaner",
 	"description": "Improves speed of a WordPress website by tweaking various options.",
 	"homepage": "http://example.com/",
 	"type": "wordpress-plugin",
@@ -16,7 +16,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Core_Speed_Optimizer\\": "includes/"
+			"BloatBuster_Performance_Asset_Cleaner\\": "includes/"
 		}
 	},
 	"config": {

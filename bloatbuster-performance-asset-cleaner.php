@@ -9,18 +9,18 @@
  *
  * @link              http://example.com
  * @since             1.0.0
- * @package           Core_Speed_Optimizer
+ * @package           BloatBuster_Performance_Asset_Cleaner
  *
  * @wordpress-plugin
- * Plugin Name: Core Speed Optimizer
- * Plugin URI:  http://example.com/core-speed-optimizer-uri/
+ * Plugin Name: BloatBuster – Performance & Asset Cleaner
+ * Plugin URI:  http://example.com/bloatbuster-performance-asset-cleaner-uri/
  * Description: Improves speed of a WordPress website by tweaking various options.
  * Version:     1.0.0
  * Author:      Marko Dimitrijevic
  * Author URI:  https://www.linkedin.com/in/diwebdeveloper/
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain: core-speed-optimizer
+ * Text Domain: bloatbuster-performance-asset-cleaner
  * Domain Path: /i18n/languages
  */
 
@@ -31,7 +31,7 @@
  * - `phpcs.xml`
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -51,7 +51,7 @@ const PLUGIN_FILE = __FILE__;
 function get_error() {
 	return array(
 		/* translators: 1: composer command. 2: plugin directory */
-		'message'   => esc_html__( 'Your installation of WordPress Plugin Boilerplate plugin is incomplete. Please run %1$s within the %2$s directory.', 'core-speed-optimizer' ),
+		'message'   => esc_html__( 'Your installation of WordPress Plugin Boilerplate plugin is incomplete. Please run %1$s within the %2$s directory.', 'bloatbuster-performance-asset-cleaner' ),
 		'command'   => 'composer install',
 		'directory' => esc_html( str_replace( ABSPATH, '', __DIR__ ) ),
 	);

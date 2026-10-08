@@ -4,10 +4,10 @@
  *
  * @class       Utils
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -67,7 +67,7 @@ final class Utils {
 	 */
 	public static function template_path() {
 		// Allow 3rd party plugin filter template path from their plugin.
-		return apply_filters( 'core_speed_optimizer_template_path', 'core-speed-optimizer/' );
+		return apply_filters( 'bloatbuster_performance_asset_cleaner_template_path', 'bloatbuster-performance-asset-cleaner/' );
 	}
 
 

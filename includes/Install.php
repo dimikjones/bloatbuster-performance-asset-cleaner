@@ -4,10 +4,10 @@
  *
  * @class       Install
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,6 +27,6 @@ final class Install {
 		// Perform install actions here.
 
 		// Trigger action.
-		do_action( 'core_speed_optimizer_installed', $sitewide );
+		do_action( 'bloatbuster_performance_asset_cleaner_installed', $sitewide );
 	}
 }

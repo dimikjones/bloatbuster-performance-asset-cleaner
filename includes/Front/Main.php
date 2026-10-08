@@ -4,10 +4,10 @@
  *
  * @class       Front
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer\Front;
+namespace BloatBuster_Performance_Asset_Cleaner\Front;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

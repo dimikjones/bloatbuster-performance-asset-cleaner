@@ -4,7 +4,7 @@
  *
  * Uninstalling plugin code.
  *
- * @package     Core_Speed_Optimizer/Uninstaller
+ * @package     BloatBuster_Performance_Asset_Cleaner/Uninstaller
  * @version     1.0.0
  */
 

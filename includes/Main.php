@@ -2,14 +2,14 @@
 /**
  * Main class.
  *
- * @package  Core_Speed_Optimizer
+ * @package  BloatBuster_Performance_Asset_Cleaner
  * @version  1.0.0
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
-use Core_Speed_Optimizer\Admin\Main as Admin;
-use Core_Speed_Optimizer\Front\Main as Front;
+use BloatBuster_Performance_Asset_Cleaner\Admin\Main as Admin;
+use BloatBuster_Performance_Asset_Cleaner\Front\Main as Front;
 
 
 /**
@@ -39,7 +39,7 @@ final class Main {
 		add_action( 'init', array( __CLASS__, 'init' ) );
 
 		// Perform other actions when plugin is loaded.
-		do_action( 'core_speed_optimizer_loaded' );
+		do_action( 'bloatbuster_performance_asset_cleaner_loaded' );
 	}
 
 
@@ -49,7 +49,7 @@ final class Main {
 	 * @since 1.0.0
 	 */
 	public function __clone() {
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'core-speed-optimizer' ), '1.0.0' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'bloatbuster-performance-asset-cleaner' ), '1.0.0' );
 	}
 
 
@@ -59,7 +59,7 @@ final class Main {
 	 * @since 1.0.0
 	 */
 	public function __wakeup() {
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'core-speed-optimizer' ), '1.0.0' );
+		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'bloatbuster-performance-asset-cleaner' ), '1.0.0' );
 	}
 
 
@@ -94,7 +94,7 @@ final class Main {
 		self::load_plugin_textdomain();
 
 		// Init action.
-		do_action( 'core_speed_optimizer_loaded' );
+		do_action( 'bloatbuster_performance_asset_cleaner_loaded' );
 	}
 
 
@@ -106,12 +106,12 @@ final class Main {
 	public static function init() {
 
 		// Before init action.
-		do_action( 'before_core_speed_optimizer_init' );
+		do_action( 'before_bloatbuster_performance_asset_cleaner_init' );
 
 		// Add needed hooks here.
 
 		// After init action.
-		do_action( 'core_speed_optimizer_init' );
+		do_action( 'bloatbuster_performance_asset_cleaner_init' );
 	}
 
 
@@ -127,17 +127,17 @@ final class Main {
 
 		if ( ! version_compare( PHP_VERSION, self::PLUGIN_REQUIREMENTS['php_version'], '>=' ) ) {
 			/* Translators: The minimum PHP version */
-			$errors[] = sprintf( esc_html__( 'WordPress Plugin Boilerplate requires a minimum PHP version of %s.', 'core-speed-optimizer' ), self::PLUGIN_REQUIREMENTS['php_version'] );
+			$errors[] = sprintf( esc_html__( 'WordPress Plugin Boilerplate requires a minimum PHP version of %s.', 'bloatbuster-performance-asset-cleaner' ), self::PLUGIN_REQUIREMENTS['php_version'] );
 		}
 
 		if ( ! version_compare( $wp_version, self::PLUGIN_REQUIREMENTS['wp_version'], '>=' ) ) {
 			/* Translators: The minimum WP version */
-			$errors[] = sprintf( esc_html__( 'WordPress Plugin Boilerplate requires a minimum WordPress version of %s.', 'core-speed-optimizer' ), self::PLUGIN_REQUIREMENTS['wp_version'] );
+			$errors[] = sprintf( esc_html__( 'WordPress Plugin Boilerplate requires a minimum WordPress version of %s.', 'bloatbuster-performance-asset-cleaner' ), self::PLUGIN_REQUIREMENTS['wp_version'] );
 		}
 
 		if ( isset( self::PLUGIN_REQUIREMENTS['wc_version'] ) && ( ! defined( 'WC_VERSION' ) || ! version_compare( WC_VERSION, self::PLUGIN_REQUIREMENTS['wc_version'], '>=' ) ) ) {
 			/* Translators: The minimum WC version */
-			$errors[] = sprintf( esc_html__( 'WordPress Plugin Boilerplate requires a minimum WooCommerce version of %s.', 'core-speed-optimizer' ), self::PLUGIN_REQUIREMENTS['wc_version'] );
+			$errors[] = sprintf( esc_html__( 'WordPress Plugin Boilerplate requires a minimum WooCommerce version of %s.', 'bloatbuster-performance-asset-cleaner' ), self::PLUGIN_REQUIREMENTS['wc_version'] );
 		}
 
 		if ( empty( $errors ) ) {
@@ -174,16 +174,16 @@ final class Main {
 	 * Note: the first-loaded translation file overrides any following ones if the same translation is present.
 	 *
 	 * Locales found in:
-	 *      - WP_LANG_DIR/core-speed-optimizer/core-speed-optimizer-LOCALE.mo
-	 *      - WP_LANG_DIR/plugins/core-speed-optimizer-LOCALE.mo
+	 *      - WP_LANG_DIR/bloatbuster-performance-asset-cleaner/bloatbuster-performance-asset-cleaner-LOCALE.mo
+	 *      - WP_LANG_DIR/plugins/bloatbuster-performance-asset-cleaner-LOCALE.mo
 	 */
 	private static function load_plugin_textdomain() {
 
 		// Add plugin's locale.
-		$locale = apply_filters( 'plugin_locale', get_locale(), 'core-speed-optimizer' );
+		$locale = apply_filters( 'plugin_locale', get_locale(), 'bloatbuster-performance-asset-cleaner' );
 
-		load_textdomain( 'core-speed-optimizer', WP_LANG_DIR . '/core-speed-optimizer/core-speed-optimizer-' . $locale . '.mo' );
+		load_textdomain( 'bloatbuster-performance-asset-cleaner', WP_LANG_DIR . '/bloatbuster-performance-asset-cleaner/bloatbuster-performance-asset-cleaner-' . $locale . '.mo' );
 
-		load_plugin_textdomain( 'core-speed-optimizer', false, plugin_basename( __DIR__ ) . '/i18n/languages' );
+		load_plugin_textdomain( 'bloatbuster-performance-asset-cleaner', false, plugin_basename( __DIR__ ) . '/i18n/languages' );
 	}
 }

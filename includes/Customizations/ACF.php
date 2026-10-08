@@ -2,11 +2,11 @@
 /**
  * ACF Hooks
  *
- * @package     Core_Speed_Optimizer/Customizations
+ * @package     BloatBuster_Performance_Asset_Cleaner/Customizations
  * @version     1.0.0
  */
 
-namespace Core_Speed_Optimizer\Customizations;
+namespace BloatBuster_Performance_Asset_Cleaner\Customizations;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {

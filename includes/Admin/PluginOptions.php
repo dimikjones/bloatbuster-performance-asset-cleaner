@@ -4,17 +4,17 @@
  *
  * @class       AdminPluginOptions
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer\Admin;
+namespace BloatBuster_Performance_Asset_Cleaner\Admin;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use Core_Speed_Optimizer\AdminPage as AdminPageMain;
+use BloatBuster_Performance_Asset_Cleaner\AdminPage as AdminPageMain;
 
 class PluginOptions extends AdminPageMain {
 
@@ -58,7 +58,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'disable_block_editor_styles_frontend',
 				'label'       => 'Disable Block Editor Styles on the Frontend',
-				'description' => __( 'If not using Blocks disable their styles.', 'core-speed-optimizer' ),
+				'description' => __( 'If not using Blocks disable their styles.', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -66,7 +66,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'disable_heartbeat_frontend',
 				'label'       => 'Disable Heartbeat API on the frontend',
-				'description' => __( 'Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor.', 'core-speed-optimizer' ),
+				'description' => __( 'Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor.', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -74,7 +74,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'control_heartbeat_settings',
 				'label'       => 'Control the Heartbeat API execution',
-				'description' => __( 'Control the Heartbeat API execution based on user area (30s for admin and 60s for frontend).', 'core-speed-optimizer' ),
+				'description' => __( 'Control the Heartbeat API execution based on user area (30s for admin and 60s for frontend).', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -82,7 +82,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'disable_dashicons_non_admin',
 				'label'       => 'Disable Dashicons for non-admin',
-				'description' => __( 'Disable default WordPress Dashicons styles on frontend for non-admin users.', 'core-speed-optimizer' ),
+				'description' => __( 'Disable default WordPress Dashicons styles on frontend for non-admin users.', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -90,7 +90,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'disable_emojis',
 				'label'       => 'Disable emoji scripts and styles',
-				'description' => __( 'Disable all WordPress emoji scripts and styles.', 'core-speed-optimizer' ),
+				'description' => __( 'Disable all WordPress emoji scripts and styles.', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -98,7 +98,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'disable_wp_oembed',
 				'label'       => 'Disable all oEmbed-related scripts',
-				'description' => __( 'Disable all oEmbed-related scripts and discovery links from WordPress.', 'core-speed-optimizer' ),
+				'description' => __( 'Disable all oEmbed-related scripts and discovery links from WordPress.', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -106,7 +106,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'disable_self_pingbacks',
 				'label'       => 'Disable self-pingbacks',
-				'description' => __( 'Disable self-pingbacks in WordPress to prevent unnecessary notifications.', 'core-speed-optimizer' ),
+				'description' => __( 'Disable self-pingbacks in WordPress to prevent unnecessary notifications.', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -114,7 +114,7 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'limit_post_revisions',
 				'label'       => 'Limit post revisions',
-				'description' => __( 'Limit WordPress post revisions to 5.', 'core-speed-optimizer' ),
+				'description' => __( 'Limit WordPress post revisions to 5.', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 		$this->add_field(
@@ -122,14 +122,14 @@ class PluginOptions extends AdminPageMain {
 				'type'        => 'toggle',
 				'id'          => 'disable_capital_p_dangit',
 				'label'       => 'Disable capital_P_dangit',
-				'description' => __( 'It prevents WordPress from auto-correcting "wordpress" to "WordPress."', 'core-speed-optimizer' ),
+				'description' => __( 'It prevents WordPress from auto-correcting "wordpress" to "WordPress."', 'bloatbuster-performance-asset-cleaner' ),
 			]
 		);
 
 		// Add settings section.
 		add_settings_section(
 			$this->get_menu_slug(),
-			__( 'Assets', 'core-speed-optimizer' ),
+			__( 'Assets', 'bloatbuster-performance-asset-cleaner' ),
 			[ $this, 'render_section' ],
 			$this->get_menu_slug()
 		);
@@ -147,13 +147,13 @@ class PluginOptions extends AdminPageMain {
 		// WPCS: input var ok.
 		if ( isset( $_REQUEST['settings-updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			// Add settings saved message with the class of "updated".
-			add_settings_error( 'messages', 'message', esc_html__( 'Settings Saved', 'core-speed-optimizer' ), 'updated' );
+			add_settings_error( 'messages', 'message', esc_html__( 'Settings Saved', 'bloatbuster-performance-asset-cleaner' ), 'updated' );
 		}
 
 		// Show error/update messages.
 		settings_errors( 'messages' );
 		?>
-		<div class="wrap" id="core-speed-optimizer-options">
+		<div class="wrap" id="bloatbuster-performance-asset-cleaner-options">
 			<h1><?php echo esc_html( $this->get_page_title() ); ?></h1>
 			<p>I want some introduction paragraph about my plugin here.</p>
 			<form action="options.php" method="POST">
@@ -187,14 +187,14 @@ class PluginOptions extends AdminPageMain {
 
 		switch ( $args['type'] ) {
 			case 'text':
-				echo '<div class="cso-field text"><input type="text" name="' . esc_attr( $option_name ) . '" value="' . esc_attr( $value ) . '" /></div>';
+				echo '<div class="bbpac-field text"><input type="text" name="' . esc_attr( $option_name ) . '" value="' . esc_attr( $value ) . '" /></div>';
 				break;
 			case 'checkbox':
 				$checked = checked( 1, $value, false );
-				echo '<div class="cso-field checkbox"><input type="checkbox" name="' . esc_attr( $option_name ) . '" value="1" ' . esc_attr( $checked ) . ' /></div>';
+				echo '<div class="bbpac-field checkbox"><input type="checkbox" name="' . esc_attr( $option_name ) . '" value="1" ' . esc_attr( $checked ) . ' /></div>';
 				break;
 			case 'select':
-				echo '<div class="cso-field select"><select name="' . esc_attr( $option_name ) . '">';
+				echo '<div class="bbpac-field select"><select name="' . esc_attr( $option_name ) . '">';
 				if ( isset( $args['options'] ) ) {
 					foreach ( $args['options'] as $option ) {
 						$selected = selected( $value, $option, false );
@@ -205,7 +205,7 @@ class PluginOptions extends AdminPageMain {
 				break;
 			case 'toggle':
 				$checked = checked( 1, $value, false );
-				echo '<div class="cso-field toggle"><label>
+				echo '<div class="bbpac-field toggle"><label>
                         <input type="checkbox" name="' . esc_attr( $option_name ) . '" value="1" ' . esc_attr( $checked ) . '>
                         <span class="slider round"></span>
                       </label></div>';
@@ -223,7 +223,7 @@ class PluginOptions extends AdminPageMain {
 	 */
 	public function render_section() {
 		?>
-		<p><?php esc_html_e( 'Boost WordPress performance with these options', 'core-speed-optimizer' ); ?></p>
+		<p><?php esc_html_e( 'Boost WordPress performance with these options', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 		<?php
 	}
 
@@ -233,7 +233,7 @@ class PluginOptions extends AdminPageMain {
 	 * @return string
 	 */
 	protected function get_menu_slug() {
-		return 'core_speed_optimizer_options';
+		return 'bloatbuster_performance_asset_cleaner_options';
 	}
 
 	/**
@@ -242,6 +242,6 @@ class PluginOptions extends AdminPageMain {
 	 * @return string
 	 */
 	protected function get_page_title() {
-		return __( 'Core Speed', 'core-speed-optimizer' );
+		return __( 'BloatBuster', 'bloatbuster-performance-asset-cleaner' );
 	}
 }

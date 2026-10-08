@@ -4,10 +4,10 @@
  *
  * @class       Assets
  * @version     1.0.0
- * @package     Core_Speed_Optimizer/Classes/
+ * @package     BloatBuster_Performance_Asset_Cleaner/Classes/
  */
 
-namespace Core_Speed_Optimizer;
+namespace BloatBuster_Performance_Asset_Cleaner;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -79,7 +79,7 @@ abstract class Assets {
 	 */
 	public static function get_styles() {
 		// Allow to change the list of styles.
-		return apply_filters( 'core_speed_optimizer_enqueue_styles', array() );
+		return apply_filters( 'bloatbuster_performance_asset_cleaner_enqueue_styles', array() );
 	}
 
 
@@ -90,7 +90,7 @@ abstract class Assets {
 	 */
 	public static function get_scripts() {
 		// Allow to change the list of scripts.
-		return apply_filters( 'core_speed_optimizer_enqueue_scripts', array() );
+		return apply_filters( 'bloatbuster_performance_asset_cleaner_enqueue_scripts', array() );
 	}
 
 
@@ -203,7 +203,7 @@ abstract class Assets {
 	 */
 	public static function load_scripts() {
 
-		if ( ! did_action( 'before_core_speed_optimizer_init' ) ) {
+		if ( ! did_action( 'before_bloatbuster_performance_asset_cleaner_init' ) ) {
 			return;
 		}
 

@@ -7,8 +7,8 @@
  * @link       http://example.com
  * @since      1.0.0
  *
- * @package    Core_Speed_Optimizer
- * @subpackage Core_Speed_Optimizer/templates
+ * @package    BloatBuster_Performance_Asset_Cleaner
+ * @subpackage BloatBuster_Performance_Asset_Cleaner/templates
  */
 
 ?>

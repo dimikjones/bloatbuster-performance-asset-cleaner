@@ -5,21 +5,21 @@
 
 :root {
 	// Color variables
-	--cso-main-color: #f66f44;
-	--cso-active-color: #3bb66b;
-	--cso-gray-bg-color: #b5b3b5;
-	--cso-border-color: #dedede;
-	--cso-border-active: #c1c1c1;
+	--bbpac-main-color: #f66f44;
+	--bbpac-active-color: #3bb66b;
+	--bbpac-gray-bg-color: #b5b3b5;
+	--bbpac-border-color: #dedede;
+	--bbpac-border-active: #c1c1c1;
 }
 
-.toplevel_page_core_speed_optimizer_options {
+.toplevel_page_bloatbuster_performance_asset_cleaner_options {
 
 	#wpcontent {
 		padding-left: 0;
 	}
 }
 
-#core-speed-optimizer-options {
+#bloatbuster-performance-asset-cleaner-options {
 	max-width: 700px;
 	margin: 65px auto 0 auto;
 	padding: 50px;
@@ -38,7 +38,7 @@
 		th {
 			width: auto;
 			padding: 0;
-			color: var(--cso-main-color);
+			color: var(--bbpac-main-color);
 		}
 
 		tr {
@@ -58,7 +58,7 @@
 		td {
 			padding: 0;
 
-			.cso-field {
+			.bbpac-field {
 				position: absolute;
 				left: 100%;
 				width: 65%;
@@ -71,7 +71,7 @@
 	}
 
 	// All field
-	.cso-field {
+	.bbpac-field {
 
 		// Toggle field
 		&.toggle {
@@ -99,7 +99,7 @@
 				left: 0;
 				right: 0;
 				bottom: 0;
-				background-color: var(--cso-gray-bg-color);
+				background-color: var(--bbpac-gray-bg-color);
 				-webkit-transition: .3s;
 				transition: .3s;
 
@@ -117,7 +117,7 @@
 			}
 
 			input:checked + .slider {
-				background-color: var(--cso-active-color);
+				background-color: var(--bbpac-active-color);
 			}
 
 			input:focus + .slider {
@@ -159,7 +159,7 @@
 				font-weight: inherit;
 				color: inherit;
 				background-color: #fff;
-				border: 1px solid var(--cso-border-color);
+				border: 1px solid var(--bbpac-border-color);
 				border-radius: 34px;
 				outline: 0;
 				cursor: pointer;
@@ -170,7 +170,7 @@
 				&:focus {
 					color: #000;
 					background-color: #fff;
-					border-color: var(--cso-border-active);
+					border-color: var(--bbpac-border-active);
 				}
 			}
 		}
@@ -182,7 +182,7 @@
 				color: currentColor;
 				background-color: #fff;
 				background-position: right 15px top 55%;
-				border: 1px solid var(--cso-border-color);
+				border: 1px solid var(--bbpac-border-color);
 				box-shadow: none;
 				padding: 10px 34px 10px 20px;
 				border-radius: 34px;
@@ -196,7 +196,7 @@
 				&:focus {
 					color: #000;
 					background-color: #fff;
-					border-color: var(--cso-border-active);
+					border-color: var(--bbpac-border-active);
 				}
 
 				option {
@@ -219,7 +219,7 @@
 			input {
 				appearance: none;
 				background: #fff;
-				border: 1px solid var(--cso-border-color);
+				border: 1px solid var(--bbpac-border-color);
 				border-radius: 50%;
 				display: inline-block;
 				box-shadow: none;
@@ -239,7 +239,7 @@
 				&:after {
 					$offset: 3px;
 
-					background-color: var(--cso-active-color);
+					background-color: var(--bbpac-active-color);
 					content: '';
 					display: block;
 					height: calc(100% - #{$offset * 2});
@@ -253,7 +253,7 @@
 				}
 
 				&:checked {
-					border-color: var(--cso-active-color);
+					border-color: var(--bbpac-active-color);
 
 					&:after {
 						opacity: 1;

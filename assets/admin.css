@@ -1,35 +1,35 @@
 /*!***************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./assets/source/sass/admin/core-speed-optimizer-admin.scss ***!
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./assets/source/sass/admin/bloatbuster-performance-asset-cleaner-admin.scss ***!
   \***************************************************************************************************************************************************/
 /**
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
 :root {
-  --cso-main-color: #f66f44;
-  --cso-active-color: #3bb66b;
-  --cso-gray-bg-color: #b5b3b5;
-  --cso-border-color: #dedede;
-  --cso-border-active: #c1c1c1; }
+  --bbpac-main-color: #f66f44;
+  --bbpac-active-color: #3bb66b;
+  --bbpac-gray-bg-color: #b5b3b5;
+  --bbpac-border-color: #dedede;
+  --bbpac-border-active: #c1c1c1; }
 
-.toplevel_page_core_speed_optimizer_options #wpcontent {
+.toplevel_page_bloatbuster_performance_asset_cleaner_options #wpcontent {
   padding-left: 0; }
 
-#core-speed-optimizer-options {
+#bloatbuster-performance-asset-cleaner-options {
   max-width: 700px;
   margin: 65px auto 0 auto;
   padding: 50px;
   background: #fff; }
   @media screen and (max-width: 782px) {
-    #core-speed-optimizer-options {
+    #bloatbuster-performance-asset-cleaner-options {
       padding: 10px; } }
-  #core-speed-optimizer-options .form-table td, #core-speed-optimizer-options .form-table td p, #core-speed-optimizer-options .form-table th {
+  #bloatbuster-performance-asset-cleaner-options .form-table td, #bloatbuster-performance-asset-cleaner-options .form-table td p, #bloatbuster-performance-asset-cleaner-options .form-table th {
     font-size: 15px; }
-  #core-speed-optimizer-options .form-table th {
+  #bloatbuster-performance-asset-cleaner-options .form-table th {
     width: auto;
     padding: 0;
-    color: var(--cso-main-color); }
-  #core-speed-optimizer-options .form-table tr {
+    color: var(--bbpac-main-color); }
+  #bloatbuster-performance-asset-cleaner-options .form-table tr {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -37,12 +37,12 @@
     margin: 20px 0;
     padding-right: 40px; }
     @media screen and (max-width: 782px) {
-      #core-speed-optimizer-options .form-table tr {
+      #bloatbuster-performance-asset-cleaner-options .form-table tr {
         width: 50%;
         padding-right: 20px; } }
-  #core-speed-optimizer-options .form-table td {
+  #bloatbuster-performance-asset-cleaner-options .form-table td {
     padding: 0; }
-    #core-speed-optimizer-options .form-table td .cso-field {
+    #bloatbuster-performance-asset-cleaner-options .form-table td .bbpac-field {
       position: absolute;
       left: 100%;
       width: 65%;
@@ -50,31 +50,31 @@
       top: 0;
       display: flex;
       align-items: center; }
-  #core-speed-optimizer-options .cso-field.toggle {
+  #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle {
     /* Rounded sliders */ }
-    #core-speed-optimizer-options .cso-field.toggle label {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle label {
       position: relative;
       display: inline-block;
       width: 44px;
       height: 22px; }
-      #core-speed-optimizer-options .cso-field.toggle label input {
+      #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle label input {
         opacity: 0;
         width: 0;
         height: 0;
         outline: none;
         box-shadow: none;
         border: none; }
-    #core-speed-optimizer-options .cso-field.toggle .slider {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle .slider {
       position: absolute;
       cursor: pointer;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: var(--cso-gray-bg-color);
+      background-color: var(--bbpac-gray-bg-color);
       -webkit-transition: .3s;
       transition: .3s; }
-      #core-speed-optimizer-options .cso-field.toggle .slider:before {
+      #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle .slider:before {
         position: absolute;
         content: "";
         height: 18px;
@@ -84,19 +84,19 @@
         background-color: white;
         -webkit-transition: .3s;
         transition: .3s; }
-    #core-speed-optimizer-options .cso-field.toggle input:checked + .slider {
-      background-color: var(--cso-active-color); }
-    #core-speed-optimizer-options .cso-field.toggle input:focus + .slider {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle input:checked + .slider {
+      background-color: var(--bbpac-active-color); }
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle input:focus + .slider {
       box-shadow: none; }
-    #core-speed-optimizer-options .cso-field.toggle input:checked + .slider:before {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle input:checked + .slider:before {
       -webkit-transform: translateX(22px);
       -ms-transform: translateX(22px);
       transform: translateX(22px); }
-    #core-speed-optimizer-options .cso-field.toggle .slider.round {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle .slider.round {
       border-radius: 34px; }
-      #core-speed-optimizer-options .cso-field.toggle .slider.round:before {
+      #bloatbuster-performance-asset-cleaner-options .bbpac-field.toggle .slider.round:before {
         border-radius: 50%; }
-  #core-speed-optimizer-options .cso-field.text input {
+  #bloatbuster-performance-asset-cleaner-options .bbpac-field.text input {
     position: relative;
     display: inline-block;
     width: 100%;
@@ -109,22 +109,22 @@
     font-weight: inherit;
     color: inherit;
     background-color: #fff;
-    border: 1px solid var(--cso-border-color);
+    border: 1px solid var(--bbpac-border-color);
     border-radius: 34px;
     outline: 0;
     cursor: pointer;
     transition: color .2s ease-out, background-color .2s ease-out, border-color .2s ease-out;
     box-shadow: none;
     max-width: 235px; }
-    #core-speed-optimizer-options .cso-field.text input:focus {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.text input:focus {
       color: #000;
       background-color: #fff;
-      border-color: var(--cso-border-active); }
-  #core-speed-optimizer-options .cso-field.select select {
+      border-color: var(--bbpac-border-active); }
+  #bloatbuster-performance-asset-cleaner-options .bbpac-field.select select {
     color: currentColor;
     background-color: #fff;
     background-position: right 15px top 55%;
-    border: 1px solid var(--cso-border-color);
+    border: 1px solid var(--bbpac-border-color);
     box-shadow: none;
     padding: 10px 34px 10px 20px;
     border-radius: 34px;
@@ -134,19 +134,19 @@
     line-height: 21px;
     width: 235px;
     transition: color .2s ease-out, background-color .2s ease-out, border-color .2s ease-out; }
-    #core-speed-optimizer-options .cso-field.select select:focus {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.select select:focus {
       color: #000;
       background-color: #fff;
-      border-color: var(--cso-border-active); }
-    #core-speed-optimizer-options .cso-field.select select option:checked {
+      border-color: var(--bbpac-border-active); }
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.select select option:checked {
       font-weight: bold; }
-  #core-speed-optimizer-options .cso-field.checkbox .option-wrapper {
+  #bloatbuster-performance-asset-cleaner-options .bbpac-field.checkbox .option-wrapper {
     position: relative;
     display: inline-flex; }
-  #core-speed-optimizer-options .cso-field.checkbox input {
+  #bloatbuster-performance-asset-cleaner-options .bbpac-field.checkbox input {
     appearance: none;
     background: #fff;
-    border: 1px solid var(--cso-border-color);
+    border: 1px solid var(--bbpac-border-color);
     border-radius: 50%;
     display: inline-block;
     box-shadow: none;
@@ -158,10 +158,10 @@
     transition: border-color .2s ease-out;
     width: 20px;
     height: 20px; }
-    #core-speed-optimizer-options .cso-field.checkbox input:before {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.checkbox input:before {
       display: none !important; }
-    #core-speed-optimizer-options .cso-field.checkbox input:after {
-      background-color: var(--cso-active-color);
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.checkbox input:after {
+      background-color: var(--bbpac-active-color);
       content: '';
       display: block;
       height: calc(100% - 6px);
@@ -172,8 +172,8 @@
       position: absolute;
       top: 3px;
       transition: opacity .2s ease-out; }
-    #core-speed-optimizer-options .cso-field.checkbox input:checked {
-      border-color: var(--cso-active-color); }
-      #core-speed-optimizer-options .cso-field.checkbox input:checked:after {
+    #bloatbuster-performance-asset-cleaner-options .bbpac-field.checkbox input:checked {
+      border-color: var(--bbpac-active-color); }
+      #bloatbuster-performance-asset-cleaner-options .bbpac-field.checkbox input:checked:after {
         opacity: 1; }
 
