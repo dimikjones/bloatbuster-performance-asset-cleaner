@@ -1,101 +1,45 @@
 <?php
 /**
- * The plugin bootstrap file
+ * Plugin Name:       BloatBuster – Performance & Asset Cleaner
+ * Description:       Strip away WordPress bloat, cut HTTP requests and tune background API execution for a faster, lighter frontend.
+ * Version:           1.0.0
+ * Requires at least: 5.6
+ * Requires PHP:      7.4
+ * Author:            Marko Dimitrijevic
+ * Author URI:        https://www.linkedin.com/in/diwebdeveloper/
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       bloatbuster-performance-asset-cleaner
+ * Domain Path:       /languages
  *
- * This file is read by WordPress to generate the plugin information in the plugin
- * admin area. This file also includes all of the dependencies used by the plugin,
- * registers the activation and deactivation functions, and defines a function
- * that starts the plugin.
- *
- * @link              http://example.com
- * @since             1.0.0
- * @package           BloatBuster_Performance_Asset_Cleaner
- *
- * @wordpress-plugin
- * Plugin Name: BloatBuster – Performance & Asset Cleaner
- * Plugin URI:  http://example.com/bloatbuster-performance-asset-cleaner-uri/
- * Description: Strip away WordPress bloat, cut HTTP requests and tune background API execution for a faster, lighter frontend.
- * Version:     1.0.0
- * Author:      Marko Dimitrijevic
- * Author URI:  https://www.linkedin.com/in/diwebdeveloper/
- * License:     GPL-2.0+
- * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain: bloatbuster-performance-asset-cleaner
- * Domain Path: /i18n/languages
+ * @package BloatBuster
  */
 
-/**
- * Developer note: updating minimum PHP, WordPress and WooCommerce versions.
- *
- * When updating any version metadata above and below please ensure to update these files:
- * - `phpcs.xml`
- */
-
-namespace BloatBuster_Performance_Asset_Cleaner;
+namespace BloatBuster;
 
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Define constants.
-const VERSION     = '1.0.0';
-const PLUGIN_FILE = __FILE__;
+// --- CONSTANTS ---
+define( 'BLOATBUSTER_VERSION', '1.0.0' );
+define( 'BLOATBUSTER_FILE', __FILE__ );
+define( 'BLOATBUSTER_DIR', __DIR__ );
+define( 'BLOATBUSTER_URL', \plugin_dir_url( __FILE__ ) );
+define( 'BLOATBUSTER_OPTION', 'bloatbuster_performance_asset_cleaner_options' );
 
+// --- INCLUDES ---
+// Options logic, required on both front-end and admin.
+require_once BLOATBUSTER_DIR . '/includes/class-options-dispatch.php';
 
-/**
- * Return error data
- *
- * @return array
- */
-function get_error() {
-	return array(
-		/* translators: 1: composer command. 2: plugin directory */
-		'message'   => esc_html__( 'Your installation of WordPress Plugin Boilerplate plugin is incomplete. Please run %1$s within the %2$s directory.', 'bloatbuster-performance-asset-cleaner' ),
-		'command'   => 'composer install',
-		'directory' => esc_html( str_replace( ABSPATH, '', __DIR__ ) ),
-	);
+Options_Dispatch::hooks();
+
+// Settings page and its assets.
+if ( \is_admin() ) {
+	require_once BLOATBUSTER_DIR . '/includes/class-plugin-options.php';
+	require_once BLOATBUSTER_DIR . '/includes/class-admin-assets.php';
+
+	Plugin_Options::hooks();
+	Admin_Assets::hooks();
 }
-
-
-/**
- * Autoload packages.
- *
- * The package autoloader includes version information which prevents classes in this feature plugin
- * conflicting with WooCommerce core.
- *
- * We want to fail gracefully if `composer install` has not been executed yet, so we are checking for the autoloader.
- * If the autoloader is not present, let's log the failure and display a nice admin notice.
- */
-$autoloader = __DIR__ . '/vendor/autoload.php';
-
-if ( ! is_readable( $autoloader ) ) {
-
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		$composer_error = get_error();
-		error_log( sprintf( $composer_error['message'], '`' . $composer_error['command'] . '`', '`' . $composer_error['directory'] . '`' ) ); // phpcs:ignore
-	}
-
-	/**
-	 * Outputs an admin notice if composer install has not been ran.
-	 */
-	add_action(
-		'admin_notices',
-		function () {
-			$composer_error = get_error();
-			?>
-			<div class="notice notice-error">
-				<p>
-					<?php printf( $composer_error['message'], '<code>' . $composer_error['command'] . '</code>', '<code>' . $composer_error['directory'] . '</code>' ); // phpcs:ignore ?>
-				</p>
-			</div>
-			<?php
-		}
-	);
-
-	return;
-}
-
-require $autoloader;
-
-Main::bootstrap();

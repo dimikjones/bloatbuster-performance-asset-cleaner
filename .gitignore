@@ -5,6 +5,9 @@
 assets/css*
 assets/js*
 
+# Webpack JS stub generated for SCSS-only entry
+assets/admin.js
+
 # Ignore node_modules everywhere
 node_modules
 
@@ -31,3 +34,6 @@ Session.vim
 # Windows
 Thumbs.db
 Desktop.ini
+
+# Distribution build
+build/

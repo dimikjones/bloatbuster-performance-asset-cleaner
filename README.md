@@ -1,6 +1,6 @@
 # BloatBuster – Performance & Asset Cleaner
 
-Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution—all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean.
+Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean.
 
 ## Features
 

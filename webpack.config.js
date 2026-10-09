@@ -5,12 +5,7 @@ const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const config = {
 	entry: {
 		admin: [
-			'./assets/source/js/admin/bloatbuster-performance-asset-cleaner-admin.js',
 			'./assets/source/sass/admin/bloatbuster-performance-asset-cleaner-admin.scss'
-		],
-		front: [
-			'./assets/source/js/front/bloatbuster-performance-asset-cleaner.js',
-			'./assets/source/sass/front/bloatbuster-performance-asset-cleaner.scss'
 		]
 	},
 	output: {
