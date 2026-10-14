@@ -48,7 +48,7 @@ final class Plugin_Options {
 			),
 			'database'   => array(
 				'label'       => \__( 'Database', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Keep the database lean and fast.', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Clean up data WordPress no longer needs.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			'background' => array(
 				'label'       => \__( 'Background Processes', 'bloatbuster-performance-asset-cleaner' ),
@@ -170,6 +170,16 @@ final class Plugin_Options {
 				'id'          => 'control_heartbeat_settings',
 				'label'       => \__( 'Control the Heartbeat API execution', 'bloatbuster-performance-asset-cleaner' ),
 				'description' => \__( 'Control the Heartbeat API execution based on user area (30s for admin and 60s for frontend).', 'bloatbuster-performance-asset-cleaner' ),
+			),
+
+			// Database.
+			array(
+				'tab'         => 'database',
+				'type'        => 'action',
+				'id'          => 'clean_expired_transients',
+				'label'       => \__( 'Clean expired transients', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Delete transients that have expired but are still stored in the database.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'      => \__( 'Clean now', 'bloatbuster-performance-asset-cleaner' ),
 			),
 
 			// Advanced.
@@ -333,8 +343,8 @@ final class Plugin_Options {
 				continue;
 			}
 
-			// Locked fields are not submitted, keep their stored value.
-			if ( ! empty( $field['locked'] ) ) {
+			// Locked fields are not submitted, keep their stored value. Actions store nothing.
+			if ( ! empty( $field['locked'] ) || 'action' === $field['type'] ) {
 				continue;
 			}
 
@@ -377,6 +387,8 @@ final class Plugin_Options {
 			\add_settings_error( 'messages', 'message', \esc_html__( 'Settings Saved', 'bloatbuster-performance-asset-cleaner' ), 'updated' );
 		}
 
+		self::add_action_notice();
+
 		$current_tab = self::get_current_tab();
 
 		\settings_errors( 'messages' );
@@ -389,20 +401,68 @@ final class Plugin_Options {
 					<a href="<?php echo \esc_url( \add_query_arg( 'tab', $slug, \menu_page_url( BLOATBUSTER_OPTION, false ) ) ); ?>" class="nav-tab<?php echo $slug === $current_tab ? ' nav-tab-active' : ''; ?>"><?php echo \esc_html( $tab['label'] ); ?></a>
 				<?php endforeach; ?>
 			</nav>
-			<form action="options.php" method="POST">
-				<?php \settings_fields( BLOATBUSTER_OPTION ); ?>
-				<input type="hidden" name="<?php echo \esc_attr( BLOATBUSTER_OPTION . '[_tab]' ); ?>" value="<?php echo \esc_attr( $current_tab ); ?>">
-				<?php \do_settings_sections( self::get_tab_page( $current_tab ) ); ?>
-				<?php \submit_button(); ?>
-			</form>
+			<?php if ( self::tab_has_settings( $current_tab ) ) : ?>
+				<form action="options.php" method="POST">
+					<?php \settings_fields( BLOATBUSTER_OPTION ); ?>
+					<input type="hidden" name="<?php echo \esc_attr( BLOATBUSTER_OPTION . '[_tab]' ); ?>" value="<?php echo \esc_attr( $current_tab ); ?>">
+					<?php \do_settings_sections( self::get_tab_page( $current_tab ) ); ?>
+					<?php \submit_button(); ?>
+				</form>
+			<?php else : ?>
+				<form action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" method="POST">
+					<input type="hidden" name="action" value="<?php echo \esc_attr( Database_Tools::ACTION ); ?>">
+					<?php \wp_nonce_field( Database_Tools::ACTION ); ?>
+					<?php \do_settings_sections( self::get_tab_page( $current_tab ) ); ?>
+				</form>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
 
 	/**
-	 * Render a toggle, checkbox or select field.
+	 * Check if a tab has fields that are saved as options.
 	 *
-	 * @param array $args - Field data with type, id, label, description and optional options and locked.
+	 * @param string $tab - Tab slug.
+	 *
+	 * @return bool - True if the tab has at least one non-action field.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function tab_has_settings( $tab ) {
+		foreach ( self::get_fields() as $field ) {
+			if ( $tab === $field['tab'] && 'action' !== $field['type'] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Add the result notice of an action run from the settings page.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function add_action_notice() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only flags set by the action redirect.
+		$notice = isset( $_GET['bloatbuster_notice'] ) ? \sanitize_key( \wp_unslash( $_GET['bloatbuster_notice'] ) ) : '';
+		$count  = isset( $_GET['bloatbuster_count'] ) ? \absint( $_GET['bloatbuster_count'] ) : 0;
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( 'transients_cleaned' === $notice ) {
+			/* translators: %d: number of deleted transients. */
+			$message = sprintf( \_n( 'Deleted %d expired transient.', 'Deleted %d expired transients.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+
+			\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), 'updated' );
+		}
+	}
+
+	/**
+	 * Render a toggle, checkbox, select or action field.
+	 *
+	 * @param array $args - Field data with type, id, label, description and optional options, locked and button.
 	 *
 	 * @return void
 	 *
@@ -413,6 +473,11 @@ final class Plugin_Options {
 		$option_name = BLOATBUSTER_OPTION . '[' . $args['id'] . ']';
 		$value       = ( ! empty( $options ) && ! empty( $options[ $args['id'] ] ) ) ? $options[ $args['id'] ] : '';
 		$is_locked   = ! empty( $args['locked'] );
+
+		if ( 'action' === $args['type'] ) {
+			self::render_action_field( $args );
+			return;
+		}
 
 		if ( 'select' === $args['type'] ) {
 			?>
@@ -448,6 +513,93 @@ final class Plugin_Options {
 		if ( $is_locked ) {
 			self::render_locked_notice( $args['locked'] );
 		}
+	}
+
+	/**
+	 * Render an action field with its status and submit button.
+	 *
+	 * @param array $args - Field data with id, description and button.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_action_field( $args ) {
+		$has_items = true;
+
+		if ( 'clean_expired_transients' === $args['id'] ) {
+			$has_items = self::render_expired_transients();
+		}
+		?>
+		<p>
+			<button type="submit" name="bloatbuster_action" value="<?php echo \esc_attr( $args['id'] ); ?>" class="button button-secondary" <?php \disabled( ! $has_items ); ?>><?php echo \esc_html( $args['button'] ); ?></button>
+		</p>
+		<?php
+		if ( ! empty( $args['description'] ) ) {
+			echo '<p class="description">' . \esc_html( $args['description'] ) . '</p>';
+		}
+
+		if ( 'clean_expired_transients' === $args['id'] && \wp_using_ext_object_cache() ) {
+			echo '<p class="description">' . \esc_html__( 'An object cache is active, so transients are mostly stored there. Only database rows are cleaned.', 'bloatbuster-performance-asset-cleaner' ) . '</p>';
+		}
+	}
+
+	/**
+	 * Render the expired transients count and list.
+	 *
+	 * @return bool - True if there are expired transients to clean.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_expired_transients() {
+		$limit = 50;
+		$count = Database_Tools::count_expired_transients();
+
+		if ( 0 === $count ) {
+			echo '<p>' . \esc_html__( 'No expired transients found.', 'bloatbuster-performance-asset-cleaner' ) . '</p>';
+			return false;
+		}
+
+		$transients = Database_Tools::get_expired_transients( $limit );
+		?>
+		<p>
+			<?php
+			/* translators: %d: number of expired transients. */
+			echo \esc_html( sprintf( \__( 'Expired transients in database: %d', 'bloatbuster-performance-asset-cleaner' ), $count ) );
+			?>
+		</p>
+		<table class="widefat striped bbpac-transients">
+			<thead>
+				<tr>
+					<th><?php \esc_html_e( 'Name', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Type', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Expired', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $transients as $transient ) : ?>
+					<tr>
+						<td><code><?php echo \esc_html( $transient['name'] ); ?></code></td>
+						<td><?php echo $transient['network'] ? \esc_html__( 'Network', 'bloatbuster-performance-asset-cleaner' ) : \esc_html__( 'Site', 'bloatbuster-performance-asset-cleaner' ); ?></td>
+						<td>
+							<?php
+							/* translators: %s: human readable time difference, e.g. 5 minutes. */
+							echo \esc_html( sprintf( \__( '%s ago', 'bloatbuster-performance-asset-cleaner' ), \human_time_diff( $transient['expired'] ) ) );
+							?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+		if ( $count > $limit ) {
+			$more = $count - $limit;
+
+			/* translators: %d: number of expired transients not shown in the list. */
+			echo '<p>' . \esc_html( sprintf( \_n( 'And %d more.', 'And %d more.', $more, 'bloatbuster-performance-asset-cleaner' ), $more ) ) . '</p>';
+		}
+
+		return true;
 	}
 
 	/**

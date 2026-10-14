@@ -17,4 +17,5 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Remove unnecessary head tags
 * Disable XML-RPC
 * Control speculative loading mode and eagerness
+* Manually clean expired transients
 * Disable comments site-wide

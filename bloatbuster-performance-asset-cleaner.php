@@ -39,7 +39,9 @@ Options_Dispatch::hooks();
 if ( \is_admin() ) {
 	require_once BLOATBUSTER_DIR . '/includes/class-plugin-options.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-admin-assets.php';
+	require_once BLOATBUSTER_DIR . '/includes/class-database-tools.php';
 
 	Plugin_Options::hooks();
 	Admin_Assets::hooks();
+	Database_Tools::hooks();
 }
