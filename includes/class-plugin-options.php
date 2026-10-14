@@ -80,8 +80,8 @@ final class Plugin_Options {
 				'tab'         => 'assets',
 				'type'        => 'toggle',
 				'id'          => 'disable_block_editor_styles_frontend',
-				'label'       => \__( 'Disable Block Editor Styles on the Frontend', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'If not using Blocks disable their styles.', 'bloatbuster-performance-asset-cleaner' ),
+				'label'       => \__( 'Disable Gutenberg block styles', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Removes the block library CSS (wp-block-library) on the frontend. Only enable if your theme does not use blocks.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'assets',
@@ -94,8 +94,8 @@ final class Plugin_Options {
 				'tab'         => 'assets',
 				'type'        => 'toggle',
 				'id'          => 'disable_dashicons_non_admin',
-				'label'       => \__( 'Disable Dashicons for non-admin', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Disable default WordPress Dashicons styles on frontend for non-admin users.', 'bloatbuster-performance-asset-cleaner' ),
+				'label'       => \__( 'Disable Dashicons on the frontend when the toolbar is hidden', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Removes the Dashicons stylesheet for logged-out visitors and users who do not see the admin toolbar. Users with the toolbar keep it, so the toolbar never breaks.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'assets',
@@ -110,36 +110,41 @@ final class Plugin_Options {
 				'tab'         => 'core',
 				'type'        => 'toggle',
 				'id'          => 'disable_wp_oembed',
-				'label'       => \__( 'Disable all oEmbed-related scripts', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Disable all oEmbed-related scripts and discovery links from WordPress.', 'bloatbuster-performance-asset-cleaner' ),
+				'label'       => \__( 'Disable oEmbed discovery and embed script', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Removes oEmbed discovery links, the wp-embed script and the oEmbed REST endpoint, so other sites can no longer embed your posts. Embeds from YouTube, Vimeo and other services in your content keep working.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'core',
 				'type'        => 'toggle',
 				'id'          => 'disable_comments',
 				'label'       => \__( 'Disable comments', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Disable comments, pingbacks and trackbacks across the entire site, including the admin area.', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Disable comments, pingbacks and trackbacks across the entire site, including the admin area. Existing comments are hidden, not deleted.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'core',
 				'type'        => 'toggle',
 				'id'          => 'disable_self_pingbacks',
 				'label'       => \__( 'Disable self-pingbacks', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Disable self-pingbacks in WordPress to prevent unnecessary notifications.', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Minor core cleanup: stops WordPress from sending pingbacks to its own posts.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'core',
 				'type'        => 'toggle',
 				'id'          => 'limit_post_revisions',
 				'label'       => \__( 'Limit post revisions', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Limit WordPress post revisions to 5.', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Keep only a set number of revisions per post. Overrides WP_POST_REVISIONS from wp-config.php while enabled.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'core',
-				'type'        => 'toggle',
-				'id'          => 'disable_capital_p_dangit',
-				'label'       => \__( 'Disable capital_P_dangit', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'It prevents WordPress from auto-correcting "wordpress" to "WordPress."', 'bloatbuster-performance-asset-cleaner' ),
+				'type'        => 'number',
+				'id'          => 'post_revisions_limit',
+				'parent'      => 'limit_post_revisions',
+				'label'       => \__( 'Revisions to keep', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Number of revisions to keep per post. 0 disables revisions.', 'bloatbuster-performance-asset-cleaner' ),
+				'min'         => 0,
+				'max'         => 100,
+				'step'        => 1,
+				'default'     => 5,
 			),
 			array(
 				'tab'         => 'core',
@@ -162,14 +167,50 @@ final class Plugin_Options {
 				'type'        => 'toggle',
 				'id'          => 'disable_heartbeat_frontend',
 				'label'       => \__( 'Disable Heartbeat API on the frontend', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor.', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor. Some frontend plugins (live chat, forms, membership) may rely on Heartbeat.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'background',
 				'type'        => 'toggle',
 				'id'          => 'control_heartbeat_settings',
-				'label'       => \__( 'Control the Heartbeat API execution', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Control the Heartbeat API execution based on user area (30s for admin and 60s for frontend).', 'bloatbuster-performance-asset-cleaner' ),
+				'label'       => \__( 'Control the Heartbeat API interval', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Set how often the Heartbeat API runs on the frontend, in the dashboard and in the post editor.', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'tab'         => 'background',
+				'type'        => 'number',
+				'id'          => 'heartbeat_interval_frontend',
+				'parent'      => 'control_heartbeat_settings',
+				'label'       => \__( 'Frontend interval', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Seconds between Heartbeat requests on the frontend (15-120).', 'bloatbuster-performance-asset-cleaner' ),
+				'min'         => 15,
+				'max'         => 120,
+				'step'        => 5,
+				'default'     => 60,
+			),
+			array(
+				'tab'         => 'background',
+				'type'        => 'number',
+				'id'          => 'heartbeat_interval_dashboard',
+				'parent'      => 'control_heartbeat_settings',
+				'label'       => \__( 'Dashboard interval', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Seconds between Heartbeat requests in the admin area, except the post editor (15-120).', 'bloatbuster-performance-asset-cleaner' ),
+				'min'         => 15,
+				'max'         => 120,
+				'step'        => 5,
+				'default'     => 60,
+			),
+			array(
+				'tab'         => 'background',
+				'type'        => 'number',
+				'id'          => 'heartbeat_interval_editor',
+				'parent'      => 'control_heartbeat_settings',
+				'label'       => \__( 'Post editor interval', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Seconds between Heartbeat requests in the post editor, used for autosave and post locking (15-120).', 'bloatbuster-performance-asset-cleaner' ),
+				'min'         => 15,
+				'max'         => 120,
+				'step'        => 5,
+				'default'     => 30,
 			),
 
 			// Database.
@@ -217,6 +258,13 @@ final class Plugin_Options {
 					'eager'        => \__( 'Eager (on slightest suggestion)', 'bloatbuster-performance-asset-cleaner' ),
 				),
 				'locked'      => Options_Dispatch::get_speculative_loading_lock(),
+			),
+			array(
+				'tab'         => 'advanced',
+				'type'        => 'toggle',
+				'id'          => 'disable_capital_p_dangit',
+				'label'       => \__( 'Disable capital_P_dangit', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Stops WordPress from changing "Wordpress" to "WordPress" in content. Negligible performance impact.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'tab'         => 'advanced',
@@ -307,6 +355,15 @@ final class Plugin_Options {
 		}
 
 		foreach ( self::get_fields() as $field ) {
+			// Child fields get a row class, hidden until their parent toggle is on.
+			if ( ! empty( $field['parent'] ) ) {
+				$field['class'] = 'bbpac-child';
+
+				if ( ! Options_Dispatch::get_option_value( $field['parent'] ) ) {
+					$field['class'] .= ' bbpac-hidden';
+				}
+			}
+
 			\add_settings_field(
 				$field['id'],
 				$field['label'],
@@ -363,6 +420,14 @@ final class Plugin_Options {
 				} else {
 					unset( $sanitized[ $field['id'] ] );
 				}
+
+				continue;
+			}
+
+			if ( 'number' === $field['type'] ) {
+				$value = isset( $input[ $field['id'] ] ) && '' !== $input[ $field['id'] ] ? \absint( $input[ $field['id'] ] ) : $field['default'];
+
+				$sanitized[ $field['id'] ] = min( $field['max'], max( $field['min'], $value ) );
 
 				continue;
 			}
@@ -480,9 +545,9 @@ final class Plugin_Options {
 	}
 
 	/**
-	 * Render a toggle, checkbox, select, action or report field.
+	 * Render a toggle, checkbox, select, number, action or report field.
 	 *
-	 * @param array $args - Field data with type, id, label, description and optional options, locked and button.
+	 * @param array $args - Field data with type, id, label, description and optional options, locked, button, parent, min, max, step and default.
 	 *
 	 * @return void
 	 *
@@ -521,6 +586,13 @@ final class Plugin_Options {
 				</select>
 			</div>
 			<?php
+		} elseif ( 'number' === $args['type'] ) {
+			$number = isset( $options[ $args['id'] ] ) ? (int) $options[ $args['id'] ] : $args['default'];
+			?>
+			<div class="bbpac-field text number" data-bbpac-parent="<?php echo \esc_attr( $args['parent'] ?? '' ); ?>">
+				<input type="number" name="<?php echo \esc_attr( $option_name ); ?>" value="<?php echo \esc_attr( $number ); ?>" min="<?php echo \esc_attr( $args['min'] ); ?>" max="<?php echo \esc_attr( $args['max'] ); ?>" step="<?php echo \esc_attr( $args['step'] ); ?>">
+			</div>
+			<?php
 		} elseif ( 'checkbox' === $args['type'] ) {
 			?>
 			<div class="bbpac-field checkbox">
@@ -531,7 +603,7 @@ final class Plugin_Options {
 			?>
 			<div class="bbpac-field toggle">
 				<label>
-					<input type="checkbox" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?>>
+					<input type="checkbox" id="<?php echo \esc_attr( 'bbpac-' . $args['id'] ); ?>" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?>>
 					<span class="slider round"></span>
 				</label>
 			</div>

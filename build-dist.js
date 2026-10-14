@@ -23,6 +23,7 @@ const BUILD_DIR = path.join( SOURCE_DIR, 'build', PLUGIN_NAME );
 const INCLUDE_PATTERNS = [
 	'**/*.php',
 	'**/*.css',
+	'assets/*.js',
 	'**/*.txt',
 	'languages/**',
 ];
@@ -42,9 +43,6 @@ const EXCLUDE_PATTERNS = [
 
 	// Source files
 	'assets/source/**',
-
-	// Webpack JS stub generated for SCSS-only entry
-	'assets/admin.js',
 
 	// Node dependencies
 	'node_modules/**',
@@ -125,7 +123,7 @@ const buildDistribution = async () => {
 
 		console.log( '\n📋 Files included in distribution:' );
 		console.log( '- Plugin PHP files (main file, includes/, uninstall.php)' );
-		console.log( '- Compiled admin CSS from assets/ folder' );
+		console.log( '- Compiled admin CSS and JS from assets/ folder' );
 		console.log( '- Translation template (languages/)' );
 		console.log( '- Documentation (README.txt, LICENSE.txt)' );
 

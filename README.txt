@@ -16,15 +16,15 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 
 = Features =
 
-* Disable Block Editor styles on the frontend
+* Disable Gutenberg block styles on the frontend
 * Disable the Heartbeat API on the frontend
-* Control Heartbeat API execution (30s admin, 60s frontend)
-* Disable Dashicons for non-admin users
+* Control Heartbeat API interval for the frontend, dashboard and post editor
+* Disable Dashicons on the frontend when the toolbar is hidden
 * Disable jQuery Migrate on the frontend
 * Disable emoji scripts and styles
-* Disable oEmbed scripts and discovery links
+* Disable oEmbed discovery and embed script (external embeds keep working)
 * Disable self-pingbacks
-* Limit post revisions to 5
+* Limit post revisions to a configurable number
 * Disable capital_P_dangit
 * Remove unnecessary head tags
 * Disable XML-RPC

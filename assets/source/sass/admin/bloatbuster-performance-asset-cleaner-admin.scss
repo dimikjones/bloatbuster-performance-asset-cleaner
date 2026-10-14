@@ -278,4 +278,17 @@
 		max-width: 700px;
 		margin: 8px 0;
 	}
+
+	.form-table tr.bbpac-hidden {
+		display: none;
+	}
+
+	.form-table tr.bbpac-child th {
+		padding-left: 24px;
+		font-weight: 400;
+	}
+
+	.bbpac-field.number input {
+		max-width: 100px;
+	}
 }

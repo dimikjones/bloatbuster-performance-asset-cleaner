@@ -54,20 +54,22 @@ final class Options_Dispatch {
 	/**
 	 * Get a single plugin option value.
 	 *
-	 * @param string $value - Option key.
+	 * @param string $value    - Option key.
+	 * @param mixed  $fallback - Value returned when the option is not set.
 	 *
-	 * @return mixed - Option value or empty string if not set.
+	 * @return mixed - Option value or fallback if not set.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_option_value( $value ) {
+	public static function get_option_value( $value, $fallback = '' ) {
 		$plugin_options = \get_option( BLOATBUSTER_OPTION );
 
-		if ( ! empty( $plugin_options ) && ! empty( $plugin_options[ $value ] ) ) {
+		// isset() so a saved 0, like zero revisions, is not replaced by the fallback.
+		if ( is_array( $plugin_options ) && isset( $plugin_options[ $value ] ) && '' !== $plugin_options[ $value ] ) {
 			return $plugin_options[ $value ];
-		} else {
-			return '';
 		}
+
+		return $fallback;
 	}
 
 	/**
@@ -99,48 +101,51 @@ final class Options_Dispatch {
 	}
 
 	/**
-	 * Control the Heartbeat API execution based on user area.
+	 * Set the Heartbeat API interval for the frontend, dashboard and post editor.
 	 *
 	 * @param array $settings - Heartbeat settings.
 	 *
 	 * @return array - Filtered Heartbeat settings.
 	 */
 	public static function control_heartbeat_settings( $settings ) {
+		global $pagenow;
 
-		if ( self::get_option_value( 'control_heartbeat_settings' ) ) {
-			if ( self::is_frontend() ) {
-				// Slower execution for frontend.
-				$settings['interval'] = 60;
-			} else {
-				// Faster execution in admin.
-				$settings['interval'] = 30;
-			}
+		if ( ! self::get_option_value( 'control_heartbeat_settings' ) ) {
+			return $settings;
 		}
+
+		if ( self::is_frontend() ) {
+			$interval = self::get_option_value( 'heartbeat_interval_frontend', 60 );
+		} elseif ( in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
+			$interval = self::get_option_value( 'heartbeat_interval_editor', 30 );
+		} else {
+			$interval = self::get_option_value( 'heartbeat_interval_dashboard', 60 );
+		}
+
+		// WordPress accepts 15 to 120 seconds.
+		$settings['interval'] = min( 120, max( 15, (int) $interval ) );
 
 		return $settings;
 	}
 
 	/**
-	 * Deregister Dashicons stylesheet on the frontend for non-admin users.
+	 * Deregister the Dashicons stylesheet on the frontend when the admin toolbar is hidden.
 	 *
-	 * This function checks if the current request is on the frontend and if the
-	 * current user does not have the 'manage_options' capability (typically admins).
-	 * If both conditions are met, it deregisters the 'dashicons' stylesheet.
+	 * Covers logged-out visitors and users without the toolbar. The admin-bar
+	 * stylesheet depends on Dashicons, so it is kept whenever the toolbar shows.
+	 *
+	 * @return void
 	 */
 	public static function deregister_dashicons_non_admin() {
-		if ( self::get_option_value( 'disable_dashicons_non_admin' ) ) {
-			// Check if we are on the frontend.
-			// is_admin() returns true if in the admin area, false otherwise.
-			if ( ! \is_admin() ) {
-				// Check if the current user does NOT have 'manage_options' capability.
-				// Users with 'manage_options' are typically administrators.
-				if ( ! \current_user_can( 'manage_options' ) ) {
-					// Deregister the 'dashicons' stylesheet.
-					// This prevents it from being enqueued on the frontend for non-admin users.
-					\wp_deregister_style( 'dashicons' );
-				}
-			}
+		if ( ! self::get_option_value( 'disable_dashicons_non_admin' ) ) {
+			return;
 		}
+
+		if ( \is_admin() || \is_admin_bar_showing() ) {
+			return;
+		}
+
+		\wp_deregister_style( 'dashicons' );
 	}
 
 	/**
@@ -204,27 +209,28 @@ final class Options_Dispatch {
 	}
 
 	/**
-	 * Remove oEmbed discovery links from <head> (prevents unnecessary requests).
+	 * Remove oEmbed discovery links, the wp-embed script and the oEmbed REST endpoint.
+	 *
+	 * External embeds (YouTube, Vimeo, etc.) in content keep working and stay sanitized,
+	 * only this site stops acting as an oEmbed provider for other sites.
+	 *
+	 * @return void
 	 */
 	public static function disable_wp_oembed() {
-		if ( self::get_option_value( 'disable_wp_oembed' ) ) {
-
-			\remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
-
-			// Remove oEmbed-specific JavaScript that loads on the frontend.
-			\remove_action( 'wp_head', 'wp_oembed_add_host_js' );
-
-			// Disable REST API oEmbed endpoints (prevents external sites from embedding WP content).
-			\remove_action( 'rest_api_init', 'wp_oembed_register_route' );
-
-			// Remove oEmbed filtering from content processing (stops WP auto-converting URLs).
-			\remove_filter( 'oembed_dataparse', 'wp_filter_oembed_result', 10 );
-			\remove_filter( 'oembed_response_data', 'get_oembed_response_data', 10 );
-
-			// Disable automatic oEmbed URL conversion for posts/comments.
-			\remove_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
-			\remove_filter( 'widget_text_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
+		if ( ! self::get_option_value( 'disable_wp_oembed' ) ) {
+			return;
 		}
+
+		// Discovery links in the page head, core hooks them at priority 4 and 10.
+		\remove_action( 'wp_head', 'wp_oembed_add_discovery_links', 4 );
+		\remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+
+		// wp-embed script, core checks this action before enqueueing it.
+		\remove_action( 'wp_head', 'wp_oembed_add_host_js' );
+		\remove_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' );
+
+		// oEmbed REST endpoint, other sites can no longer embed this site's posts.
+		\remove_action( 'rest_api_init', 'wp_oembed_register_route' );
 	}
 
 	/**
@@ -254,7 +260,7 @@ final class Options_Dispatch {
 	}
 
 	/**
-	 * Limit WordPress post revisions to 5.
+	 * Limit WordPress post revisions to the configured number.
 	 *
 	 * This reduces unnecessary database storage while retaining useful revisions for editing.
 	 *
@@ -264,8 +270,7 @@ final class Options_Dispatch {
 	 */
 	public static function limit_post_revisions( $num ) {
 		if ( self::get_option_value( 'limit_post_revisions' ) ) {
-			// Set the max number of revisions.
-			return 5;
+			return (int) self::get_option_value( 'post_revisions_limit', 5 );
 		}
 
 		return $num;
