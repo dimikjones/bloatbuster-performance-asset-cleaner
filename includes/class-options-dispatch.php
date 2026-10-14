@@ -34,6 +34,7 @@ final class Options_Dispatch {
 		\add_action( 'wp_default_scripts', array( __CLASS__, 'disable_jquery_migrate' ) );
 		\add_action( 'init', array( __CLASS__, 'remove_head_tags' ) );
 		\add_action( 'init', array( __CLASS__, 'disable_xmlrpc' ) );
+		\add_filter( 'wp_speculation_rules_configuration', array( __CLASS__, 'control_speculative_loading' ), 20 );
 	}
 
 	/**
@@ -522,5 +523,61 @@ final class Options_Dispatch {
 		unset( $headers['X-Pingback'] );
 
 		return $headers;
+	}
+
+	/**
+	 * Get the reason why speculative loading options can't be used.
+	 *
+	 * @return string - 'plugin' if the Speculative Loading plugin is active, 'core' if WordPress is older than 6.8, empty otherwise.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_speculative_loading_lock() {
+		if ( defined( 'SPECULATION_RULES_VERSION' ) ) {
+			return 'plugin';
+		}
+
+		if ( ! function_exists( 'wp_get_speculation_rules_configuration' ) ) {
+			return 'core';
+		}
+
+		return '';
+	}
+
+	/**
+	 * Apply the speculative loading mode and eagerness.
+	 *
+	 * @param array|null $config - Speculation rules configuration with mode and eagerness, or null when disabled.
+	 *
+	 * @return array|null - Filtered configuration.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function control_speculative_loading( $config ) {
+		if ( '' !== self::get_speculative_loading_lock() ) {
+			return $config;
+		}
+
+		$mode      = self::get_option_value( 'speculative_loading_mode' );
+		$eagerness = self::get_option_value( 'speculative_loading_eagerness' );
+
+		if ( 'disabled' === $mode ) {
+			return null;
+		}
+
+		// Core disables it for logged-in users and sites without pretty permalinks, keep that.
+		if ( ! is_array( $config ) ) {
+			return $config;
+		}
+
+		if ( in_array( $mode, array( 'prefetch', 'prerender' ), true ) ) {
+			$config['mode'] = $mode;
+		}
+
+		if ( in_array( $eagerness, array( 'conservative', 'moderate', 'eager' ), true ) ) {
+			$config['eagerness'] = $eagerness;
+		}
+
+		return $config;
 	}
 }

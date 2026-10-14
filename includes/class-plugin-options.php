@@ -175,6 +175,34 @@ final class Plugin_Options {
 			// Advanced.
 			array(
 				'tab'         => 'advanced',
+				'type'        => 'select',
+				'id'          => 'speculative_loading_mode',
+				'label'       => \__( 'Speculative loading mode', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Prerender loads pages faster than prefetch, but prefetch is safer for interactive content. Disabled turns speculative loading off completely.', 'bloatbuster-performance-asset-cleaner' ),
+				'options'     => array(
+					''          => \__( 'WordPress default', 'bloatbuster-performance-asset-cleaner' ),
+					'disabled'  => \__( 'Disabled', 'bloatbuster-performance-asset-cleaner' ),
+					'prefetch'  => \__( 'Prefetch', 'bloatbuster-performance-asset-cleaner' ),
+					'prerender' => \__( 'Prerender', 'bloatbuster-performance-asset-cleaner' ),
+				),
+				'locked'      => Options_Dispatch::get_speculative_loading_lock(),
+			),
+			array(
+				'tab'         => 'advanced',
+				'type'        => 'select',
+				'id'          => 'speculative_loading_eagerness',
+				'label'       => \__( 'Speculative loading eagerness', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open.', 'bloatbuster-performance-asset-cleaner' ),
+				'options'     => array(
+					''             => \__( 'WordPress default', 'bloatbuster-performance-asset-cleaner' ),
+					'conservative' => \__( 'Conservative (typically on click)', 'bloatbuster-performance-asset-cleaner' ),
+					'moderate'     => \__( 'Moderate (typically on hover)', 'bloatbuster-performance-asset-cleaner' ),
+					'eager'        => \__( 'Eager (on slightest suggestion)', 'bloatbuster-performance-asset-cleaner' ),
+				),
+				'locked'      => Options_Dispatch::get_speculative_loading_lock(),
+			),
+			array(
+				'tab'         => 'advanced',
 				'type'        => 'checkbox',
 				'id'          => 'delete_data_on_uninstall',
 				'label'       => \__( 'Delete plugin data on uninstall', 'bloatbuster-performance-asset-cleaner' ),
@@ -274,7 +302,7 @@ final class Plugin_Options {
 	}
 
 	/**
-	 * Sanitize the saved options, keeping only known toggles.
+	 * Sanitize the saved options, keeping only known fields and values.
 	 *
 	 * When saved from a tab, only that tab's fields are updated so the
 	 * other tabs keep their values.
@@ -302,6 +330,23 @@ final class Plugin_Options {
 
 		foreach ( self::get_fields() as $field ) {
 			if ( $is_tab && $field['tab'] !== $tab ) {
+				continue;
+			}
+
+			// Locked fields are not submitted, keep their stored value.
+			if ( ! empty( $field['locked'] ) ) {
+				continue;
+			}
+
+			if ( 'select' === $field['type'] ) {
+				$value = isset( $input[ $field['id'] ] ) ? \sanitize_key( $input[ $field['id'] ] ) : '';
+
+				if ( '' !== $value && isset( $field['options'][ $value ] ) ) {
+					$sanitized[ $field['id'] ] = $value;
+				} else {
+					unset( $sanitized[ $field['id'] ] );
+				}
+
 				continue;
 			}
 
@@ -355,9 +400,9 @@ final class Plugin_Options {
 	}
 
 	/**
-	 * Render a toggle or checkbox field.
+	 * Render a toggle, checkbox or select field.
 	 *
-	 * @param array $args - Field data with type, id, label and description.
+	 * @param array $args - Field data with type, id, label, description and optional options and locked.
 	 *
 	 * @return void
 	 *
@@ -367,8 +412,19 @@ final class Plugin_Options {
 		$options     = \get_option( BLOATBUSTER_OPTION );
 		$option_name = BLOATBUSTER_OPTION . '[' . $args['id'] . ']';
 		$value       = ( ! empty( $options ) && ! empty( $options[ $args['id'] ] ) ) ? $options[ $args['id'] ] : '';
+		$is_locked   = ! empty( $args['locked'] );
 
-		if ( 'checkbox' === $args['type'] ) {
+		if ( 'select' === $args['type'] ) {
+			?>
+			<div class="bbpac-field select">
+				<select name="<?php echo \esc_attr( $option_name ); ?>" <?php \disabled( $is_locked ); ?>>
+					<?php foreach ( $args['options'] as $option_value => $option_label ) : ?>
+						<option value="<?php echo \esc_attr( $option_value ); ?>" <?php \selected( $value, $option_value ); ?>><?php echo \esc_html( $option_label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+			<?php
+		} elseif ( 'checkbox' === $args['type'] ) {
 			?>
 			<div class="bbpac-field checkbox">
 				<input type="checkbox" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?>>
@@ -387,6 +443,34 @@ final class Plugin_Options {
 
 		if ( ! empty( $args['description'] ) ) {
 			echo '<p class="description">' . \esc_html( $args['description'] ) . '</p>';
+		}
+
+		if ( $is_locked ) {
+			self::render_locked_notice( $args['locked'] );
+		}
+	}
+
+	/**
+	 * Render the notice explaining why a field is locked.
+	 *
+	 * @param string $reason - Lock reason, 'plugin' or 'core'.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_locked_notice( $reason ) {
+		if ( 'plugin' === $reason ) {
+			?>
+			<p class="description bbpac-locked">
+				<?php \esc_html_e( 'Speculative loading is already configured by the Speculative Loading plugin.', 'bloatbuster-performance-asset-cleaner' ); ?>
+				<a href="<?php echo \esc_url( \admin_url( 'options-reading.php#speculative-loading' ) ); ?>"><?php \esc_html_e( 'Go to its settings', 'bloatbuster-performance-asset-cleaner' ); ?></a>
+			</p>
+			<?php
+		} elseif ( 'core' === $reason ) {
+			?>
+			<p class="description bbpac-locked"><?php \esc_html_e( 'Speculative loading requires WordPress 6.8 or newer.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			<?php
 		}
 	}
 

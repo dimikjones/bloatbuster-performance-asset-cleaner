@@ -28,6 +28,7 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable capital_P_dangit
 * Remove unnecessary head tags
 * Disable XML-RPC
+* Control speculative loading mode and eagerness
 * Disable comments site-wide
 
 == Installation ==

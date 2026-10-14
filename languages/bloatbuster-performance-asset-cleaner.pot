@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-14T22:04:52+02:00\n"
+"POT-Creation-Date: 2026-10-14T22:22:20+02:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "https://www.linkedin.com/in/diwebdeveloper/"
 msgstr ""
 
-#: includes/class-options-dispatch.php:497
+#: includes/class-options-dispatch.php:498
 msgid "XML-RPC is disabled on this site."
 msgstr ""
 
@@ -183,21 +183,78 @@ msgid "Control the Heartbeat API execution based on user area (30s for admin and
 msgstr ""
 
 #: includes/class-plugin-options.php:180
-msgid "Delete plugin data on uninstall"
+msgid "Speculative loading mode"
 msgstr ""
 
 #: includes/class-plugin-options.php:181
+msgid "Prerender loads pages faster than prefetch, but prefetch is safer for interactive content. Disabled turns speculative loading off completely."
+msgstr ""
+
+#: includes/class-plugin-options.php:183
+#: includes/class-plugin-options.php:197
+msgid "WordPress default"
+msgstr ""
+
+#: includes/class-plugin-options.php:184
+msgid "Disabled"
+msgstr ""
+
+#: includes/class-plugin-options.php:185
+msgid "Prefetch"
+msgstr ""
+
+#: includes/class-plugin-options.php:186
+msgid "Prerender"
+msgstr ""
+
+#: includes/class-plugin-options.php:194
+msgid "Speculative loading eagerness"
+msgstr ""
+
+#: includes/class-plugin-options.php:195
+msgid "When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open."
+msgstr ""
+
+#: includes/class-plugin-options.php:198
+msgid "Conservative (typically on click)"
+msgstr ""
+
+#: includes/class-plugin-options.php:199
+msgid "Moderate (typically on hover)"
+msgstr ""
+
+#: includes/class-plugin-options.php:200
+msgid "Eager (on slightest suggestion)"
+msgstr ""
+
+#: includes/class-plugin-options.php:208
+msgid "Delete plugin data on uninstall"
+msgstr ""
+
+#: includes/class-plugin-options.php:209
 msgid "Remove all BloatBuster settings from the database when the plugin is deleted."
 msgstr ""
 
-#: includes/class-plugin-options.php:332
+#: includes/class-plugin-options.php:377
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:341
+#: includes/class-plugin-options.php:386
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
-#: includes/class-plugin-options.php:421
+#: includes/class-plugin-options.php:466
+msgid "Speculative loading is already configured by the Speculative Loading plugin."
+msgstr ""
+
+#: includes/class-plugin-options.php:467
+msgid "Go to its settings"
+msgstr ""
+
+#: includes/class-plugin-options.php:472
+msgid "Speculative loading requires WordPress 6.8 or newer."
+msgstr ""
+
+#: includes/class-plugin-options.php:505
 msgid "BloatBuster"
 msgstr ""
