@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-14T21:52:45+02:00\n"
+"POT-Creation-Date: 2026-10-14T22:04:52+02:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -32,6 +32,10 @@ msgstr ""
 #. Author URI of the plugin
 #: bloatbuster-performance-asset-cleaner.php
 msgid "https://www.linkedin.com/in/diwebdeveloper/"
+msgstr ""
+
+#: includes/class-options-dispatch.php:497
+msgid "XML-RPC is disabled on this site."
 msgstr ""
 
 #: includes/class-plugin-options.php:42
@@ -98,78 +102,102 @@ msgstr ""
 msgid "Disable default WordPress Dashicons styles on frontend for non-admin users."
 msgstr ""
 
-#: includes/class-plugin-options.php:106
-msgid "Disable all oEmbed-related scripts"
+#: includes/class-plugin-options.php:104
+msgid "Disable jQuery Migrate"
 msgstr ""
 
-#: includes/class-plugin-options.php:107
-msgid "Disable all oEmbed-related scripts and discovery links from WordPress."
+#: includes/class-plugin-options.php:105
+msgid "Stop loading jQuery Migrate on the frontend. It stays active in the admin area."
 msgstr ""
 
 #: includes/class-plugin-options.php:113
-msgid "Disable comments"
+msgid "Disable all oEmbed-related scripts"
 msgstr ""
 
 #: includes/class-plugin-options.php:114
-msgid "Disable comments, pingbacks and trackbacks across the entire site, including the admin area."
+msgid "Disable all oEmbed-related scripts and discovery links from WordPress."
 msgstr ""
 
 #: includes/class-plugin-options.php:120
-msgid "Disable self-pingbacks"
+msgid "Disable comments"
 msgstr ""
 
 #: includes/class-plugin-options.php:121
-msgid "Disable self-pingbacks in WordPress to prevent unnecessary notifications."
+msgid "Disable comments, pingbacks and trackbacks across the entire site, including the admin area."
 msgstr ""
 
 #: includes/class-plugin-options.php:127
-msgid "Limit post revisions"
+msgid "Disable self-pingbacks"
 msgstr ""
 
 #: includes/class-plugin-options.php:128
-msgid "Limit WordPress post revisions to 5."
+msgid "Disable self-pingbacks in WordPress to prevent unnecessary notifications."
 msgstr ""
 
 #: includes/class-plugin-options.php:134
-msgid "Disable capital_P_dangit"
+msgid "Limit post revisions"
 msgstr ""
 
 #: includes/class-plugin-options.php:135
+msgid "Limit WordPress post revisions to 5."
+msgstr ""
+
+#: includes/class-plugin-options.php:141
+msgid "Disable capital_P_dangit"
+msgstr ""
+
+#: includes/class-plugin-options.php:142
 msgid "It prevents WordPress from auto-correcting \"wordpress\" to \"WordPress.\""
 msgstr ""
 
-#: includes/class-plugin-options.php:143
+#: includes/class-plugin-options.php:148
+msgid "Remove unnecessary head tags"
+msgstr ""
+
+#: includes/class-plugin-options.php:149
+msgid "Remove the WordPress version, RSD, Windows Live Writer, shortlink, REST API and adjacent post links from the page head and HTTP headers."
+msgstr ""
+
+#: includes/class-plugin-options.php:155
+msgid "Disable XML-RPC"
+msgstr ""
+
+#: includes/class-plugin-options.php:156
+msgid "Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app."
+msgstr ""
+
+#: includes/class-plugin-options.php:164
 msgid "Disable Heartbeat API on the frontend"
 msgstr ""
 
-#: includes/class-plugin-options.php:144
+#: includes/class-plugin-options.php:165
 msgid "Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor."
 msgstr ""
 
-#: includes/class-plugin-options.php:150
+#: includes/class-plugin-options.php:171
 msgid "Control the Heartbeat API execution"
 msgstr ""
 
-#: includes/class-plugin-options.php:151
+#: includes/class-plugin-options.php:172
 msgid "Control the Heartbeat API execution based on user area (30s for admin and 60s for frontend)."
 msgstr ""
 
-#: includes/class-plugin-options.php:159
+#: includes/class-plugin-options.php:180
 msgid "Delete plugin data on uninstall"
 msgstr ""
 
-#: includes/class-plugin-options.php:160
+#: includes/class-plugin-options.php:181
 msgid "Remove all BloatBuster settings from the database when the plugin is deleted."
 msgstr ""
 
-#: includes/class-plugin-options.php:311
+#: includes/class-plugin-options.php:332
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:320
+#: includes/class-plugin-options.php:341
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
-#: includes/class-plugin-options.php:400
+#: includes/class-plugin-options.php:421
 msgid "BloatBuster"
 msgstr ""

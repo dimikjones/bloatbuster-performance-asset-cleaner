@@ -31,6 +31,9 @@ final class Options_Dispatch {
 		\add_filter( 'wp_revisions_to_keep', array( __CLASS__, 'limit_post_revisions' ) );
 		\add_action( 'init', array( __CLASS__, 'disable_capital_p_dangit' ) );
 		\add_action( 'init', array( __CLASS__, 'disable_comments' ) );
+		\add_action( 'wp_default_scripts', array( __CLASS__, 'disable_jquery_migrate' ) );
+		\add_action( 'init', array( __CLASS__, 'remove_head_tags' ) );
+		\add_action( 'init', array( __CLASS__, 'disable_xmlrpc' ) );
 	}
 
 	/**
@@ -423,5 +426,101 @@ final class Options_Dispatch {
 		unset( $methods['wp.newComment'] );
 
 		return $methods;
+	}
+
+	/**
+	 * Remove jQuery Migrate from the jQuery dependencies on the frontend.
+	 *
+	 * @param \WP_Scripts $scripts - Default scripts instance.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_jquery_migrate( $scripts ) {
+		if ( \is_admin() || ! self::get_option_value( 'disable_jquery_migrate' ) ) {
+			return;
+		}
+
+		if ( empty( $scripts->registered['jquery'] ) ) {
+			return;
+		}
+
+		$scripts->registered['jquery']->deps = array_diff( $scripts->registered['jquery']->deps, array( 'jquery-migrate' ) );
+	}
+
+	/**
+	 * Remove unnecessary tags from the page head and HTTP headers.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_head_tags() {
+		if ( ! self::get_option_value( 'remove_head_tags' ) ) {
+			return;
+		}
+
+		// Page head tags.
+		\remove_action( 'wp_head', 'rsd_link' );
+		\remove_action( 'wp_head', 'wlwmanifest_link' );
+		\remove_action( 'wp_head', 'wp_generator' );
+		\remove_action( 'wp_head', 'wp_shortlink_wp_head' );
+		\remove_action( 'wp_head', 'rest_output_link_wp_head' );
+		\remove_action( 'wp_head', 'adjacent_posts_rel_link_wp_head' );
+
+		// HTTP headers.
+		\remove_action( 'template_redirect', 'rest_output_link_header', 11 );
+		\remove_action( 'template_redirect', 'wp_shortlink_header', 11 );
+
+		// WordPress version in feeds.
+		\add_filter( 'the_generator', '__return_empty_string' );
+	}
+
+	/**
+	 * Disable XML-RPC completely, including pingbacks.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_xmlrpc() {
+		if ( ! self::get_option_value( 'disable_xmlrpc' ) ) {
+			return;
+		}
+
+		// Block direct requests to xmlrpc.php, system.* methods can't be removed by filters.
+		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
+			// wp_die() can't be used here, its XML-RPC handler needs IXR classes not loaded yet.
+			\status_header( 403 );
+			header( 'Content-Type: text/plain; charset=utf-8' );
+			echo \esc_html__( 'XML-RPC is disabled on this site.', 'bloatbuster-performance-asset-cleaner' );
+			exit;
+		}
+
+		// Disables authenticated methods.
+		\add_filter( 'xmlrpc_enabled', '__return_false' );
+
+		// Disables all remaining methods, like pingback.ping.
+		\add_filter( 'xmlrpc_methods', '__return_empty_array', 999 );
+
+		// Remove X-Pingback header and the RSD link pointing to xmlrpc.php.
+		\add_filter( 'wp_headers', array( __CLASS__, 'remove_x_pingback_header' ) );
+		\remove_action( 'wp_head', 'rsd_link' );
+	}
+
+	/**
+	 * Remove the X-Pingback HTTP header.
+	 *
+	 * @param array $headers - HTTP headers.
+	 *
+	 * @return array - Filtered HTTP headers.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_x_pingback_header( $headers ) {
+		unset( $headers['X-Pingback'] );
+
+		return $headers;
 	}
 }

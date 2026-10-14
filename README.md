@@ -8,9 +8,12 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable the Heartbeat API on the frontend
 * Control Heartbeat API execution (30s admin, 60s frontend)
 * Disable Dashicons for non-admin users
+* Disable jQuery Migrate on the frontend
 * Disable emoji scripts and styles
 * Disable oEmbed scripts and discovery links
 * Disable self-pingbacks
 * Limit post revisions to 5
 * Disable capital_P_dangit
+* Remove unnecessary head tags
+* Disable XML-RPC
 * Disable comments site-wide

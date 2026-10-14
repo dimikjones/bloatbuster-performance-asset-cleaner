@@ -97,6 +97,13 @@ final class Plugin_Options {
 				'label'       => \__( 'Disable Dashicons for non-admin', 'bloatbuster-performance-asset-cleaner' ),
 				'description' => \__( 'Disable default WordPress Dashicons styles on frontend for non-admin users.', 'bloatbuster-performance-asset-cleaner' ),
 			),
+			array(
+				'tab'         => 'assets',
+				'type'        => 'toggle',
+				'id'          => 'disable_jquery_migrate',
+				'label'       => \__( 'Disable jQuery Migrate', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Stop loading jQuery Migrate on the frontend. It stays active in the admin area.', 'bloatbuster-performance-asset-cleaner' ),
+			),
 
 			// WordPress Core.
 			array(
@@ -133,6 +140,20 @@ final class Plugin_Options {
 				'id'          => 'disable_capital_p_dangit',
 				'label'       => \__( 'Disable capital_P_dangit', 'bloatbuster-performance-asset-cleaner' ),
 				'description' => \__( 'It prevents WordPress from auto-correcting "wordpress" to "WordPress."', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'tab'         => 'core',
+				'type'        => 'toggle',
+				'id'          => 'remove_head_tags',
+				'label'       => \__( 'Remove unnecessary head tags', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Remove the WordPress version, RSD, Windows Live Writer, shortlink, REST API and adjacent post links from the page head and HTTP headers.', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'tab'         => 'core',
+				'type'        => 'toggle',
+				'id'          => 'disable_xmlrpc',
+				'label'       => \__( 'Disable XML-RPC', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 
 			// Background Processes.
