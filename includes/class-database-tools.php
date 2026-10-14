@@ -146,6 +146,86 @@ final class Database_Tools {
 	}
 
 	/**
+	 * Get the autoload column values that WordPress loads on every request.
+	 *
+	 * @return array - Autoload values.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_autoload_values() {
+		if ( function_exists( 'wp_autoload_values_to_autoload' ) ) {
+			return \wp_autoload_values_to_autoload();
+		}
+
+		return array( 'yes' );
+	}
+
+	/**
+	 * Get the count and total size of autoloaded options.
+	 *
+	 * @return array - Summary with count, size in bytes and recommended limit in bytes.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_autoload_summary() {
+		global $wpdb;
+
+		$values       = self::get_autoload_values();
+		$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Live report, placeholders built from the values count.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT COUNT(*) AS total, SUM(LENGTH(option_value)) AS size FROM {$wpdb->options} WHERE autoload IN ( {$placeholders} )",
+				$values
+			)
+		);
+		// phpcs:enable
+
+		return array(
+			'count' => isset( $row->total ) ? (int) $row->total : 0,
+			'size'  => isset( $row->size ) ? (int) $row->size : 0,
+			/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+			'limit' => (int) \apply_filters( 'site_status_autoloaded_options_size_limit', 800000 ),
+		);
+	}
+
+	/**
+	 * Get the largest autoloaded options.
+	 *
+	 * @param int $limit - Maximum number of options to return.
+	 *
+	 * @return array - List of options with name and size in bytes.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_largest_autoloaded_options( $limit = 20 ) {
+		global $wpdb;
+
+		$values       = self::get_autoload_values();
+		$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+		$options      = array();
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Live report, placeholders built from the values count.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT option_name AS name, LENGTH(option_value) AS size FROM {$wpdb->options} WHERE autoload IN ( {$placeholders} ) ORDER BY size DESC LIMIT %d",
+				array_merge( $values, array( \absint( $limit ) ) )
+			)
+		);
+		// phpcs:enable
+
+		foreach ( $rows as $row ) {
+			$options[] = array(
+				'name' => $row->name,
+				'size' => (int) $row->size,
+			);
+		}
+
+		return $options;
+	}
+
+	/**
 	 * Delete expired transients from the database.
 	 *
 	 * @return int - Number of deleted transients.

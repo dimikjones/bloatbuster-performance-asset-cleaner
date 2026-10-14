@@ -263,3 +263,19 @@
 		}
 	}
 }
+#bloatbuster-performance-asset-cleaner-options {
+
+	.bbpac-status-good {
+		color: var(--bbpac-active-color);
+	}
+
+	.bbpac-status-warning {
+		color: #b32d2e;
+	}
+
+	.bbpac-autoload,
+	.bbpac-transients {
+		max-width: 700px;
+		margin: 8px 0;
+	}
+}

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-14T22:40:49+02:00\n"
+"POT-Creation-Date: 2026-10-14T22:53:32+02:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "https://www.linkedin.com/in/diwebdeveloper/"
 msgstr ""
 
-#: includes/class-database-tools.php:175
+#: includes/class-database-tools.php:255
 msgid "You are not allowed to do this."
 msgstr ""
 
@@ -187,142 +187,177 @@ msgid "Control the Heartbeat API execution based on user area (30s for admin and
 msgstr ""
 
 #: includes/class-plugin-options.php:180
-msgid "Clean expired transients"
+msgid "Autoloaded options"
 msgstr ""
 
 #: includes/class-plugin-options.php:181
+msgid "Options WordPress loads on every page request. Large values here slow down the whole site."
+msgstr ""
+
+#: includes/class-plugin-options.php:187
+msgid "Clean expired transients"
+msgstr ""
+
+#: includes/class-plugin-options.php:188
 msgid "Delete transients that have expired but are still stored in the database."
 msgstr ""
 
-#: includes/class-plugin-options.php:182
+#: includes/class-plugin-options.php:189
 msgid "Clean now"
 msgstr ""
 
-#: includes/class-plugin-options.php:190
+#: includes/class-plugin-options.php:197
 msgid "Speculative loading mode"
 msgstr ""
 
-#: includes/class-plugin-options.php:191
+#: includes/class-plugin-options.php:198
 msgid "Prerender loads pages faster than prefetch, but prefetch is safer for interactive content. Disabled turns speculative loading off completely."
 msgstr ""
 
-#: includes/class-plugin-options.php:193
-#: includes/class-plugin-options.php:207
+#: includes/class-plugin-options.php:200
+#: includes/class-plugin-options.php:214
 msgid "WordPress default"
 msgstr ""
 
-#: includes/class-plugin-options.php:194
+#: includes/class-plugin-options.php:201
 msgid "Disabled"
 msgstr ""
 
-#: includes/class-plugin-options.php:195
+#: includes/class-plugin-options.php:202
 msgid "Prefetch"
 msgstr ""
 
-#: includes/class-plugin-options.php:196
+#: includes/class-plugin-options.php:203
 msgid "Prerender"
 msgstr ""
 
-#: includes/class-plugin-options.php:204
+#: includes/class-plugin-options.php:211
 msgid "Speculative loading eagerness"
 msgstr ""
 
-#: includes/class-plugin-options.php:205
+#: includes/class-plugin-options.php:212
 msgid "When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open."
 msgstr ""
 
-#: includes/class-plugin-options.php:208
+#: includes/class-plugin-options.php:215
 msgid "Conservative (typically on click)"
 msgstr ""
 
-#: includes/class-plugin-options.php:209
+#: includes/class-plugin-options.php:216
 msgid "Moderate (typically on hover)"
 msgstr ""
 
-#: includes/class-plugin-options.php:210
+#: includes/class-plugin-options.php:217
 msgid "Eager (on slightest suggestion)"
 msgstr ""
 
-#: includes/class-plugin-options.php:218
+#: includes/class-plugin-options.php:225
 msgid "Delete plugin data on uninstall"
 msgstr ""
 
-#: includes/class-plugin-options.php:219
+#: includes/class-plugin-options.php:226
 msgid "Remove all BloatBuster settings from the database when the plugin is deleted."
 msgstr ""
 
-#: includes/class-plugin-options.php:387
+#: includes/class-plugin-options.php:394
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:398
+#: includes/class-plugin-options.php:405
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
 #. translators: %d: number of deleted transients.
-#: includes/class-plugin-options.php:456
+#: includes/class-plugin-options.php:476
 msgid "Deleted %d expired transient."
 msgid_plural "Deleted %d expired transients."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-plugin-options.php:543
+#: includes/class-plugin-options.php:575
 msgid "An object cache is active, so transients are mostly stored there. Only database rows are cleaned."
 msgstr ""
 
-#: includes/class-plugin-options.php:559
+#. translators: 1: number of autoloaded options, 2: total size, e.g. 512 KB.
+#: includes/class-plugin-options.php:595
+msgid "%1$d autoloaded options, %2$s in total."
+msgstr ""
+
+#. translators: %s: recommended size limit, e.g. 781 KB.
+#: includes/class-plugin-options.php:602
+msgid "Too large: above the recommended limit of %s."
+msgstr ""
+
+#: includes/class-plugin-options.php:604
+msgid "Check Site Health"
+msgstr ""
+
+#. translators: %s: recommended size limit, e.g. 781 KB.
+#: includes/class-plugin-options.php:610
+msgid "Good: below the recommended limit of %s."
+msgstr ""
+
+#: includes/class-plugin-options.php:618
+msgid "Largest options"
+msgstr ""
+
+#: includes/class-plugin-options.php:619
+msgid "Size"
+msgstr ""
+
+#: includes/class-plugin-options.php:647
 msgid "No expired transients found."
 msgstr ""
 
 #. translators: %d: number of expired transients.
-#: includes/class-plugin-options.php:568
+#: includes/class-plugin-options.php:656
 msgid "Expired transients in database: %d"
 msgstr ""
 
-#: includes/class-plugin-options.php:574
+#: includes/class-plugin-options.php:662
 msgid "Name"
 msgstr ""
 
-#: includes/class-plugin-options.php:575
+#: includes/class-plugin-options.php:663
 msgid "Type"
 msgstr ""
 
-#: includes/class-plugin-options.php:576
+#: includes/class-plugin-options.php:664
 msgid "Expired"
 msgstr ""
 
-#: includes/class-plugin-options.php:583
+#: includes/class-plugin-options.php:671
 msgid "Network"
 msgstr ""
 
-#: includes/class-plugin-options.php:583
+#: includes/class-plugin-options.php:671
 msgid "Site"
 msgstr ""
 
 #. translators: %s: human readable time difference, e.g. 5 minutes.
-#: includes/class-plugin-options.php:587
+#: includes/class-plugin-options.php:675
 msgid "%s ago"
 msgstr ""
 
 #. translators: %d: number of expired transients not shown in the list.
-#: includes/class-plugin-options.php:599
+#: includes/class-plugin-options.php:687
 msgid "And %d more."
 msgid_plural "And %d more."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-plugin-options.php:618
+#: includes/class-plugin-options.php:706
 msgid "Speculative loading is already configured by the Speculative Loading plugin."
 msgstr ""
 
-#: includes/class-plugin-options.php:619
+#: includes/class-plugin-options.php:707
 msgid "Go to its settings"
 msgstr ""
 
-#: includes/class-plugin-options.php:624
+#: includes/class-plugin-options.php:712
 msgid "Speculative loading requires WordPress 6.8 or newer."
 msgstr ""
 
-#: includes/class-plugin-options.php:657
+#: includes/class-plugin-options.php:745
 msgid "BloatBuster"
 msgstr ""

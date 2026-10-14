@@ -30,6 +30,7 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable XML-RPC
 * Control speculative loading mode and eagerness
 * Manually clean expired transients
+* Autoloaded options summary
 * Disable comments site-wide
 
 == Installation ==

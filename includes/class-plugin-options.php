@@ -175,6 +175,13 @@ final class Plugin_Options {
 			// Database.
 			array(
 				'tab'         => 'database',
+				'type'        => 'report',
+				'id'          => 'autoload_summary',
+				'label'       => \__( 'Autoloaded options', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Options WordPress loads on every page request. Large values here slow down the whole site.', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'tab'         => 'database',
 				'type'        => 'action',
 				'id'          => 'clean_expired_transients',
 				'label'       => \__( 'Clean expired transients', 'bloatbuster-performance-asset-cleaner' ),
@@ -344,7 +351,7 @@ final class Plugin_Options {
 			}
 
 			// Locked fields are not submitted, keep their stored value. Actions store nothing.
-			if ( ! empty( $field['locked'] ) || 'action' === $field['type'] ) {
+			if ( ! empty( $field['locked'] ) || ! self::is_saved_field( $field ) ) {
 				continue;
 			}
 
@@ -424,18 +431,31 @@ final class Plugin_Options {
 	 *
 	 * @param string $tab - Tab slug.
 	 *
-	 * @return bool - True if the tab has at least one non-action field.
+	 * @return bool - True if the tab has at least one saved field.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function tab_has_settings( $tab ) {
 		foreach ( self::get_fields() as $field ) {
-			if ( $tab === $field['tab'] && 'action' !== $field['type'] ) {
+			if ( $tab === $field['tab'] && self::is_saved_field( $field ) ) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Check if a field is saved as an option. Actions and reports are not.
+	 *
+	 * @param array $field - Field data.
+	 *
+	 * @return bool - True if the field value is saved.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_saved_field( $field ) {
+		return ! in_array( $field['type'], array( 'action', 'report' ), true );
 	}
 
 	/**
@@ -460,7 +480,7 @@ final class Plugin_Options {
 	}
 
 	/**
-	 * Render a toggle, checkbox, select or action field.
+	 * Render a toggle, checkbox, select, action or report field.
 	 *
 	 * @param array $args - Field data with type, id, label, description and optional options, locked and button.
 	 *
@@ -476,6 +496,18 @@ final class Plugin_Options {
 
 		if ( 'action' === $args['type'] ) {
 			self::render_action_field( $args );
+			return;
+		}
+
+		if ( 'report' === $args['type'] ) {
+			if ( 'autoload_summary' === $args['id'] ) {
+				self::render_autoload_summary();
+			}
+
+			if ( ! empty( $args['description'] ) ) {
+				echo '<p class="description">' . \esc_html( $args['description'] ) . '</p>';
+			}
+
 			return;
 		}
 
@@ -542,6 +574,62 @@ final class Plugin_Options {
 		if ( 'clean_expired_transients' === $args['id'] && \wp_using_ext_object_cache() ) {
 			echo '<p class="description">' . \esc_html__( 'An object cache is active, so transients are mostly stored there. Only database rows are cleaned.', 'bloatbuster-performance-asset-cleaner' ) . '</p>';
 		}
+	}
+
+	/**
+	 * Render the autoloaded options summary, status and largest options.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_autoload_summary() {
+		$summary  = Database_Tools::get_autoload_summary();
+		$largest  = Database_Tools::get_largest_autoloaded_options( 20 );
+		$too_big  = $summary['size'] > $summary['limit'];
+		$limit_size = \size_format( $summary['limit'] );
+		?>
+		<p>
+			<?php
+			/* translators: 1: number of autoloaded options, 2: total size, e.g. 512 KB. */
+			echo \esc_html( sprintf( \__( '%1$d autoloaded options, %2$s in total.', 'bloatbuster-performance-asset-cleaner' ), $summary['count'], \size_format( $summary['size'], 1 ) ) );
+			?>
+		</p>
+		<?php if ( $too_big ) : ?>
+			<p class="bbpac-status-warning">
+				<?php
+				/* translators: %s: recommended size limit, e.g. 781 KB. */
+				echo \esc_html( sprintf( \__( 'Too large: above the recommended limit of %s.', 'bloatbuster-performance-asset-cleaner' ), $limit_size ) );
+				?>
+				<a href="<?php echo \esc_url( \admin_url( 'site-health.php' ) ); ?>"><?php \esc_html_e( 'Check Site Health', 'bloatbuster-performance-asset-cleaner' ); ?></a>
+			</p>
+		<?php else : ?>
+			<p class="bbpac-status-good">
+				<?php
+				/* translators: %s: recommended size limit, e.g. 781 KB. */
+				echo \esc_html( sprintf( \__( 'Good: below the recommended limit of %s.', 'bloatbuster-performance-asset-cleaner' ), $limit_size ) );
+				?>
+			</p>
+		<?php endif; ?>
+		<?php if ( ! empty( $largest ) ) : ?>
+			<table class="widefat striped bbpac-autoload">
+				<thead>
+					<tr>
+						<th><?php \esc_html_e( 'Largest options', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th><?php \esc_html_e( 'Size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $largest as $option ) : ?>
+						<tr>
+							<td><code><?php echo \esc_html( $option['name'] ); ?></code></td>
+							<td><?php echo \esc_html( \size_format( $option['size'], 1 ) ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<?php
+		endif;
 	}
 
 	/**
