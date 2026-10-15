@@ -346,9 +346,10 @@ final class Plugin_Options {
 		);
 
 		foreach ( self::get_tabs() as $slug => $tab ) {
+			// Empty title, render_section() prints the title and description inside one wrapper.
 			\add_settings_section(
 				$slug,
-				$tab['label'],
+				'',
 				array( __CLASS__, 'render_section' ),
 				self::get_tab_page( $slug )
 			);
@@ -787,7 +788,7 @@ final class Plugin_Options {
 	}
 
 	/**
-	 * Render the tab section intro.
+	 * Render the tab section title and description in one wrapper.
 	 *
 	 * @param array $args - Section data with id, title and callback.
 	 *
@@ -798,11 +799,18 @@ final class Plugin_Options {
 	public static function render_section( $args ) {
 		$tabs = self::get_tabs();
 
-		if ( empty( $tabs[ $args['id'] ]['description'] ) ) {
+		if ( empty( $tabs[ $args['id'] ] ) ) {
 			return;
 		}
+
+		$tab = $tabs[ $args['id'] ];
 		?>
-		<p><?php echo \esc_html( $tabs[ $args['id'] ]['description'] ); ?></p>
+		<div class="bbpac-section-description">
+			<h2><?php echo \esc_html( $tab['label'] ); ?></h2>
+			<?php if ( ! empty( $tab['description'] ) ) : ?>
+				<p><?php echo \esc_html( $tab['description'] ); ?></p>
+			<?php endif; ?>
+		</div>
 		<?php
 	}
 
