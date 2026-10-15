@@ -13,12 +13,11 @@
 }
 
 .toplevel_page_bloatbuster_performance_asset_cleaner_options {
+  #wpwrap {
+    background: #fcfcfc;
+  }
   #wpcontent {
     padding-left: 0;
-  }
-
-  #wpbody {
-    background: #fcfcfc;
   }
 }
 
@@ -40,10 +39,24 @@
     }
   }
 
+  .nav-tab-wrapper {
+    border-bottom: 1px solid var(--bbpac-main-color);
+    .nav-tab {
+      &:first-of-type {
+        margin-left: 0;
+      }
+    }
+
+    .nav-tab-active,
+    .nav-tab-active:hover {
+      border-bottom-color: var(--bbpac-main-color);
+    }
+  }
+
   .bbpac-section-description {
     background: #fff;
     padding: 10px;
-    border-bottom: 1px solid #c3c4c7;
+    border-bottom: 1px solid var(--bbpac-main-color);
 
     > h2 {
       display: none;
@@ -59,21 +72,26 @@
     padding: 10px;
   }
 
+  // Child combinators so nested tables (Database tab reports) keep WP core table styles.
   .form-table {
-    td,
-    td p,
-    th {
+    > tbody > tr > td,
+    > tbody > tr > td p,
+    > tbody > tr > th {
       font-size: 15px;
     }
 
-    th {
+    > tbody > tr > th {
       width: auto;
       padding: 0;
       color: var(--bbpac-main-color);
       font-weight: 700;
     }
 
-    tr {
+    > tbody > tr > td p {
+      color: #313131;
+    }
+
+    > tbody > tr {
       position: relative;
       display: flex;
       flex-direction: column;
@@ -87,10 +105,10 @@
       }
     }
 
-    td {
+    > tbody > tr > td {
       padding: 0;
 
-      .bbpac-field {
+      > .bbpac-field {
         position: absolute;
         left: 100%;
         width: 65%;
@@ -295,18 +313,35 @@
   }
 }
 #bloatbuster-performance-asset-cleaner-options {
-  .bbpac-status-good {
-    color: var(--bbpac-active-color);
-  }
+  .form-table {
+    > tbody {
+      > tr {
+        > td {
+          .bbpac-status-good {
+            color: var(--bbpac-active-color);
+          }
 
-  .bbpac-status-warning {
-    color: #b32d2e;
+          .bbpac-status-warning {
+            color: #b32d2e;
+          }
+        }
+      }
+    }
   }
 
   .bbpac-autoload,
   .bbpac-transients {
-    max-width: 700px;
     margin: 8px 0;
+
+    thead {
+      th {
+        padding: 15px 10px;
+      }
+    }
+
+    td {
+      padding: 10px 10px;
+    }
   }
 
   .form-table tr.bbpac-hidden {
