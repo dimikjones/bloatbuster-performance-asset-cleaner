@@ -37,6 +37,13 @@ Options_Dispatch::hooks();
 
 // Settings page and its assets.
 if ( \is_admin() ) {
+	require_once BLOATBUSTER_DIR . '/includes/settings/class-fields.php';
+	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-settings-tab.php';
+	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-assets.php';
+	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-core.php';
+	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-database.php';
+	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-background.php';
+	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-advanced.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-plugin-options.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-admin-assets.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-database-tools.php';

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-15T23:34:21+02:00\n"
+"POT-Creation-Date: 2026-10-16T22:18:00+02:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -42,354 +42,354 @@ msgstr ""
 msgid "XML-RPC is disabled on this site."
 msgstr ""
 
-#: includes/class-plugin-options.php:42
-msgid "Assets"
-msgstr ""
-
-#: includes/class-plugin-options.php:43
-msgid "Remove styles and scripts WordPress loads on the frontend that your site may not need."
-msgstr ""
-
-#: includes/class-plugin-options.php:46
-msgid "WordPress Core"
-msgstr ""
-
-#: includes/class-plugin-options.php:47
-msgid "Turn off WordPress core features you do not use, like oEmbed, comments and pingbacks."
-msgstr ""
-
-#: includes/class-plugin-options.php:50
-msgid "Database"
-msgstr ""
-
-#: includes/class-plugin-options.php:51
-msgid "Clean up data WordPress no longer needs."
-msgstr ""
-
-#: includes/class-plugin-options.php:54
-msgid "Background Processes"
-msgstr ""
-
-#: includes/class-plugin-options.php:55
-msgid "Control how often WordPress runs background requests like the Heartbeat API."
-msgstr ""
-
-#: includes/class-plugin-options.php:58
-msgid "Advanced"
-msgstr ""
-
-#: includes/class-plugin-options.php:59
-msgid "Plugin behavior settings."
-msgstr ""
-
-#: includes/class-plugin-options.php:83
-msgid "Disable Gutenberg block styles"
-msgstr ""
-
-#: includes/class-plugin-options.php:84
-msgid "Removes the block library CSS (wp-block-library) on the frontend. Only enable if your theme does not use blocks."
-msgstr ""
-
-#: includes/class-plugin-options.php:90
-msgid "Disable emoji scripts and styles"
-msgstr ""
-
-#: includes/class-plugin-options.php:91
-msgid "Disable all WordPress emoji scripts and styles."
-msgstr ""
-
-#: includes/class-plugin-options.php:97
-msgid "Disable Dashicons on the frontend when the toolbar is hidden"
-msgstr ""
-
-#: includes/class-plugin-options.php:98
-msgid "Removes the Dashicons stylesheet for logged-out visitors and users who do not see the admin toolbar. Users with the toolbar keep it, so the toolbar never breaks."
-msgstr ""
-
-#: includes/class-plugin-options.php:104
-msgid "Disable jQuery Migrate"
-msgstr ""
-
-#: includes/class-plugin-options.php:105
-msgid "Stop loading jQuery Migrate on the frontend. It stays active in the admin area."
-msgstr ""
-
-#: includes/class-plugin-options.php:113
-msgid "Disable oEmbed discovery and embed script"
-msgstr ""
-
-#: includes/class-plugin-options.php:114
-msgid "Removes oEmbed discovery links, the wp-embed script and the oEmbed REST endpoint, so other sites can no longer embed your posts. Embeds from YouTube, Vimeo and other services in your content keep working."
-msgstr ""
-
-#: includes/class-plugin-options.php:120
-msgid "Disable comments"
-msgstr ""
-
-#: includes/class-plugin-options.php:121
-msgid "Disable comments, pingbacks and trackbacks across the entire site, including the admin area. Existing comments are hidden, not deleted."
-msgstr ""
-
-#: includes/class-plugin-options.php:127
-msgid "Disable self-pingbacks"
-msgstr ""
-
-#: includes/class-plugin-options.php:128
-msgid "Minor core cleanup: stops WordPress from sending pingbacks to its own posts."
-msgstr ""
-
-#: includes/class-plugin-options.php:134
-msgid "Limit post revisions"
-msgstr ""
-
-#: includes/class-plugin-options.php:135
-msgid "Keep only a set number of revisions per post. Overrides WP_POST_REVISIONS from wp-config.php while enabled."
-msgstr ""
-
-#: includes/class-plugin-options.php:142
-msgid "Revisions to keep"
-msgstr ""
-
-#: includes/class-plugin-options.php:143
-msgid "Number of revisions to keep per post. 0 disables revisions."
-msgstr ""
-
-#: includes/class-plugin-options.php:153
-msgid "Remove unnecessary head tags"
-msgstr ""
-
-#: includes/class-plugin-options.php:154
-msgid "Remove the WordPress version, RSD, Windows Live Writer, shortlink, REST API and adjacent post links from the page head and HTTP headers."
-msgstr ""
-
-#: includes/class-plugin-options.php:160
-msgid "Disable XML-RPC"
-msgstr ""
-
-#: includes/class-plugin-options.php:161
-msgid "Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app."
-msgstr ""
-
-#: includes/class-plugin-options.php:169
-msgid "Disable Heartbeat API on the frontend"
-msgstr ""
-
-#: includes/class-plugin-options.php:170
-msgid "Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor. Some frontend plugins (live chat, forms, membership) may rely on Heartbeat."
-msgstr ""
-
-#: includes/class-plugin-options.php:176
-msgid "Control the Heartbeat API interval"
-msgstr ""
-
-#: includes/class-plugin-options.php:177
-msgid "Set how often the Heartbeat API runs on the frontend, in the dashboard and in the post editor."
-msgstr ""
-
-#: includes/class-plugin-options.php:184
-msgid "Frontend interval"
-msgstr ""
-
-#: includes/class-plugin-options.php:185
-msgid "Seconds between Heartbeat requests on the frontend (15-120)."
-msgstr ""
-
-#: includes/class-plugin-options.php:196
-msgid "Dashboard interval"
-msgstr ""
-
-#: includes/class-plugin-options.php:197
-msgid "Seconds between Heartbeat requests in the admin area, except the post editor (15-120)."
-msgstr ""
-
-#: includes/class-plugin-options.php:208
-msgid "Post editor interval"
-msgstr ""
-
-#: includes/class-plugin-options.php:209
-msgid "Seconds between Heartbeat requests in the post editor, used for autosave and post locking (15-120)."
-msgstr ""
-
-#: includes/class-plugin-options.php:221
-msgid "Autoloaded options"
-msgstr ""
-
-#: includes/class-plugin-options.php:222
-msgid "Options WordPress loads on every page request. Large values here slow down the whole site."
-msgstr ""
-
-#: includes/class-plugin-options.php:228
-msgid "Clean expired transients"
-msgstr ""
-
-#: includes/class-plugin-options.php:229
-msgid "Delete transients that have expired but are still stored in the database."
-msgstr ""
-
-#: includes/class-plugin-options.php:230
-msgid "Clean now"
-msgstr ""
-
-#: includes/class-plugin-options.php:238
-msgid "Speculative loading mode"
-msgstr ""
-
-#: includes/class-plugin-options.php:239
-msgid "Prerender loads pages faster than prefetch, but prefetch is safer for interactive content. Disabled turns speculative loading off completely."
-msgstr ""
-
-#: includes/class-plugin-options.php:241
-#: includes/class-plugin-options.php:255
-msgid "WordPress default"
-msgstr ""
-
-#: includes/class-plugin-options.php:242
-msgid "Disabled"
-msgstr ""
-
-#: includes/class-plugin-options.php:243
-msgid "Prefetch"
-msgstr ""
-
-#: includes/class-plugin-options.php:244
-msgid "Prerender"
-msgstr ""
-
-#: includes/class-plugin-options.php:252
-msgid "Speculative loading eagerness"
-msgstr ""
-
-#: includes/class-plugin-options.php:253
-msgid "When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open."
-msgstr ""
-
-#: includes/class-plugin-options.php:256
-msgid "Conservative (typically on click)"
-msgstr ""
-
-#: includes/class-plugin-options.php:257
-msgid "Moderate (typically on hover)"
-msgstr ""
-
-#: includes/class-plugin-options.php:258
-msgid "Eager (on slightest suggestion)"
-msgstr ""
-
-#: includes/class-plugin-options.php:266
-msgid "Disable capital_P_dangit"
-msgstr ""
-
-#: includes/class-plugin-options.php:267
-msgid "Stops WordPress from changing \"Wordpress\" to \"WordPress\" in content. Negligible performance impact."
-msgstr ""
-
-#: includes/class-plugin-options.php:273
-msgid "Delete plugin data on uninstall"
-msgstr ""
-
-#: includes/class-plugin-options.php:274
-msgid "Remove all BloatBuster settings from the database when the plugin is deleted."
-msgstr ""
-
-#: includes/class-plugin-options.php:460
+#: includes/class-plugin-options.php:355
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:471
+#: includes/class-plugin-options.php:373
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
+#: includes/class-plugin-options.php:452
+msgid "BloatBuster"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:39
+msgid "Advanced"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:50
+msgid "Plugin behavior settings."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:79
+msgid "Speculative loading mode"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:80
+msgid "Prerender loads pages faster than prefetch, but prefetch is safer for interactive content. Disabled turns speculative loading off completely."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:82
+#: includes/settings/tabs/class-tab-advanced.php:96
+msgid "WordPress default"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:83
+msgid "Disabled"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:84
+msgid "Prefetch"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:85
+msgid "Prerender"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:93
+msgid "Speculative loading eagerness"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:94
+msgid "When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:97
+msgid "Conservative (typically on click)"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:98
+msgid "Moderate (typically on hover)"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:99
+msgid "Eager (on slightest suggestion)"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:107
+msgid "Disable capital_P_dangit"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:108
+msgid "Stops WordPress from changing \"Wordpress\" to \"WordPress\" in content. Negligible performance impact."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:113
+msgid "Delete plugin data on uninstall"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:114
+msgid "Remove all BloatBuster settings from the database when the plugin is deleted."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:130
+msgid "Speculative loading is already configured by the Speculative Loading plugin."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:132
+msgid "Go to its settings"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-advanced.php:137
+msgid "Speculative loading requires WordPress 6.8 or newer."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:39
+msgid "Assets"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:50
+msgid "Remove styles and scripts WordPress loads on the frontend that your site may not need."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:76
+msgid "Disable Gutenberg block styles"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:77
+msgid "Removes the block library CSS (wp-block-library) on the frontend. Only enable if your theme does not use blocks."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:82
+msgid "Disable emoji scripts and styles"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:83
+msgid "Disable all WordPress emoji scripts and styles."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:88
+msgid "Disable Dashicons on the frontend when the toolbar is hidden"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:89
+msgid "Removes the Dashicons stylesheet for logged-out visitors and users who do not see the admin toolbar. Users with the toolbar keep it, so the toolbar never breaks."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:94
+msgid "Disable jQuery Migrate"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:95
+msgid "Stop loading jQuery Migrate on the frontend. It stays active in the admin area."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:39
+msgid "Background Processes"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:50
+msgid "Control how often WordPress runs background requests like the Heartbeat API."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:76
+msgid "Disable Heartbeat API on the frontend"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:77
+msgid "Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor. Some frontend plugins (live chat, forms, membership) may rely on Heartbeat."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:82
+msgid "Control the Heartbeat API interval"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:83
+msgid "Set how often the Heartbeat API runs on the frontend, in the dashboard and in the post editor."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:89
+msgid "Frontend interval"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:90
+msgid "Seconds between Heartbeat requests on the frontend (15-120)."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:100
+msgid "Dashboard interval"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:101
+msgid "Seconds between Heartbeat requests in the admin area, except the post editor (15-120)."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:111
+msgid "Post editor interval"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:112
+msgid "Seconds between Heartbeat requests in the post editor, used for autosave and post locking (15-120)."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:39
+msgid "WordPress Core"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:50
+msgid "Turn off WordPress core features you do not use, like oEmbed, comments and pingbacks."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:76
+msgid "Disable oEmbed discovery and embed script"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:77
+msgid "Removes oEmbed discovery links, the wp-embed script and the oEmbed REST endpoint, so other sites can no longer embed your posts. Embeds from YouTube, Vimeo and other services in your content keep working."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:82
+msgid "Disable comments"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:83
+msgid "Disable comments, pingbacks and trackbacks across the entire site, including the admin area. Existing comments are hidden, not deleted."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:88
+msgid "Disable self-pingbacks"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:89
+msgid "Minor core cleanup: stops WordPress from sending pingbacks to its own posts."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:94
+msgid "Limit post revisions"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:95
+msgid "Keep only a set number of revisions per post. Overrides WP_POST_REVISIONS from wp-config.php while enabled."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:101
+msgid "Revisions to keep"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:102
+msgid "Number of revisions to keep per post. 0 disables revisions."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:111
+msgid "Remove unnecessary head tags"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:112
+msgid "Remove the WordPress version, RSD, Windows Live Writer, shortlink, REST API and adjacent post links from the page head and HTTP headers."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:117
+msgid "Disable XML-RPC"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:118
+msgid "Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:39
+msgid "Database"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:50
+msgid "Clean up data WordPress no longer needs."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:97
+msgid "An object cache is active, so transients are mostly stored there. Only database rows are cleaned."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:104
+msgid "Autoloaded options"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:105
+msgid "Options WordPress loads on every page request. Large values here slow down the whole site."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:111
+msgid "Clean expired transients"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:112
+msgid "Delete transients that have expired but are still stored in the database."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:114
+msgid "Clean now"
+msgstr ""
+
 #. translators: %d: number of deleted transients.
-#: includes/class-plugin-options.php:542
+#: includes/settings/tabs/class-tab-database.php:135
 msgid "Deleted %d expired transient."
 msgid_plural "Deleted %d expired transients."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-plugin-options.php:648
-msgid "An object cache is active, so transients are mostly stored there. Only database rows are cleaned."
-msgstr ""
-
 #. translators: 1: number of autoloaded options, 2: total size, e.g. 512 KB.
-#: includes/class-plugin-options.php:668
+#: includes/settings/tabs/class-tab-database.php:157
 msgid "%1$d autoloaded options, %2$s in total."
 msgstr ""
 
 #. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/class-plugin-options.php:675
+#: includes/settings/tabs/class-tab-database.php:164
 msgid "Too large: above the recommended limit of %s."
 msgstr ""
 
-#: includes/class-plugin-options.php:677
+#: includes/settings/tabs/class-tab-database.php:166
 msgid "Check Site Health"
 msgstr ""
 
 #. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/class-plugin-options.php:683
+#: includes/settings/tabs/class-tab-database.php:172
 msgid "Good: below the recommended limit of %s."
 msgstr ""
 
-#: includes/class-plugin-options.php:691
+#: includes/settings/tabs/class-tab-database.php:180
 msgid "Largest options"
 msgstr ""
 
-#: includes/class-plugin-options.php:692
+#: includes/settings/tabs/class-tab-database.php:181
 msgid "Size"
 msgstr ""
 
-#: includes/class-plugin-options.php:720
+#: includes/settings/tabs/class-tab-database.php:209
 msgid "No expired transients found."
 msgstr ""
 
 #. translators: %d: number of expired transients.
-#: includes/class-plugin-options.php:729
+#: includes/settings/tabs/class-tab-database.php:218
 msgid "Expired transients in database: %d"
 msgstr ""
 
-#: includes/class-plugin-options.php:735
+#: includes/settings/tabs/class-tab-database.php:224
 msgid "Name"
 msgstr ""
 
-#: includes/class-plugin-options.php:736
+#: includes/settings/tabs/class-tab-database.php:225
 msgid "Type"
 msgstr ""
 
-#: includes/class-plugin-options.php:737
+#: includes/settings/tabs/class-tab-database.php:226
 msgid "Expired"
 msgstr ""
 
-#: includes/class-plugin-options.php:744
+#: includes/settings/tabs/class-tab-database.php:233
 msgid "Network"
 msgstr ""
 
-#: includes/class-plugin-options.php:744
+#: includes/settings/tabs/class-tab-database.php:233
 msgid "Site"
 msgstr ""
 
 #. translators: %s: human readable time difference, e.g. 5 minutes.
-#: includes/class-plugin-options.php:748
+#: includes/settings/tabs/class-tab-database.php:237
 msgid "%s ago"
 msgstr ""
 
 #. translators: %d: number of expired transients not shown in the list.
-#: includes/class-plugin-options.php:760
+#: includes/settings/tabs/class-tab-database.php:249
 msgid "And %d more."
 msgid_plural "And %d more."
 msgstr[0] ""
 msgstr[1] ""
-
-#: includes/class-plugin-options.php:779
-msgid "Speculative loading is already configured by the Speculative Loading plugin."
-msgstr ""
-
-#: includes/class-plugin-options.php:780
-msgid "Go to its settings"
-msgstr ""
-
-#: includes/class-plugin-options.php:785
-msgid "Speculative loading requires WordPress 6.8 or newer."
-msgstr ""
-
-#: includes/class-plugin-options.php:825
-msgid "BloatBuster"
-msgstr ""
