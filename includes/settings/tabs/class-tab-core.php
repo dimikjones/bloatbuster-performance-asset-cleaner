@@ -117,6 +117,12 @@ final class Tab_Core extends Settings_Tab {
 				'label'       => \__( 'Disable XML-RPC', 'bloatbuster-performance-asset-cleaner' ),
 				'description' => \__( 'Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app.', 'bloatbuster-performance-asset-cleaner' ),
 			),
+			array(
+				'type'        => 'toggle',
+				'id'          => 'disable_user_enumeration',
+				'label'       => \__( 'Disable user enumeration', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Hide usernames from the REST API users endpoint, ?author= URLs, the users sitemap and oEmbed data for visitors who can not edit posts. Makes brute force login attacks harder. Author archive pages keep working.', 'bloatbuster-performance-asset-cleaner' ),
+			),
 		);
 	}
 }

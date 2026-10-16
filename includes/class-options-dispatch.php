@@ -34,6 +34,7 @@ final class Options_Dispatch {
 		\add_action( 'wp_default_scripts', array( __CLASS__, 'disable_jquery_migrate' ) );
 		\add_action( 'init', array( __CLASS__, 'remove_head_tags' ) );
 		\add_action( 'init', array( __CLASS__, 'disable_xmlrpc' ) );
+		\add_action( 'init', array( __CLASS__, 'disable_user_enumeration' ) );
 		\add_filter( 'wp_speculation_rules_configuration', array( __CLASS__, 'control_speculative_loading' ), 20 );
 	}
 
@@ -513,6 +514,99 @@ final class Options_Dispatch {
 		// Remove X-Pingback header and the RSD link pointing to xmlrpc.php.
 		\add_filter( 'wp_headers', array( __CLASS__, 'remove_x_pingback_header' ) );
 		\remove_action( 'wp_head', 'rsd_link' );
+	}
+
+	/**
+	 * Hide usernames from visitors who can't edit posts.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_user_enumeration() {
+		if ( ! self::get_option_value( 'disable_user_enumeration' ) ) {
+			return;
+		}
+
+		\add_filter( 'rest_endpoints', array( __CLASS__, 'remove_users_rest_endpoints' ) );
+
+		// Runs before redirect_canonical() (priority 10), which reveals the author slug.
+		\add_action( 'template_redirect', array( __CLASS__, 'block_author_query' ), 9 );
+
+		\add_filter( 'wp_sitemaps_add_provider', array( __CLASS__, 'remove_users_sitemap' ), 10, 2 );
+		\add_filter( 'oembed_response_data', array( __CLASS__, 'remove_oembed_author' ) );
+	}
+
+	/**
+	 * Remove the REST API users endpoints for users who can't edit posts.
+	 *
+	 * @param array $endpoints - Registered REST API endpoints.
+	 *
+	 * @return array - Filtered endpoints.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_users_rest_endpoints( $endpoints ) {
+		// The block editor author dropdown needs these endpoints.
+		if ( \current_user_can( 'edit_posts' ) ) {
+			return $endpoints;
+		}
+
+		unset( $endpoints['/wp/v2/users'] );
+		unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+
+		return $endpoints;
+	}
+
+	/**
+	 * Redirect ?author= requests to the home page so they can't reveal the author slug.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function block_author_query() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only check, no data is changed.
+		if ( ! isset( $_GET['author'] ) || \current_user_can( 'edit_posts' ) ) {
+			return;
+		}
+
+		\wp_safe_redirect( \home_url( '/' ), 301 );
+		exit;
+	}
+
+	/**
+	 * Remove the users sitemap provider.
+	 *
+	 * @param \WP_Sitemaps_Provider|false $provider - Sitemap provider.
+	 * @param string                      $name     - Provider name.
+	 *
+	 * @return \WP_Sitemaps_Provider|false - Provider, or false for the users sitemap.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_users_sitemap( $provider, $name ) {
+		if ( 'users' === $name ) {
+			return false;
+		}
+
+		return $provider;
+	}
+
+	/**
+	 * Remove the author name and URL from oEmbed responses.
+	 *
+	 * @param array $data - oEmbed response data.
+	 *
+	 * @return array - Filtered response data.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_oembed_author( $data ) {
+		unset( $data['author_name'] );
+		unset( $data['author_url'] );
+
+		return $data;
 	}
 
 	/**
