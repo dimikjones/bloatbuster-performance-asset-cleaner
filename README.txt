@@ -2,7 +2,7 @@
 Contributors: (this should be a list of wordpress.org userid's)
 Donate link: http://example.com/
 Tags: speed, optimization
-Requires at least: 5.3
+Requires at least: 6.4
 Tested up to: 6.8
 Stable tag: 5.3
 License: GPLv2 or later
@@ -31,7 +31,7 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable user enumeration
 * Control speculative loading mode and eagerness
 * Manually clean expired transients
-* Autoloaded options summary
+* Autoloaded options manager: browse, search, filter and sort options, see the likely owner, change autoload, delete, view values, export and restore
 * Disable comments site-wide
 
 == Installation ==
