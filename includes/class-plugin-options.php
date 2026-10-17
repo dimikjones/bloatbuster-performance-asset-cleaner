@@ -45,6 +45,28 @@ final class Plugin_Options {
 	public static function hooks() {
 		\add_action( 'admin_menu', array( __CLASS__, 'add_admin_page' ) );
 		\add_action( 'admin_init', array( __CLASS__, 'configure_options' ) );
+		\add_filter( 'plugin_action_links_' . \plugin_basename( BLOATBUSTER_FILE ), array( __CLASS__, 'add_settings_link' ) );
+	}
+
+	/**
+	 * Add a Settings link before Deactivate in the plugins list.
+	 *
+	 * @param array $links - Plugin action links.
+	 *
+	 * @return array - Action links with the Settings link first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function add_settings_link( $links ) {
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			return $links;
+		}
+
+		$settings_link = '<a href="' . \esc_url( \admin_url( 'admin.php?page=' . BLOATBUSTER_OPTION ) ) . '">' . \esc_html__( 'Settings', 'bloatbuster-performance-asset-cleaner' ) . '</a>';
+
+		array_unshift( $links, $settings_link );
+
+		return $links;
 	}
 
 	/**
