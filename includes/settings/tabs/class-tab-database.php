@@ -99,6 +99,13 @@ final class Tab_Database extends Settings_Tab {
 
 		return array(
 			array(
+				'type'            => 'report',
+				'id'              => 'database_stats',
+				'label'           => \__( 'Database statistics', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Size of the tables of this site. Overhead is unused space left after deleting rows. Row counts are estimates for most tables.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_database_stats' ),
+			),
+			array(
 				'type'            => 'action',
 				'id'              => 'clean_expired_transients',
 				'label'           => \__( 'Clean expired transients', 'bloatbuster-performance-asset-cleaner' ),
@@ -106,6 +113,24 @@ final class Tab_Database extends Settings_Tab {
 				'note'            => $note,
 				'button'          => \__( 'Clean now', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_expired_transients' ),
+			),
+			array(
+				'type'            => 'action',
+				'id'              => 'delete_revisions',
+				'label'           => \__( 'Delete old revisions', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Delete post revisions and keep only the newest ones of each post. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Delete revisions', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Delete old revisions? This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_revisions' ),
+			),
+			array(
+				'type'            => 'action',
+				'id'              => 'delete_auto_drafts',
+				'label'           => \__( 'Delete auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Delete auto-drafts older than one day. WordPress creates them when you open a new post and deletes them by itself after 7 days. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Delete auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Delete auto-drafts older than one day? This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_auto_drafts' ),
 			),
 		);
 	}
@@ -119,16 +144,188 @@ final class Tab_Database extends Settings_Tab {
 	 */
 	public static function add_notices() {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only flags set by the action redirect.
-		$notice = isset( $_GET['bloatbuster_notice'] ) ? \sanitize_key( \wp_unslash( $_GET['bloatbuster_notice'] ) ) : '';
-		$count  = isset( $_GET['bloatbuster_count'] ) ? \absint( $_GET['bloatbuster_count'] ) : 0;
+		$notice    = isset( $_GET['bloatbuster_notice'] ) ? \sanitize_key( \wp_unslash( $_GET['bloatbuster_notice'] ) ) : '';
+		$count     = isset( $_GET['bloatbuster_count'] ) ? \absint( $_GET['bloatbuster_count'] ) : 0;
+		$remaining = isset( $_GET['bloatbuster_remaining'] ) ? \absint( $_GET['bloatbuster_remaining'] ) : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$message = '';
 
 		if ( 'transients_cleaned' === $notice ) {
 			/* translators: %d: number of deleted transients. */
 			$message = sprintf( \_n( 'Deleted %d expired transient.', 'Deleted %d expired transients.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
-
-			\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), 'updated' );
+		} elseif ( 'revisions_deleted' === $notice ) {
+			/* translators: %d: number of deleted revisions. */
+			$message = sprintf( \_n( 'Deleted %d revision.', 'Deleted %d revisions.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+		} elseif ( 'auto_drafts_deleted' === $notice ) {
+			/* translators: %d: number of deleted auto-drafts. */
+			$message = sprintf( \_n( 'Deleted %d auto-draft.', 'Deleted %d auto-drafts.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		}
+
+		if ( '' === $message ) {
+			return;
+		}
+
+		if ( $remaining > 0 ) {
+			/* translators: %d: number of items left to delete. */
+			$message .= ' ' . sprintf( \_n( '%d more left, run it again to delete it.', '%d more left, run it again to delete them.', $remaining, 'bloatbuster-performance-asset-cleaner' ), $remaining );
+		}
+
+		\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), 'updated' );
+	}
+
+	/**
+	 * Render the database size, content counts and largest tables.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_database_stats() {
+		$limit  = 15;
+		$stats  = Database_Tools::get_table_stats();
+		$counts = Database_Tools::get_content_counts();
+		$totals = $stats['totals'];
+
+		$count_labels = array(
+			'revisions'        => \__( 'Revisions', 'bloatbuster-performance-asset-cleaner' ),
+			'auto_drafts'      => \__( 'Auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
+			'trashed_posts'    => \__( 'Trashed posts', 'bloatbuster-performance-asset-cleaner' ),
+			'spam_comments'    => \__( 'Spam comments', 'bloatbuster-performance-asset-cleaner' ),
+			'trashed_comments' => \__( 'Trashed comments', 'bloatbuster-performance-asset-cleaner' ),
+		);
+		?>
+		<p>
+			<?php
+			/* translators: 1: database size, e.g. 12 MB, 2: number of tables, 3: overhead size, e.g. 1 MB. */
+			echo \esc_html( sprintf( \__( 'Database size: %1$s in %2$d tables, %3$s overhead.', 'bloatbuster-performance-asset-cleaner' ), \size_format( $totals['size'], 1 ), $totals['count'], \size_format( $totals['overhead'], 1 ) ) );
+			?>
+		</p>
+		<ul class="bbpac-db-counts">
+			<?php foreach ( $count_labels as $key => $label ) : ?>
+				<li><?php echo \esc_html( $label ); ?>: <strong><?php echo \esc_html( \number_format_i18n( $counts[ $key ] ) ); ?></strong></li>
+			<?php endforeach; ?>
+		</ul>
+		<?php if ( ! empty( $stats['tables'] ) ) : ?>
+			<table class="widefat striped bbpac-db-tables">
+				<thead>
+					<tr>
+						<th><?php \esc_html_e( 'Table', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th><?php \esc_html_e( 'Rows (approx.)', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th><?php \esc_html_e( 'Size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th><?php \esc_html_e( 'Overhead', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( array_slice( $stats['tables'], 0, $limit ) as $table ) : ?>
+						<tr>
+							<td><code><?php echo \esc_html( $table['name'] ); ?></code></td>
+							<td><?php echo \esc_html( \number_format_i18n( $table['rows'] ) ); ?></td>
+							<td><?php echo \esc_html( \size_format( $table['size'], 1 ) ); ?></td>
+							<td><?php echo \esc_html( $table['overhead'] > 0 ? \size_format( $table['overhead'], 1 ) : '-' ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<?php
+		endif;
+
+		if ( $totals['count'] > $limit ) {
+			$more = $totals['count'] - $limit;
+
+			/* translators: %d: number of tables not shown in the list. */
+			echo '<p>' . \esc_html( sprintf( \_n( 'And %d more.', 'And %d more.', $more, 'bloatbuster-performance-asset-cleaner' ), $more ) ) . '</p>';
+		}
+	}
+
+	/**
+	 * Get the number of revisions to keep per post shown in the form.
+	 *
+	 * Uses the "Revisions to keep" setting when the revision limit is on, otherwise 0.
+	 *
+	 * @return int - Revisions to keep per post.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_default_revisions_to_keep() {
+		if ( ! Options_Dispatch::get_option_value( 'limit_post_revisions' ) ) {
+			return 0;
+		}
+
+		return \absint( Options_Dispatch::get_option_value( 'post_revisions_limit', 0 ) );
+	}
+
+	/**
+	 * Render the revisions count, the number to keep and the posts with most revisions.
+	 *
+	 * @return bool - True if there are revisions to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_revisions() {
+		$keep    = self::get_default_revisions_to_keep();
+		$count   = Database_Tools::count_revisions( $keep );
+		$parents = array_slice( Database_Tools::get_revision_parents( 0 ), 0, 10 );
+		?>
+		<p>
+			<label for="bbpac-keep-revisions"><?php \esc_html_e( 'Keep the newest revisions per post:', 'bloatbuster-performance-asset-cleaner' ); ?></label>
+			<input type="number" id="bbpac-keep-revisions" name="bbpac_keep_revisions" value="<?php echo \esc_attr( $keep ); ?>" min="0" max="100" step="1" class="small-text">
+		</p>
+		<p>
+			<?php
+			/* translators: 1: number of revisions to delete, 2: number of revisions kept per post. */
+			echo \esc_html( sprintf( \_n( '%1$d revision to delete when keeping %2$d per post.', '%1$d revisions to delete when keeping %2$d per post.', $count, 'bloatbuster-performance-asset-cleaner' ), $count, $keep ) );
+			?>
+		</p>
+		<?php if ( ! empty( $parents ) ) : ?>
+			<table class="widefat striped bbpac-revisions">
+				<thead>
+					<tr>
+						<th><?php \esc_html_e( 'Post', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th><?php \esc_html_e( 'Revisions', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $parents as $parent ) : ?>
+						<?php $title = \get_the_title( $parent['parent'] ); ?>
+						<tr>
+							<td>
+								<?php if ( \get_edit_post_link( $parent['parent'] ) ) : ?>
+									<a href="<?php echo \esc_url( \get_edit_post_link( $parent['parent'] ) ); ?>"><?php echo \esc_html( '' !== $title ? $title : \__( '(no title)', 'bloatbuster-performance-asset-cleaner' ) ); ?></a>
+								<?php else : ?>
+									<?php echo \esc_html( '' !== $title ? $title : \__( '(no title)', 'bloatbuster-performance-asset-cleaner' ) ); ?>
+								<?php endif; ?>
+							</td>
+							<td><?php echo \esc_html( \number_format_i18n( $parent['total'] ) ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<?php
+		endif;
+
+		// Keep the button enabled when the number to keep is changed in the form.
+		return Database_Tools::count_revisions( 0 ) > 0;
+	}
+
+	/**
+	 * Render the number of auto-drafts older than one day.
+	 *
+	 * @return bool - True if there are auto-drafts to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_auto_drafts() {
+		$count = Database_Tools::count_auto_drafts();
+		?>
+		<p>
+			<?php
+			/* translators: %d: number of auto-drafts. */
+			echo \esc_html( sprintf( \_n( '%d auto-draft older than one day.', '%d auto-drafts older than one day.', $count, 'bloatbuster-performance-asset-cleaner' ), $count ) );
+			?>
+		</p>
+		<?php
+		return $count > 0;
 	}
 
 	/**

@@ -23,6 +23,9 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable user enumeration
 * Control speculative loading mode and eagerness
 * Manually clean expired transients
+* Delete old revisions, keeping the newest ones per post
+* Delete old auto-drafts
+* Database statistics: size, overhead, largest tables, revisions, auto-drafts, trash and spam counts
 * Autoloaded options manager: summary, browse, search, filter and sort all options, likely plugin or theme owner,
   enable or disable autoload (single and bulk), delete, view values with secrets masked, export and restore from backup
 * Disable comments site-wide

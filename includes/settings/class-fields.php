@@ -182,7 +182,7 @@ final class Fields {
 		}
 		?>
 		<p>
-			<button type="submit" name="bloatbuster_action" value="<?php echo \esc_attr( $args['id'] ); ?>" class="button button-secondary" <?php \disabled( ! $has_items ); ?>><?php echo \esc_html( $args['button'] ); ?></button>
+			<button type="submit" name="bloatbuster_action" value="<?php echo \esc_attr( $args['id'] ); ?>" class="button button-secondary" <?php echo ! empty( $args['confirm'] ) ? 'data-bbpac-confirm="' . \esc_attr( $args['confirm'] ) . '"' : ''; ?> <?php \disabled( ! $has_items ); ?>><?php echo \esc_html( $args['button'] ); ?></button>
 		</p>
 		<?php
 	}
