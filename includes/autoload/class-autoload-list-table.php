@@ -40,7 +40,7 @@ final class Autoload_List_Table extends \WP_List_Table {
 	}
 
 	/**
-	 * Get the current request filters: view, search and transients.
+	 * Get the current request filters: view, search and sorting.
 	 *
 	 * @return array - Query args.
 	 *
@@ -62,7 +62,6 @@ final class Autoload_List_Table extends \WP_List_Table {
 			$search = substr( trim( \wp_check_invalid_utf8( \wp_unslash( $_GET['s'] ) ) ), 0, 191 );
 		}
 
-		$trans = ! empty( $_GET['transients'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if ( ! in_array( $view, array( 'all', 'autoloaded', 'not_autoloaded', 'review' ), true ) ) {
@@ -70,11 +69,10 @@ final class Autoload_List_Table extends \WP_List_Table {
 		}
 
 		return array(
-			'view'       => $view,
-			'orderby'    => $orderby,
-			'order'      => $order,
-			'search'     => $search,
-			'transients' => $trans,
+			'view'    => $view,
+			'orderby' => $orderby,
+			'order'   => $order,
+			'search'  => $search,
 		);
 	}
 
@@ -90,11 +88,10 @@ final class Autoload_List_Table extends \WP_List_Table {
 	public static function get_tab_url( $args = array() ) {
 		$request = self::get_request_args();
 		$query   = array(
-			'page'       => BLOATBUSTER_OPTION,
-			'tab'        => Tab_Autoload::get_slug(),
-			'view'       => 'all' !== $request['view'] ? $request['view'] : false,
-			's'          => '' !== $request['search'] ? rawurlencode( $request['search'] ) : false,
-			'transients' => $request['transients'] ? 1 : false,
+			'page' => BLOATBUSTER_OPTION,
+			'tab'  => Tab_Autoload::get_slug(),
+			'view' => 'all' !== $request['view'] ? $request['view'] : false,
+			's'    => '' !== $request['search'] ? rawurlencode( $request['search'] ) : false,
 		);
 
 		$query = array_filter( array_merge( $query, $args ) );
@@ -195,9 +192,8 @@ final class Autoload_List_Table extends \WP_List_Table {
 		foreach ( $views as $view => $label ) {
 			$count = Autoload_Options::count(
 				array(
-					'view'       => $view,
-					'search'     => $request['search'],
-					'transients' => $request['transients'],
+					'view'   => $view,
+					'search' => $request['search'],
 				)
 			);
 

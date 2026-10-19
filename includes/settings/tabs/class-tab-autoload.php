@@ -47,7 +47,7 @@ final class Tab_Autoload extends Settings_Tab {
 	 * @since 1.0.0
 	 */
 	public static function get_description() {
-		return \__( 'Options WordPress loads on every page request. Large values here slow down the whole site. Disable autoload for options that are not needed on every page, and delete options left behind by removed plugins.', 'bloatbuster-performance-asset-cleaner' );
+		return \__( 'Options WordPress loads on every page request. Large values here slow down the whole site. Disable autoload for options that are not needed on every page, and delete options left behind by removed plugins. Expiring transients are not listed, clean them up in the Database tab.', 'bloatbuster-performance-asset-cleaner' );
 	}
 
 	/**
@@ -182,10 +182,6 @@ final class Tab_Autoload extends Settings_Tab {
 				<?php if ( 'all' !== $request['view'] ) : ?>
 					<input type="hidden" name="view" value="<?php echo \esc_attr( $request['view'] ); ?>">
 				<?php endif; ?>
-				<label class="bbpac-include-transients">
-					<input type="checkbox" name="transients" value="1" <?php \checked( $request['transients'] ); ?>>
-					<?php \esc_html_e( 'Include transients', 'bloatbuster-performance-asset-cleaner' ); ?>
-				</label>
 				<?php $table->search_box( \__( 'Search options', 'bloatbuster-performance-asset-cleaner' ), 'bbpac-option' ); ?>
 			</form>
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" id="bbpac-autoload-form">
