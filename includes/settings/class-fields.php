@@ -71,6 +71,23 @@ final class Fields {
 			return min( $field['max'], max( $field['min'], $value ) );
 		}
 
+		if ( 'checkbox_list' === $field['type'] ) {
+			$values = array();
+
+			// Only keys of the field options are kept, so the values need no other sanitizing.
+			foreach ( (array) $raw as $item ) {
+				if ( is_string( $item ) && isset( $field['options'][ $item ] ) ) {
+					$values[] = $item;
+				}
+			}
+
+			if ( empty( $values ) ) {
+				return null;
+			}
+
+			return array_values( array_unique( $values ) );
+		}
+
 		/**
 		 * Sanitize the value of a custom field type.
 		 *
@@ -113,6 +130,19 @@ final class Fields {
 					<?php endforeach; ?>
 				</select>
 			</div>
+			<?php
+		} elseif ( 'checkbox_list' === $args['type'] ) {
+			$checked = is_array( $value ) ? $value : array();
+			?>
+			<fieldset class="bbpac-field checkbox-list">
+				<legend class="screen-reader-text"><?php echo \esc_html( $args['label'] ); ?></legend>
+				<?php foreach ( $args['options'] as $option_value => $option_label ) : ?>
+					<label>
+						<input type="checkbox" name="<?php echo \esc_attr( $option_name . '[]' ); ?>" value="<?php echo \esc_attr( $option_value ); ?>" <?php \checked( in_array( (string) $option_value, $checked, true ) ); ?> <?php \disabled( $is_locked ); ?>>
+						<?php echo \esc_html( $option_label ); ?>
+					</label>
+				<?php endforeach; ?>
+			</fieldset>
 			<?php
 		} elseif ( 'number' === $args['type'] ) {
 			$number = isset( $options[ $args['id'] ] ) ? (int) $options[ $args['id'] ] : $args['default'];

@@ -32,6 +32,9 @@ final class Options_Dispatch {
 		\add_action( 'plugins_loaded', array( __CLASS__, 'define_autosave_interval' ), PHP_INT_MAX );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_block_editor_styles_frontend' ), 100 );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_theme_styles' ), 100 );
+		\add_filter( 'intermediate_image_sizes_advanced', array( __CLASS__, 'disable_image_sizes' ) );
+		\add_filter( 'big_image_size_threshold', array( __CLASS__, 'control_big_image_threshold' ) );
+		\add_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ) );
 		\add_action( 'wp_footer', array( __CLASS__, 'disable_global_styles_footer' ), 2 );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_heartbeat_frontend' ), 100 );
 		\add_filter( 'heartbeat_settings', array( __CLASS__, 'control_heartbeat_settings' ) );
@@ -130,6 +133,69 @@ final class Options_Dispatch {
 	 */
 	public static function is_autosave_interval_external() {
 		return self::$autosave_interval_external;
+	}
+
+	/**
+	 * Remove the disabled image sizes from the sizes created on upload.
+	 *
+	 * @param array $sizes - Image sizes to create, keyed by size name.
+	 *
+	 * @return array - Image sizes without the disabled ones.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_image_sizes( $sizes ) {
+		$disabled = self::get_option_value( 'disabled_image_sizes', array() );
+
+		if ( empty( $disabled ) || ! is_array( $disabled ) || ! is_array( $sizes ) ) {
+			return $sizes;
+		}
+
+		foreach ( $disabled as $size_name ) {
+			unset( $sizes[ $size_name ] );
+		}
+
+		return $sizes;
+	}
+
+	/**
+	 * Set the size from which uploaded images are scaled down.
+	 *
+	 * @param int|false $threshold - Size in pixels, or false to turn scaling off.
+	 *
+	 * @return int|false - Size in pixels, or false when set to 0.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function control_big_image_threshold( $threshold ) {
+		if ( ! self::get_option_value( 'control_big_image_threshold' ) ) {
+			return $threshold;
+		}
+
+		$size = (int) self::get_option_value( 'big_image_threshold', 2560 );
+
+		if ( 0 === $size ) {
+			return false;
+		}
+
+		return $size;
+	}
+
+	/**
+	 * Turn off the core XML sitemaps.
+	 *
+	 * @param bool $is_enabled - Whether sitemaps are enabled.
+	 *
+	 * @return bool - False when the option is on.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_wp_sitemaps( $is_enabled ) {
+		if ( self::get_option_value( 'disable_wp_sitemaps' ) ) {
+			return false;
+		}
+
+		return $is_enabled;
 	}
 
 	/**

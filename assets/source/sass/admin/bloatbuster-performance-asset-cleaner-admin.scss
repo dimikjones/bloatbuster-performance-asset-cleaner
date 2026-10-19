@@ -557,3 +557,20 @@
     margin-top: 12px;
   }
 }
+
+// Checkbox list field, shown under the label instead of next to it.
+#bloatbuster-performance-asset-cleaner-options .form-table > tbody > tr > td > .bbpac-field.checkbox-list {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 6px 16px;
+  width: auto;
+  height: auto;
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+
+  label {
+    font-size: 14px;
+  }
+}

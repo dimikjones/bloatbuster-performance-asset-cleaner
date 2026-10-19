@@ -83,6 +83,7 @@ final class Plugin_Options {
 			Tab_Database::class,
 			Tab_Autoload::class,
 			Tab_Background::class,
+			Tab_Media::class,
 			Tab_Advanced::class,
 		);
 
