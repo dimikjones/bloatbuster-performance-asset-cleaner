@@ -2,7 +2,7 @@
 Contributors: (this should be a list of wordpress.org userid's)
 Donate link: http://example.com/
 Tags: speed, optimization
-Requires at least: 6.4
+Requires at least: 6.6
 Tested up to: 6.8
 Stable tag: 5.3
 License: GPLv2 or later

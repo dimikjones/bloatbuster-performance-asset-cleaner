@@ -154,12 +154,7 @@ final class Autoload_Options {
 	 * @since 1.0.0
 	 */
 	public static function get_autoload_values() {
-		if ( function_exists( 'wp_autoload_values_to_autoload' ) ) {
-			return \wp_autoload_values_to_autoload();
-		}
-
-		// WordPress 6.4 and 6.5 only store yes and no.
-		return array( 'yes', 'on', 'auto-on', 'auto' );
+		return \wp_autoload_values_to_autoload();
 	}
 
 	/**

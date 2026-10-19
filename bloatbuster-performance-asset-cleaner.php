@@ -3,7 +3,7 @@
  * Plugin Name:       BloatBuster – Performance & Asset Cleaner
  * Description:       Strip away WordPress bloat, cut HTTP requests and tune background API execution for a faster, lighter frontend.
  * Version:           1.0.0
- * Requires at least: 6.4
+ * Requires at least: 6.6
  * Requires PHP:      7.4
  * Author:            Marko Dimitrijevic
  * Author URI:        https://www.linkedin.com/in/diwebdeveloper/
