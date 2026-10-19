@@ -169,8 +169,9 @@ final class Database_Tools {
 	 * Delete expired transient timeout rows that have no transient value row.
 	 *
 	 * Core only deletes an expired transient when both the value and the timeout
-	 * rows exist, so orphaned timeouts stay forever. Run after
-	 * delete_expired_transients(), when every expired timeout left is an orphan.
+	 * rows exist, so orphaned timeouts stay forever. A timeout is deleted only when
+	 * its value row is missing, deleting the timeout of an existing value would make
+	 * that transient never expire.
 	 *
 	 * @return void
 	 *
@@ -181,26 +182,41 @@ final class Database_Tools {
 
 		$now = time();
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup query, the cache is cleared below.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup queries, the cache is cleared below.
+		// Local transients, '_transient_timeout_' is 19 characters.
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE ( option_name LIKE %s OR option_name LIKE %s ) AND option_value < %d",
+				"DELETE t FROM {$wpdb->options} t
+				LEFT JOIN {$wpdb->options} v ON v.option_name = CONCAT( '_transient_', SUBSTRING( t.option_name, 20 ) )
+				WHERE t.option_name LIKE %s AND t.option_value < %d AND v.option_id IS NULL",
 				$wpdb->esc_like( '_transient_timeout_' ) . '%',
+				$now
+			)
+		);
+
+		// Site transients stored in the options table, '_site_transient_timeout_' is 24 characters.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE t FROM {$wpdb->options} t
+				LEFT JOIN {$wpdb->options} v ON v.option_name = CONCAT( '_site_transient_', SUBSTRING( t.option_name, 25 ) )
+				WHERE t.option_name LIKE %s AND t.option_value < %d AND v.option_id IS NULL",
 				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
 				$now
 			)
 		);
 
 		if ( \is_multisite() && \is_main_network() ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup query, network options are read from the database.
 			$wpdb->query(
 				$wpdb->prepare(
-					"DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s AND meta_value < %d",
+					"DELETE t FROM {$wpdb->sitemeta} t
+					LEFT JOIN {$wpdb->sitemeta} v ON v.site_id = t.site_id AND v.meta_key = CONCAT( '_site_transient_', SUBSTRING( t.meta_key, 25 ) )
+					WHERE t.meta_key LIKE %s AND t.meta_value < %d AND v.meta_id IS NULL",
 					$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
 					$now
 				)
 			);
 		}
+		// phpcs:enable
 
 		\wp_cache_delete( 'alloptions', 'options' );
 		\wp_cache_delete( 'notoptions', 'options' );
