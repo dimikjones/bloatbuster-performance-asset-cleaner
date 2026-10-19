@@ -272,9 +272,9 @@ final class Tab_Autoload extends Settings_Tab {
 	 */
 	public static function render_value_dialog() {
 		?>
-		<dialog id="bbpac-value-dialog" class="bbpac-value-dialog">
+		<dialog id="bbpac-value-dialog" class="bbpac-value-dialog" aria-labelledby="bbpac-value-name">
 			<div class="bbpac-value-dialog-header">
-				<code class="bbpac-value-name"></code>
+				<code class="bbpac-value-name" id="bbpac-value-name"></code>
 				<span class="bbpac-value-meta"></span>
 			</div>
 			<p class="bbpac-value-notice" hidden></p>
