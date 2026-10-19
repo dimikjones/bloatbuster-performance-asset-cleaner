@@ -146,86 +146,6 @@ final class Database_Tools {
 	}
 
 	/**
-	 * Get the autoload column values that WordPress loads on every request.
-	 *
-	 * @return array - Autoload values.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_autoload_values() {
-		if ( function_exists( 'wp_autoload_values_to_autoload' ) ) {
-			return \wp_autoload_values_to_autoload();
-		}
-
-		return array( 'yes' );
-	}
-
-	/**
-	 * Get the count and total size of autoloaded options.
-	 *
-	 * @return array - Summary with count, size in bytes and recommended limit in bytes.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_autoload_summary() {
-		global $wpdb;
-
-		$values       = self::get_autoload_values();
-		$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Live report, placeholders built from the values count.
-		$row = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT COUNT(*) AS total, SUM(LENGTH(option_value)) AS size FROM {$wpdb->options} WHERE autoload IN ( {$placeholders} )",
-				$values
-			)
-		);
-		// phpcs:enable
-
-		return array(
-			'count' => isset( $row->total ) ? (int) $row->total : 0,
-			'size'  => isset( $row->size ) ? (int) $row->size : 0,
-			/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-			'limit' => (int) \apply_filters( 'site_status_autoloaded_options_size_limit', 800000 ),
-		);
-	}
-
-	/**
-	 * Get the largest autoloaded options.
-	 *
-	 * @param int $limit - Maximum number of options to return.
-	 *
-	 * @return array - List of options with name and size in bytes.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_largest_autoloaded_options( $limit = 20 ) {
-		global $wpdb;
-
-		$values       = self::get_autoload_values();
-		$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-		$options      = array();
-
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Live report, placeholders built from the values count.
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT option_name AS name, LENGTH(option_value) AS size FROM {$wpdb->options} WHERE autoload IN ( {$placeholders} ) ORDER BY size DESC LIMIT %d",
-				array_merge( $values, array( \absint( $limit ) ) )
-			)
-		);
-		// phpcs:enable
-
-		foreach ( $rows as $row ) {
-			$options[] = array(
-				'name' => $row->name,
-				'size' => (int) $row->size,
-			);
-		}
-
-		return $options;
-	}
-
-	/**
 	 * Delete expired transients from the database.
 	 *
 	 * @return int - Number of deleted transients.
@@ -238,9 +158,68 @@ final class Database_Tools {
 		// Force database cleanup even when an external object cache is used.
 		\delete_expired_transients( true );
 
+		self::delete_orphaned_transient_timeouts();
+
 		$after = self::count_expired_transients();
 
 		return max( 0, $before - $after );
+	}
+
+	/**
+	 * Delete expired transient timeout rows that have no transient value row.
+	 *
+	 * Core only deletes an expired transient when both the value and the timeout
+	 * rows exist, so orphaned timeouts stay forever. A timeout is deleted only when
+	 * its value row is missing, deleting the timeout of an existing value would make
+	 * that transient never expire.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_orphaned_transient_timeouts() {
+		global $wpdb;
+
+		$now = time();
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup queries, the cache is cleared below.
+		// Local transients, '_transient_timeout_' is 19 characters.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE t FROM {$wpdb->options} t
+				LEFT JOIN {$wpdb->options} v ON v.option_name = CONCAT( '_transient_', SUBSTRING( t.option_name, 20 ) )
+				WHERE t.option_name LIKE %s AND t.option_value < %d AND v.option_id IS NULL",
+				$wpdb->esc_like( '_transient_timeout_' ) . '%',
+				$now
+			)
+		);
+
+		// Site transients stored in the options table, '_site_transient_timeout_' is 24 characters.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE t FROM {$wpdb->options} t
+				LEFT JOIN {$wpdb->options} v ON v.option_name = CONCAT( '_site_transient_', SUBSTRING( t.option_name, 25 ) )
+				WHERE t.option_name LIKE %s AND t.option_value < %d AND v.option_id IS NULL",
+				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+				$now
+			)
+		);
+
+		if ( \is_multisite() && \is_main_network() ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					"DELETE t FROM {$wpdb->sitemeta} t
+					LEFT JOIN {$wpdb->sitemeta} v ON v.site_id = t.site_id AND v.meta_key = CONCAT( '_site_transient_', SUBSTRING( t.meta_key, 25 ) )
+					WHERE t.meta_key LIKE %s AND t.meta_value < %d AND v.meta_id IS NULL",
+					$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+					$now
+				)
+			);
+		}
+		// phpcs:enable
+
+		\wp_cache_delete( 'alloptions', 'options' );
+		\wp_cache_delete( 'notoptions', 'options' );
 	}
 
 	/**

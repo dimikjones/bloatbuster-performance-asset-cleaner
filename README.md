@@ -19,7 +19,8 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable user enumeration
 * Control speculative loading mode and eagerness
 * Manually clean expired transients
-* Autoloaded options summary
+* Autoloaded options manager: summary, browse, search, filter and sort all options, likely plugin or theme owner,
+  enable or disable autoload (single and bulk), delete, view values with secrets masked, export and restore from backup
 * Disable comments site-wide
 
 ## Developers
@@ -35,11 +36,13 @@ All values are stored in one option array (`bloatbuster_performance_asset_cleane
 ### Adding a tab in core
 
 1. Create `includes/settings/tabs/class-tab-{slug}.php` with a class that extends `Settings_Tab`. Use static methods only.
-2. Implement `get_slug()`, `get_label()` and `get_fields()`. You can also override `get_description()`, `get_priority()`, `get_form_type()`, `get_form_action()` and `add_notices()`.
+2. Implement `get_slug()`, `get_label()` and `get_fields()`. You can also override `get_description()`, `get_priority()`, `get_form_type()`, `get_form_action()`, `add_notices()` and `render_content()`.
 3. Require the file in the main plugin file, inside the `is_admin()` block.
 4. Add the class to `Plugin_Options::get_tab_classes()`.
 
-Current tab priorities: Assets 10, WordPress Core 20, Database 30, Background Processes 40, Advanced 50.
+Current tab priorities: Assets 10, WordPress Core 20, Database 30, Autoloaded Options 35, Background Processes 40, Advanced 50.
+
+Form types from `get_form_type()`: `'options'` (fields saved through `options.php`), `'admin-post'` (form sent to `admin-post.php` with `get_form_action()`), `'custom'` (no fields form, the tab prints its own content in `render_content()`, like Autoloaded Options).
 
 Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields are hidden.
 
@@ -72,6 +75,11 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | `bloatbuster_settings_page_notices` | action | `$current_tab` | Add notices with `add_settings_error( 'messages', ... )`. |
 | `bloatbuster_before_tab_content` | action | `$current_tab` | Print content before the tab form. |
 | `bloatbuster_after_tab_content` | action | `$current_tab` | Print content after the tab form. |
+| `bloatbuster_autoload_protected_options` | filter | `$protected` | Option names that can't have autoload changed or be deleted. |
+| `bloatbuster_autoload_sensitive_patterns` | filter | `$patterns` | Name parts that mask an option value in the value viewer. |
+| `bloatbuster_autoload_known_prefixes` | filter | `$known` | Option prefix => plugin file, for owner detection. |
+| `bloatbuster_autoload_large_threshold` | filter | `$threshold` | Size in bytes from which an autoloaded option needs review. Default 10 KB. |
+| `bloatbuster_autoload_per_page` | filter | `$per_page` | Options per page in the Autoloaded Options table. Default 50. |
 
 ### Extending from an addon
 

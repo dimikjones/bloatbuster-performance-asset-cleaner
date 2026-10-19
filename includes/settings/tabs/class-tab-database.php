@@ -99,13 +99,6 @@ final class Tab_Database extends Settings_Tab {
 
 		return array(
 			array(
-				'type'            => 'report',
-				'id'              => 'autoload_summary',
-				'label'           => \__( 'Autoloaded options', 'bloatbuster-performance-asset-cleaner' ),
-				'description'     => \__( 'Options WordPress loads on every page request. Large values here slow down the whole site.', 'bloatbuster-performance-asset-cleaner' ),
-				'render_callback' => array( __CLASS__, 'render_autoload_summary' ),
-			),
-			array(
 				'type'            => 'action',
 				'id'              => 'clean_expired_transients',
 				'label'           => \__( 'Clean expired transients', 'bloatbuster-performance-asset-cleaner' ),
@@ -136,62 +129,6 @@ final class Tab_Database extends Settings_Tab {
 
 			\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), 'updated' );
 		}
-	}
-
-	/**
-	 * Render the autoloaded options summary, status and largest options.
-	 *
-	 * @return void
-	 *
-	 * @since 1.0.0
-	 */
-	public static function render_autoload_summary() {
-		$summary    = Database_Tools::get_autoload_summary();
-		$largest    = Database_Tools::get_largest_autoloaded_options( 20 );
-		$too_big    = $summary['size'] > $summary['limit'];
-		$limit_size = \size_format( $summary['limit'] );
-		?>
-		<p>
-			<?php
-			/* translators: 1: number of autoloaded options, 2: total size, e.g. 512 KB. */
-			echo \esc_html( sprintf( \__( '%1$d autoloaded options, %2$s in total.', 'bloatbuster-performance-asset-cleaner' ), $summary['count'], \size_format( $summary['size'], 1 ) ) );
-			?>
-		</p>
-		<?php if ( $too_big ) : ?>
-			<p class="bbpac-status-warning">
-				<?php
-				/* translators: %s: recommended size limit, e.g. 781 KB. */
-				echo \esc_html( sprintf( \__( 'Too large: above the recommended limit of %s.', 'bloatbuster-performance-asset-cleaner' ), $limit_size ) );
-				?>
-				<a href="<?php echo \esc_url( \admin_url( 'site-health.php' ) ); ?>"><?php \esc_html_e( 'Check Site Health', 'bloatbuster-performance-asset-cleaner' ); ?></a>
-			</p>
-		<?php else : ?>
-			<p class="bbpac-status-good">
-				<?php
-				/* translators: %s: recommended size limit, e.g. 781 KB. */
-				echo \esc_html( sprintf( \__( 'Good: below the recommended limit of %s.', 'bloatbuster-performance-asset-cleaner' ), $limit_size ) );
-				?>
-			</p>
-		<?php endif; ?>
-		<?php if ( ! empty( $largest ) ) : ?>
-			<table class="widefat striped bbpac-autoload">
-				<thead>
-					<tr>
-						<th><?php \esc_html_e( 'Largest options', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-						<th><?php \esc_html_e( 'Size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( $largest as $option ) : ?>
-						<tr>
-							<td><code><?php echo \esc_html( $option['name'] ); ?></code></td>
-							<td><?php echo \esc_html( \size_format( $option['size'], 1 ) ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-			<?php
-		endif;
 	}
 
 	/**

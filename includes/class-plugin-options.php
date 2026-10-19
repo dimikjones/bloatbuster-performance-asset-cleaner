@@ -45,6 +45,28 @@ final class Plugin_Options {
 	public static function hooks() {
 		\add_action( 'admin_menu', array( __CLASS__, 'add_admin_page' ) );
 		\add_action( 'admin_init', array( __CLASS__, 'configure_options' ) );
+		\add_filter( 'plugin_action_links_' . \plugin_basename( BLOATBUSTER_FILE ), array( __CLASS__, 'add_settings_link' ) );
+	}
+
+	/**
+	 * Add a Settings link before Deactivate in the plugins list.
+	 *
+	 * @param array $links - Plugin action links.
+	 *
+	 * @return array - Action links with the Settings link first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function add_settings_link( $links ) {
+		if ( ! \current_user_can( 'manage_options' ) ) {
+			return $links;
+		}
+
+		$settings_link = '<a href="' . \esc_url( \admin_url( 'admin.php?page=' . BLOATBUSTER_OPTION ) ) . '">' . \esc_html__( 'Settings', 'bloatbuster-performance-asset-cleaner' ) . '</a>';
+
+		array_unshift( $links, $settings_link );
+
+		return $links;
 	}
 
 	/**
@@ -59,6 +81,7 @@ final class Plugin_Options {
 			Tab_Assets::class,
 			Tab_Core::class,
 			Tab_Database::class,
+			Tab_Autoload::class,
 			Tab_Background::class,
 			Tab_Advanced::class,
 		);
@@ -119,8 +142,12 @@ final class Plugin_Options {
 		foreach ( self::get_tab_classes() as $class ) {
 			$slug = \sanitize_key( $class::get_slug() );
 
-			// Hide tabs without fields.
-			if ( ! isset( $used_tabs[ $slug ] ) || isset( $tabs[ $slug ] ) ) {
+			if ( isset( $tabs[ $slug ] ) ) {
+				continue;
+			}
+
+			// Hide tabs without fields, custom tabs render their own content.
+			if ( ! isset( $used_tabs[ $slug ] ) && 'custom' !== $class::get_form_type() ) {
 				continue;
 			}
 
@@ -386,7 +413,10 @@ final class Plugin_Options {
 			 */
 			\do_action( 'bloatbuster_before_tab_content', $current_tab );
 			?>
-			<?php if ( 'admin-post' === $tab_class::get_form_type() ) : ?>
+			<?php if ( 'custom' === $tab_class::get_form_type() ) : ?>
+				<?php self::render_section( array( 'id' => $current_tab ) ); ?>
+				<?php $tab_class::render_content(); ?>
+			<?php elseif ( 'admin-post' === $tab_class::get_form_type() ) : ?>
 				<form action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" method="POST">
 					<input type="hidden" name="action" value="<?php echo \esc_attr( $tab_class::get_form_action() ); ?>">
 					<?php \wp_nonce_field( $tab_class::get_form_action() ); ?>

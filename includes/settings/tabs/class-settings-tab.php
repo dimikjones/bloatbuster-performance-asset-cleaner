@@ -73,7 +73,8 @@ abstract class Settings_Tab {
 	 * Get how the tab form is submitted.
 	 *
 	 * 'options' saves fields through options.php, 'admin-post' sends the
-	 * form to admin-post.php with the action from get_form_action().
+	 * form to admin-post.php with the action from get_form_action(),
+	 * 'custom' skips the fields form and calls render_content().
 	 *
 	 * @return string - Form type.
 	 *
@@ -102,5 +103,15 @@ abstract class Settings_Tab {
 	 * @since 1.0.0
 	 */
 	public static function add_notices() {
+	}
+
+	/**
+	 * Render the tab content for 'custom' form type tabs.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_content() {
 	}
 }
