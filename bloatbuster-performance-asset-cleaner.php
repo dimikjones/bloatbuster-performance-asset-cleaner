@@ -53,6 +53,7 @@ if ( \is_admin() ) {
 	require_once BLOATBUSTER_DIR . '/includes/class-plugin-options.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-admin-assets.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-database-tools.php';
+	require_once BLOATBUSTER_DIR . '/includes/class-cron-status.php';
 	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-owners.php';
 	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-actions.php';
 

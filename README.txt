@@ -30,6 +30,8 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable capital_P_dangit
 * Remove unnecessary head tags
 * Disable XML-RPC
+* WP-Cron status checker with overdue events and next scheduled events
+* Control the post editor autosave interval
 * Disable user enumeration
 * Control speculative loading mode and eagerness
 * Manually clean expired transients

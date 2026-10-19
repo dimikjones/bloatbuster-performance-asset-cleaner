@@ -18,9 +18,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Options_Dispatch {
 
 	/**
+	 * True when AUTOSAVE_INTERVAL was set before this plugin could set it, e.g. in wp-config.php.
+	 *
+	 * @var bool
+	 */
+	private static $autosave_interval_external = false;
+
+	/**
 	 * Hook in methods.
 	 */
 	public static function hooks() {
+		// Core defines AUTOSAVE_INTERVAL right after plugins_loaded, see wp_functionality_constants().
+		\add_action( 'plugins_loaded', array( __CLASS__, 'define_autosave_interval' ), PHP_INT_MAX );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_block_editor_styles_frontend' ), 100 );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_theme_styles' ), 100 );
 		\add_action( 'wp_footer', array( __CLASS__, 'disable_global_styles_footer' ), 2 );
@@ -88,6 +97,39 @@ final class Options_Dispatch {
 				\wp_dequeue_style( 'wp-block-library-theme' );
 			}
 		}
+	}
+
+	/**
+	 * Define the AUTOSAVE_INTERVAL constant from the plugin option, before WordPress sets its default.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function define_autosave_interval() {
+		if ( defined( 'AUTOSAVE_INTERVAL' ) ) {
+			self::$autosave_interval_external = true;
+			return;
+		}
+
+		if ( ! self::get_option_value( 'control_autosave_interval' ) ) {
+			return;
+		}
+
+		$interval = (int) self::get_option_value( 'autosave_interval', 60 );
+
+		define( 'AUTOSAVE_INTERVAL', min( 600, max( 10, $interval ) ) );
+	}
+
+	/**
+	 * Check if AUTOSAVE_INTERVAL was set outside this plugin, so the option can't change it.
+	 *
+	 * @return bool - True if set elsewhere, e.g. in wp-config.php.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_autosave_interval_external() {
+		return self::$autosave_interval_external;
 	}
 
 	/**

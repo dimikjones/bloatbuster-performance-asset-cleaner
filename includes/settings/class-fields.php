@@ -118,20 +118,20 @@ final class Fields {
 			$number = isset( $options[ $args['id'] ] ) ? (int) $options[ $args['id'] ] : $args['default'];
 			?>
 			<div class="bbpac-field text number" data-bbpac-parent="<?php echo \esc_attr( $args['parent'] ?? '' ); ?>">
-				<input type="number" name="<?php echo \esc_attr( $option_name ); ?>" value="<?php echo \esc_attr( $number ); ?>" min="<?php echo \esc_attr( $args['min'] ); ?>" max="<?php echo \esc_attr( $args['max'] ); ?>" step="<?php echo \esc_attr( $args['step'] ); ?>">
+				<input type="number" name="<?php echo \esc_attr( $option_name ); ?>" value="<?php echo \esc_attr( $number ); ?>" min="<?php echo \esc_attr( $args['min'] ); ?>" max="<?php echo \esc_attr( $args['max'] ); ?>" step="<?php echo \esc_attr( $args['step'] ); ?>" <?php \disabled( $is_locked ); ?>>
 			</div>
 			<?php
 		} elseif ( 'checkbox' === $args['type'] ) {
 			?>
 			<div class="bbpac-field checkbox">
-				<input type="checkbox" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?>>
+				<input type="checkbox" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?> <?php \disabled( $is_locked ); ?>>
 			</div>
 			<?php
 		} elseif ( 'toggle' === $args['type'] ) {
 			?>
 			<div class="bbpac-field toggle">
 				<label>
-					<input type="checkbox" id="<?php echo \esc_attr( 'bbpac-' . $args['id'] ); ?>" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?>>
+					<input type="checkbox" id="<?php echo \esc_attr( 'bbpac-' . $args['id'] ); ?>" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?> <?php \disabled( $is_locked ); ?>>
 					<span class="slider round"></span>
 				</label>
 			</div>
