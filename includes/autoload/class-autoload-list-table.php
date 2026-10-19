@@ -51,8 +51,18 @@ final class Autoload_List_Table extends \WP_List_Table {
 		$view    = isset( $_GET['view'] ) ? \sanitize_key( \wp_unslash( $_GET['view'] ) ) : 'all';
 		$orderby = isset( $_GET['orderby'] ) ? \sanitize_key( \wp_unslash( $_GET['orderby'] ) ) : 'size';
 		$order   = isset( $_GET['order'] ) ? \sanitize_key( \wp_unslash( $_GET['order'] ) ) : 'desc';
-		$search  = isset( $_GET['s'] ) ? \sanitize_text_field( \wp_unslash( $_GET['s'] ) ) : '';
-		$trans   = ! empty( $_GET['transients'] );
+		$search  = '';
+
+		/**
+		 * Not run through sanitize_text_field(), it strips %xx from option names like 'a%2Fb'.
+		 * The term is only used as a prepared LIKE value and is escaped on output.
+		 */
+		if ( isset( $_GET['s'] ) && is_string( $_GET['s'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- See comment above.
+			$search = substr( trim( \wp_check_invalid_utf8( \wp_unslash( $_GET['s'] ) ) ), 0, 191 );
+		}
+
+		$trans = ! empty( $_GET['transients'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if ( ! in_array( $view, array( 'all', 'autoloaded', 'not_autoloaded', 'review' ), true ) ) {
