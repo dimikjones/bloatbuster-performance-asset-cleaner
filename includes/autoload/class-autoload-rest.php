@@ -118,8 +118,13 @@ final class Autoload_Rest {
 		$masked    = $sensitive && ! $request->get_param( 'reveal' );
 		$format    = 'text';
 		$value     = $option['value'];
+		$is_binary = \wp_check_invalid_utf8( $value ) !== $value;
 
-		if ( \is_serialized( $value ) ) {
+		if ( $is_binary ) {
+			// JSON can't hold invalid UTF-8, those bytes are replaced. Export keeps the exact value.
+			$format = 'binary';
+			$value  = \wp_check_invalid_utf8( $value, true );
+		} elseif ( \is_serialized( $value ) ) {
 			// Shown raw, never unserialized.
 			$format = 'serialized';
 		} else {
@@ -146,6 +151,7 @@ final class Autoload_Rest {
 				'sensitive' => $sensitive,
 				'masked'    => $masked,
 				'truncated' => $truncated,
+				'binary'    => $is_binary,
 				'value'     => $masked ? '' : $value,
 			)
 		);

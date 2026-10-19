@@ -71,6 +71,7 @@ final class Admin_Assets {
 					'loadError'      => \__( 'The value could not be loaded.', 'bloatbuster-performance-asset-cleaner' ),
 					'masked'         => \__( 'This value may contain a secret, like an API key, so it is hidden.', 'bloatbuster-performance-asset-cleaner' ),
 					'truncated'      => \__( 'The value is long, only the start is shown.', 'bloatbuster-performance-asset-cleaner' ),
+					'binary'         => \__( 'This value has bytes that are not valid text. They are shown as � here, the stored value is not changed. Use Export to get the exact value.', 'bloatbuster-performance-asset-cleaner' ),
 					'copied'         => \__( 'Copied', 'bloatbuster-performance-asset-cleaner' ),
 					'copy'           => \__( 'Copy', 'bloatbuster-performance-asset-cleaner' ),
 				),

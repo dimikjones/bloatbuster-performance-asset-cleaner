@@ -129,6 +129,10 @@ const valueDialog = {
 				notices.push( bbpacData.i18n.truncated );
 			}
 
+			if ( data.binary ) {
+				notices.push( bbpacData.i18n.binary );
+			}
+
 			this.setContent( {
 				meta: `${ data.format } · ${ data.size } B · ${ data.autoload }`,
 				notice: notices.join( ' ' ),
