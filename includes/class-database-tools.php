@@ -158,9 +158,52 @@ final class Database_Tools {
 		// Force database cleanup even when an external object cache is used.
 		\delete_expired_transients( true );
 
+		self::delete_orphaned_transient_timeouts();
+
 		$after = self::count_expired_transients();
 
 		return max( 0, $before - $after );
+	}
+
+	/**
+	 * Delete expired transient timeout rows that have no transient value row.
+	 *
+	 * Core only deletes an expired transient when both the value and the timeout
+	 * rows exist, so orphaned timeouts stay forever. Run after
+	 * delete_expired_transients(), when every expired timeout left is an orphan.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_orphaned_transient_timeouts() {
+		global $wpdb;
+
+		$now = time();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup query, the cache is cleared below.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE ( option_name LIKE %s OR option_name LIKE %s ) AND option_value < %d",
+				$wpdb->esc_like( '_transient_timeout_' ) . '%',
+				$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+				$now
+			)
+		);
+
+		if ( \is_multisite() && \is_main_network() ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup query, network options are read from the database.
+			$wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE %s AND meta_value < %d",
+					$wpdb->esc_like( '_site_transient_timeout_' ) . '%',
+					$now
+				)
+			);
+		}
+
+		\wp_cache_delete( 'alloptions', 'options' );
+		\wp_cache_delete( 'notoptions', 'options' );
 	}
 
 	/**
