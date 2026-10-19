@@ -422,7 +422,8 @@ final class Autoload_Options {
 		$params[] = $wpdb->esc_like( '_transient_' ) . '%';
 		$params[] = $wpdb->esc_like( '_site_transient_' ) . '%';
 
-		if ( ! empty( $args['search'] ) ) {
+		// Not empty(), '0' is a valid search term.
+		if ( isset( $args['search'] ) && '' !== $args['search'] ) {
 			$sql[]    = 'option_name LIKE %s';
 			$params[] = '%' . $wpdb->esc_like( $args['search'] ) . '%';
 		}

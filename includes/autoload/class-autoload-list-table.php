@@ -94,9 +94,22 @@ final class Autoload_List_Table extends \WP_List_Table {
 			's'    => '' !== $request['search'] ? rawurlencode( $request['search'] ) : false,
 		);
 
-		$query = array_filter( array_merge( $query, $args ) );
+		$query = array_filter( array_merge( $query, $args ), array( __CLASS__, 'is_query_value' ) );
 
 		return \add_query_arg( $query, \admin_url( 'admin.php' ) );
+	}
+
+	/**
+	 * Check if a value should be kept in a URL query. Keeps '0', a valid search term.
+	 *
+	 * @param mixed $value - Query value.
+	 *
+	 * @return bool - True to keep the value.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_query_value( $value ) {
+		return false !== $value && null !== $value && '' !== $value;
 	}
 
 	/**
