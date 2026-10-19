@@ -78,6 +78,20 @@ final class Tab_Assets extends Settings_Tab {
 			),
 			array(
 				'type'        => 'toggle',
+				'id'          => 'disable_classic_theme_styles',
+				'label'       => \__( 'Disable classic theme styles', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Removes the classic-theme-styles CSS on the frontend, default styles for the Button and File blocks. WordPress only loads it for classic themes.', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'type'           => 'toggle',
+				'id'             => 'disable_global_styles',
+				'label'          => \__( 'Disable global styles', 'bloatbuster-performance-asset-cleaner' ),
+				'description'    => \__( 'Removes the global-styles inline CSS on the frontend, the color, font size and spacing presets used by blocks. Only for classic themes that do not use blocks, block colors and sizes may change.', 'bloatbuster-performance-asset-cleaner' ),
+				'locked'         => \wp_is_block_theme() ? 'block_theme' : '',
+				'locked_message' => \esc_html__( 'Not available with a block theme, its design comes from global styles.', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'type'        => 'toggle',
 				'id'          => 'disable_emojis',
 				'label'       => \__( 'Disable emoji scripts and styles', 'bloatbuster-performance-asset-cleaner' ),
 				'description' => \__( 'Disable all WordPress emoji scripts and styles.', 'bloatbuster-performance-asset-cleaner' ),

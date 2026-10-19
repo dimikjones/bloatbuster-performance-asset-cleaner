@@ -22,6 +22,8 @@ final class Options_Dispatch {
 	 */
 	public static function hooks() {
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_block_editor_styles_frontend' ), 100 );
+		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_theme_styles' ), 100 );
+		\add_action( 'wp_footer', array( __CLASS__, 'disable_global_styles_footer' ), 2 );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_heartbeat_frontend' ), 100 );
 		\add_filter( 'heartbeat_settings', array( __CLASS__, 'control_heartbeat_settings' ) );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'deregister_dashicons_non_admin' ) );
@@ -86,6 +88,51 @@ final class Options_Dispatch {
 				\wp_dequeue_style( 'wp-block-library-theme' );
 			}
 		}
+	}
+
+	/**
+	 * Dequeue the classic theme styles and global styles on the frontend.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_theme_styles() {
+		if ( ! self::is_frontend() ) {
+			return;
+		}
+
+		if ( self::get_option_value( 'disable_classic_theme_styles' ) ) {
+			\wp_dequeue_style( 'classic-theme-styles' );
+		}
+
+		if ( self::should_disable_global_styles() ) {
+			\wp_dequeue_style( 'global-styles' );
+		}
+	}
+
+	/**
+	 * Dequeue global styles again in the footer, where WordPress enqueues them a second time.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_global_styles_footer() {
+		if ( self::is_frontend() && self::should_disable_global_styles() ) {
+			\wp_dequeue_style( 'global-styles' );
+		}
+	}
+
+	/**
+	 * Check if global styles should be removed. Never for block themes, their design comes from global styles.
+	 *
+	 * @return bool - True to remove global styles.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function should_disable_global_styles() {
+		return self::get_option_value( 'disable_global_styles' ) && ! \wp_is_block_theme();
 	}
 
 	/**

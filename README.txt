@@ -17,6 +17,8 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 = Features =
 
 * Disable Gutenberg block styles on the frontend
+* Disable classic theme styles on the frontend
+* Disable global styles on the frontend (classic themes only)
 * Disable the Heartbeat API on the frontend
 * Control Heartbeat API interval for the frontend, dashboard and post editor
 * Disable Dashicons on the frontend when the toolbar is hidden
