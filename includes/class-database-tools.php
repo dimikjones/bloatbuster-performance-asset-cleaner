@@ -267,12 +267,16 @@ final class Database_Tools {
 				break;
 
 			case 'delete_revisions':
-				$keep   = isset( $_POST['bbpac_keep_revisions'] ) ? \absint( $_POST['bbpac_keep_revisions'] ) : 0;
+				// Same limit as the form input.
+				$keep   = isset( $_POST['bbpac_keep_revisions'] ) ? min( 100, \absint( $_POST['bbpac_keep_revisions'] ) ) : 0;
 				$result = self::delete_revisions( $keep );
 
 				$args['bloatbuster_notice']    = 'revisions_deleted';
 				$args['bloatbuster_count']     = $result['deleted'];
 				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				// Fill the form with the same value, so the next batch keeps the same revisions.
+				$args['bloatbuster_keep'] = $keep;
 				break;
 
 			case 'delete_auto_drafts':

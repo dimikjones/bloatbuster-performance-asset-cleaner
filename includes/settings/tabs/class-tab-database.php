@@ -166,7 +166,12 @@ final class Tab_Database extends Settings_Tab {
 			return;
 		}
 
-		if ( $remaining > 0 ) {
+		if ( $remaining > 0 && 'revisions_deleted' === $notice ) {
+			$keep = self::get_revisions_to_keep();
+
+			/* translators: 1: number of revisions left to delete, 2: number of revisions kept per post. */
+			$message .= ' ' . sprintf( \_n( '%1$d more left, run it again to delete it (keeping %2$d per post).', '%1$d more left, run it again to delete them (keeping %2$d per post).', $remaining, 'bloatbuster-performance-asset-cleaner' ), $remaining, $keep );
+		} elseif ( $remaining > 0 ) {
 			/* translators: %d: number of items left to delete. */
 			$message .= ' ' . sprintf( \_n( '%d more left, run it again to delete it.', '%d more left, run it again to delete them.', $remaining, 'bloatbuster-performance-asset-cleaner' ), $remaining );
 		}
@@ -256,6 +261,25 @@ final class Tab_Database extends Settings_Tab {
 	}
 
 	/**
+	 * Get the number of revisions to keep per post for the form.
+	 *
+	 * After a batch run, uses the value of that run so the next run keeps the same revisions.
+	 *
+	 * @return int - Revisions to keep per post, 0 to 100.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_revisions_to_keep() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flag set by the action redirect.
+		if ( isset( $_GET['bloatbuster_keep'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flag set by the action redirect.
+			return min( 100, \absint( $_GET['bloatbuster_keep'] ) );
+		}
+
+		return self::get_default_revisions_to_keep();
+	}
+
+	/**
 	 * Render the revisions count, the number to keep and the posts with most revisions.
 	 *
 	 * @return bool - True if there are revisions to delete.
@@ -263,7 +287,7 @@ final class Tab_Database extends Settings_Tab {
 	 * @since 1.0.0
 	 */
 	public static function render_revisions() {
-		$keep    = self::get_default_revisions_to_keep();
+		$keep    = self::get_revisions_to_keep();
 		$count   = Database_Tools::count_revisions( $keep );
 		$parents = array_slice( Database_Tools::get_revision_parents( 0 ), 0, 10 );
 		?>
