@@ -29,7 +29,15 @@ function bloatbuster_uninstall_data() {
 }
 
 if ( \is_multisite() ) {
-	foreach ( \get_sites( array( 'fields' => 'ids' ) ) as $bloatbuster_site_id ) {
+	// 'number' => 0 returns all sites, the default is 100.
+	$bloatbuster_site_ids = \get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	);
+
+	foreach ( $bloatbuster_site_ids as $bloatbuster_site_id ) {
 		\switch_to_blog( $bloatbuster_site_id );
 		bloatbuster_uninstall_data();
 		\restore_current_blog();

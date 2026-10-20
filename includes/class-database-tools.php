@@ -64,7 +64,7 @@ final class Database_Tools {
 			)
 		);
 
-		if ( \is_multisite() && \is_main_network() ) {
+		if ( self::uses_network_transients() ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count, must not be cached.
 			$count += (int) $wpdb->get_var(
 				$wpdb->prepare(
@@ -105,7 +105,7 @@ final class Database_Tools {
 			)
 		);
 
-		if ( \is_multisite() && \is_main_network() ) {
+		if ( self::uses_network_transients() ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list, must not be cached.
 			$network_rows = $wpdb->get_results(
 				$wpdb->prepare(
@@ -150,6 +150,20 @@ final class Database_Tools {
 	 */
 	public static function compare_expired( $a, $b ) {
 		return $a['expired'] <=> $b['expired'];
+	}
+
+	/**
+	 * Check if this site handles the network transients, stored in the sitemeta table.
+	 *
+	 * Only the main site of the main network, like core delete_expired_transients(),
+	 * so subsite admins don't see or clean network data.
+	 *
+	 * @return bool - True on the main site of a multisite network.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function uses_network_transients() {
+		return \is_multisite() && \is_main_site() && \is_main_network();
 	}
 
 	/**
@@ -212,7 +226,7 @@ final class Database_Tools {
 			)
 		);
 
-		if ( \is_multisite() && \is_main_network() ) {
+		if ( self::uses_network_transients() ) {
 			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE t FROM {$wpdb->sitemeta} t
@@ -300,7 +314,14 @@ final class Database_Tools {
 			'overhead' => 0,
 		);
 
+		// On the multisite main site, the prefix also matches the tables of other sites, like wp_2_posts.
+		$other_sites = '/^' . preg_quote( $wpdb->prefix, '/' ) . '[0-9]+_/';
+
 		foreach ( (array) $rows as $row ) {
+			if ( \is_multisite() && \is_main_site() && preg_match( $other_sites, $row->name ) ) {
+				continue;
+			}
+
 			$tables[] = array(
 				'name'     => (string) $row->name,
 				'rows'     => (int) $row->row_count,

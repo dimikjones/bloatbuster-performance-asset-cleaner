@@ -33,6 +33,15 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
   enable or disable autoload (single and bulk), delete, view values with secrets masked, export and restore from backup
 * Disable comments site-wide
 
+## Multisite
+
+* Settings are per site. Each site has its own settings page, configured by that site's administrator. There are no network-wide settings yet.
+* Network activation works, every site starts with all options off.
+* In the Autoloaded Options tab, only network administrators can change autoload, delete or restore options. Site administrators can browse, view and export them.
+* Network transients (stored in the sitemeta table) are listed and cleaned only on the main site.
+* Database statistics on the main site only count the main site's tables.
+* Uninstall removes the plugin data on every site that opted in.
+
 ## Developers
 
 ### Settings structure

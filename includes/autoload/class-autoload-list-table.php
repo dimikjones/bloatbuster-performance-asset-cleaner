@@ -151,6 +151,12 @@ final class Autoload_List_Table extends \WP_List_Table {
 	 * @since 1.0.0
 	 */
 	protected function get_bulk_actions() {
+		if ( ! Autoload_Actions::can_change_options() ) {
+			return array(
+				'export' => \__( 'Export', 'bloatbuster-performance-asset-cleaner' ),
+			);
+		}
+
 		return array(
 			'enable'  => \__( 'Enable autoload', 'bloatbuster-performance-asset-cleaner' ),
 			'disable' => \__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ),
@@ -321,7 +327,7 @@ final class Autoload_List_Table extends \WP_List_Table {
 			),
 		);
 
-		if ( ! $is_protected ) {
+		if ( ! $is_protected && Autoload_Actions::can_change_options() ) {
 			$is_autoloaded = Autoload_Options::is_autoloaded( $item['autoload'] );
 
 			$actions['toggle'] = sprintf(
