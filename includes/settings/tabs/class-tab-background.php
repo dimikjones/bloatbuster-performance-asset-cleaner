@@ -165,9 +165,23 @@ final class Tab_Background extends Settings_Tab {
 			<p class="bbpac-status-warning">
 				<?php
 				/* translators: 1: number of overdue events, 2: human readable time difference, e.g. 2 hours. */
-				echo \esc_html( sprintf( \_n( '%1$d event is overdue, the oldest by %2$s. WP-Cron may not be running.', '%1$d events are overdue, the oldest by %2$s. WP-Cron may not be running.', $status['overdue'], 'bloatbuster-performance-asset-cleaner' ), $status['overdue'], \human_time_diff( $status['oldest_overdue'] ) ) );
+				echo \esc_html( sprintf( \_n( '%1$d event is overdue, the oldest by %2$s.', '%1$d events are overdue, the oldest by %2$s.', $status['overdue'], 'bloatbuster-performance-asset-cleaner' ), $status['overdue'], \human_time_diff( $status['oldest_overdue'] ) ) );
+				echo ' ';
+
+				if ( $status['disabled'] ) {
+					\esc_html_e( 'Check that the server cron job is running.', 'bloatbuster-performance-asset-cleaner' );
+				} else {
+					\esc_html_e( 'WP-Cron may not be running.', 'bloatbuster-performance-asset-cleaner' );
+				}
 				?>
 				<a href="<?php echo \esc_url( \admin_url( 'site-health.php' ) ); ?>"><?php \esc_html_e( 'Check Site Health', 'bloatbuster-performance-asset-cleaner' ); ?></a>
+			</p>
+		<?php elseif ( $status['disabled'] ) : ?>
+			<p class="bbpac-status-good">
+				<?php
+				/* translators: %d: number of scheduled events. */
+				echo \esc_html( sprintf( \_n( 'Scheduled events run on time, %d event scheduled. A server cron job runs them.', 'Scheduled events run on time, %d events scheduled. A server cron job runs them.', $status['total'], 'bloatbuster-performance-asset-cleaner' ), $status['total'] ) );
+				?>
 			</p>
 		<?php else : ?>
 			<p class="bbpac-status-good">
@@ -180,7 +194,7 @@ final class Tab_Background extends Settings_Tab {
 		<p>
 			<?php
 			if ( $status['disabled'] ) {
-				\esc_html_e( 'Mode: disabled with DISABLE_WP_CRON. A server cron job must call wp-cron.php.', 'bloatbuster-performance-asset-cleaner' );
+				\esc_html_e( 'Mode: page visits don\'t run WP-Cron (DISABLE_WP_CRON), a server cron job must call wp-cron.php.', 'bloatbuster-performance-asset-cleaner' );
 			} else {
 				\esc_html_e( 'Mode: runs on page visits.', 'bloatbuster-performance-asset-cleaner' );
 			}
