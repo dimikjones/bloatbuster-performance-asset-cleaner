@@ -211,9 +211,8 @@ final class Tab_Background extends Settings_Tab {
 		</p>
 		<?php if ( ! $status['disabled'] ) : ?>
 			<p class="description">
-				<?php \esc_html_e( 'Tip: on busy sites, set DISABLE_WP_CRON to true in wp-config.php and add a server cron job, so tasks don\'t run during page visits:', 'bloatbuster-performance-asset-cleaner' ); ?>
-				<br>
-				<code><?php echo \esc_html( '*/5 * * * * wget -q -O - ' . \site_url( 'wp-cron.php?doing_wp_cron' ) . ' >/dev/null 2>&1' ); ?></code>
+				<?php \esc_html_e( 'Tip: on busy sites, turn off WP-Cron on page visits with DISABLE_WP_CRON in wp-config.php and run it from a server cron job instead.', 'bloatbuster-performance-asset-cleaner' ); ?>
+				<a href="<?php echo \esc_url( 'https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/' ); ?>" target="_blank" rel="noopener noreferrer"><?php \esc_html_e( 'How to set up a server cron job', 'bloatbuster-performance-asset-cleaner' ); ?></a>
 			</p>
 		<?php endif; ?>
 		<?php if ( ! empty( $events ) ) : ?>
