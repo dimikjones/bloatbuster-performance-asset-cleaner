@@ -95,6 +95,7 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      box-sizing: border-box;
       width: 60%;
       margin: 20px 0;
       padding-right: 40px;
@@ -348,9 +349,12 @@
     display: none;
   }
 
-  .form-table tr.bbpac-child th {
+  .form-table tr.bbpac-child {
     padding-left: 24px;
-    font-weight: 400;
+
+    th {
+      font-weight: 500;
+    }
   }
 
   .bbpac-field.number input {
@@ -518,6 +522,11 @@
     background: rgba(0, 0, 0, 0.5);
   }
 
+  // WordPress .button sets display, which would override the hidden attribute.
+  [hidden] {
+    display: none !important;
+  }
+
   .bbpac-value-dialog-header {
     display: flex;
     flex-wrap: wrap;
@@ -555,5 +564,27 @@
     justify-content: flex-end;
     gap: 8px;
     margin-top: 12px;
+  }
+}
+
+// Checkbox list field, shown under the label instead of next to it.
+#bloatbuster-performance-asset-cleaner-options
+  .form-table
+  > tbody
+  > tr
+  > td
+  > .bbpac-field.checkbox-list {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 6px 16px;
+  width: auto;
+  height: auto;
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+
+  label {
+    font-size: 14px;
   }
 }

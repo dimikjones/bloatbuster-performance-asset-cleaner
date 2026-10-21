@@ -18,10 +18,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Options_Dispatch {
 
 	/**
+	 * True when AUTOSAVE_INTERVAL was set before this plugin could set it, e.g. in wp-config.php.
+	 *
+	 * @var bool
+	 */
+	private static $autosave_interval_external = false;
+
+	/**
 	 * Hook in methods.
 	 */
 	public static function hooks() {
+		// Core defines AUTOSAVE_INTERVAL right after plugins_loaded, see wp_functionality_constants().
+		\add_action( 'plugins_loaded', array( __CLASS__, 'define_autosave_interval' ), PHP_INT_MAX );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_block_editor_styles_frontend' ), 100 );
+		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_theme_styles' ), 100 );
+		\add_filter( 'intermediate_image_sizes_advanced', array( __CLASS__, 'disable_image_sizes' ) );
+		\add_filter( 'big_image_size_threshold', array( __CLASS__, 'control_big_image_threshold' ) );
+		\add_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ) );
+		\add_action( 'wp_footer', array( __CLASS__, 'disable_global_styles_footer' ), 2 );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'disable_heartbeat_frontend' ), 100 );
 		\add_filter( 'heartbeat_settings', array( __CLASS__, 'control_heartbeat_settings' ) );
 		\add_action( 'wp_enqueue_scripts', array( __CLASS__, 'deregister_dashicons_non_admin' ) );
@@ -86,6 +100,147 @@ final class Options_Dispatch {
 				\wp_dequeue_style( 'wp-block-library-theme' );
 			}
 		}
+	}
+
+	/**
+	 * Define the AUTOSAVE_INTERVAL constant from the plugin option, before WordPress sets its default.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function define_autosave_interval() {
+		if ( defined( 'AUTOSAVE_INTERVAL' ) ) {
+			self::$autosave_interval_external = true;
+			return;
+		}
+
+		if ( ! self::get_option_value( 'control_autosave_interval' ) ) {
+			return;
+		}
+
+		$interval = (int) self::get_option_value( 'autosave_interval', 60 );
+
+		define( 'AUTOSAVE_INTERVAL', min( 600, max( 10, $interval ) ) );
+	}
+
+	/**
+	 * Check if AUTOSAVE_INTERVAL was set outside this plugin, so the option can't change it.
+	 *
+	 * @return bool - True if set elsewhere, e.g. in wp-config.php.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_autosave_interval_external() {
+		return self::$autosave_interval_external;
+	}
+
+	/**
+	 * Remove the disabled image sizes from the sizes created on upload.
+	 *
+	 * @param array $sizes - Image sizes to create, keyed by size name.
+	 *
+	 * @return array - Image sizes without the disabled ones.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_image_sizes( $sizes ) {
+		$disabled = self::get_option_value( 'disabled_image_sizes', array() );
+
+		if ( empty( $disabled ) || ! is_array( $disabled ) || ! is_array( $sizes ) ) {
+			return $sizes;
+		}
+
+		foreach ( $disabled as $size_name ) {
+			unset( $sizes[ $size_name ] );
+		}
+
+		return $sizes;
+	}
+
+	/**
+	 * Set the size from which uploaded images are scaled down.
+	 *
+	 * @param int|false $threshold - Size in pixels, or false to turn scaling off.
+	 *
+	 * @return int|false - Size in pixels, or false when set to 0.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function control_big_image_threshold( $threshold ) {
+		if ( ! self::get_option_value( 'control_big_image_threshold' ) ) {
+			return $threshold;
+		}
+
+		$size = (int) self::get_option_value( 'big_image_threshold', 2560 );
+
+		if ( 0 === $size ) {
+			return false;
+		}
+
+		return $size;
+	}
+
+	/**
+	 * Turn off the core XML sitemaps.
+	 *
+	 * @param bool $is_enabled - Whether sitemaps are enabled.
+	 *
+	 * @return bool - False when the option is on.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_wp_sitemaps( $is_enabled ) {
+		if ( self::get_option_value( 'disable_wp_sitemaps' ) ) {
+			return false;
+		}
+
+		return $is_enabled;
+	}
+
+	/**
+	 * Dequeue the classic theme styles and global styles on the frontend.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_theme_styles() {
+		if ( ! self::is_frontend() ) {
+			return;
+		}
+
+		if ( self::get_option_value( 'disable_classic_theme_styles' ) ) {
+			\wp_dequeue_style( 'classic-theme-styles' );
+		}
+
+		if ( self::should_disable_global_styles() ) {
+			\wp_dequeue_style( 'global-styles' );
+		}
+	}
+
+	/**
+	 * Dequeue global styles again in the footer, where WordPress enqueues them a second time.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function disable_global_styles_footer() {
+		if ( self::is_frontend() && self::should_disable_global_styles() ) {
+			\wp_dequeue_style( 'global-styles' );
+		}
+	}
+
+	/**
+	 * Check if global styles should be removed. Never for block themes, their design comes from global styles.
+	 *
+	 * @return bool - True to remove global styles.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function should_disable_global_styles() {
+		return self::get_option_value( 'disable_global_styles' ) && ! \wp_is_block_theme();
 	}
 
 	/**

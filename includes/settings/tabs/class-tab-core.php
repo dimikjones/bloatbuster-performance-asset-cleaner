@@ -119,6 +119,12 @@ final class Tab_Core extends Settings_Tab {
 			),
 			array(
 				'type'        => 'toggle',
+				'id'          => 'disable_wp_sitemaps',
+				'label'       => \__( 'Disable core XML sitemaps', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Removes the WordPress sitemap at /wp-sitemap.xml. SEO plugins with their own sitemaps, like Yoast SEO or Rank Math, already turn it off.', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'type'        => 'toggle',
 				'id'          => 'disable_user_enumeration',
 				'label'       => \__( 'Disable user enumeration', 'bloatbuster-performance-asset-cleaner' ),
 				'description' => \__( 'Hide usernames from the REST API users endpoint, ?author= URLs, the users sitemap and oEmbed data for visitors who can not edit posts. Makes brute force login attacks harder. Author archive pages keep working.', 'bloatbuster-performance-asset-cleaner' ),

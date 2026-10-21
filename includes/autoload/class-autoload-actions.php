@@ -122,6 +122,37 @@ final class Autoload_Actions {
 	}
 
 	/**
+	 * Check if the current user can change, delete or restore options.
+	 *
+	 * On multisite only network administrators can. Site administrators are not fully
+	 * trusted there, and restored values are unserialized by WordPress when read.
+	 *
+	 * @return bool - True if the user can change options.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function can_change_options() {
+		if ( \is_multisite() ) {
+			return \is_super_admin();
+		}
+
+		return \current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Stop the request if the user can't change options.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function check_change_permission() {
+		if ( ! self::can_change_options() ) {
+			\wp_die( \esc_html__( 'Only network administrators can change options on a multisite network.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 403 ) );
+		}
+	}
+
+	/**
 	 * Handle a bulk action from the options table.
 	 *
 	 * @return void
@@ -145,6 +176,11 @@ final class Autoload_Actions {
 
 		if ( ! in_array( $action, array( 'enable', 'disable', 'delete', 'export' ), true ) ) {
 			self::redirect( array() );
+		}
+
+		// Export only reads options, the other actions change them.
+		if ( 'export' !== $action ) {
+			self::check_change_permission();
 		}
 
 		$filtered = Autoload_Options::filter_names( $raw_names, 'export' === $action );
@@ -174,6 +210,7 @@ final class Autoload_Actions {
 	 */
 	public static function handle_row_action() {
 		self::check_permission();
+		self::check_change_permission();
 
 		$action = isset( $_GET['do'] ) ? \sanitize_key( \wp_unslash( $_GET['do'] ) ) : '';
 
@@ -248,6 +285,7 @@ final class Autoload_Actions {
 	 */
 	public static function handle_import() {
 		self::check_permission();
+		self::check_change_permission();
 
 		\check_admin_referer( self::IMPORT_ACTION );
 

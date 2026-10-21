@@ -25,6 +25,13 @@ final class Database_Tools {
 	const ACTION = 'bloatbuster_run_action';
 
 	/**
+	 * Maximum number of revisions or auto-drafts deleted per run.
+	 *
+	 * @var int
+	 */
+	const DELETE_BATCH = 500;
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -57,7 +64,7 @@ final class Database_Tools {
 			)
 		);
 
-		if ( \is_multisite() && \is_main_network() ) {
+		if ( self::uses_network_transients() ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count, must not be cached.
 			$count += (int) $wpdb->get_var(
 				$wpdb->prepare(
@@ -98,7 +105,7 @@ final class Database_Tools {
 			)
 		);
 
-		if ( \is_multisite() && \is_main_network() ) {
+		if ( self::uses_network_transients() ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list, must not be cached.
 			$network_rows = $wpdb->get_results(
 				$wpdb->prepare(
@@ -143,6 +150,20 @@ final class Database_Tools {
 	 */
 	public static function compare_expired( $a, $b ) {
 		return $a['expired'] <=> $b['expired'];
+	}
+
+	/**
+	 * Check if this site handles the network transients, stored in the sitemeta table.
+	 *
+	 * Only the main site of the main network, like core delete_expired_transients(),
+	 * so subsite admins don't see or clean network data.
+	 *
+	 * @return bool - True on the main site of a multisite network.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function uses_network_transients() {
+		return \is_multisite() && \is_main_site() && \is_main_network();
 	}
 
 	/**
@@ -205,7 +226,7 @@ final class Database_Tools {
 			)
 		);
 
-		if ( \is_multisite() && \is_main_network() ) {
+		if ( self::uses_network_transients() ) {
 			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE t FROM {$wpdb->sitemeta} t
@@ -244,9 +265,343 @@ final class Database_Tools {
 				$args['bloatbuster_notice'] = 'transients_cleaned';
 				$args['bloatbuster_count']  = self::clean_expired_transients();
 				break;
+
+			case 'delete_revisions':
+				// Same limit as the form input.
+				$keep   = isset( $_POST['bbpac_keep_revisions'] ) ? min( 100, \absint( $_POST['bbpac_keep_revisions'] ) ) : 0;
+				$result = self::delete_revisions( $keep );
+
+				$args['bloatbuster_notice']    = 'revisions_deleted';
+				$args['bloatbuster_count']     = $result['deleted'];
+				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				// Fill the form with the same value, so the next batch keeps the same revisions.
+				$args['bloatbuster_keep'] = $keep;
+				break;
+
+			case 'delete_auto_drafts':
+				$result = self::delete_auto_drafts();
+
+				$args['bloatbuster_notice']    = 'auto_drafts_deleted';
+				$args['bloatbuster_count']     = $result['deleted'];
+				$args['bloatbuster_remaining'] = $result['remaining'];
+				break;
 		}
 
 		\wp_safe_redirect( \add_query_arg( $args, \admin_url( 'admin.php?page=' . BLOATBUSTER_OPTION ) ) );
 		exit;
+	}
+
+	/**
+	 * Get the size, rows and free space of the tables with this site's prefix.
+	 *
+	 * Free space is not added up: InnoDB keeps some free space reserved in larger
+	 * tables, and without innodb_file_per_table every InnoDB table reports the free
+	 * space of the same shared file, so it is shown as unknown for those tables.
+	 *
+	 * @return array - Tables sorted by size, largest first, and totals.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_table_stats() {
+		global $wpdb;
+
+		$where = 'TABLE_SCHEMA = %s AND TABLE_NAME LIKE %s';
+		$args  = array( $wpdb->dbname, $wpdb->esc_like( $wpdb->prefix ) . '%' );
+
+		// On the multisite main site, the prefix also matches the tables of other sites, like wp_2_posts.
+		if ( \is_multisite() && \is_main_site() ) {
+			$where .= ' AND TABLE_NAME NOT REGEXP %s';
+			$args[] = '^' . preg_quote( $wpdb->prefix, '/' ) . '[0-9]+_';
+		}
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Live report from information_schema, WHERE built with placeholders.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT TABLE_NAME AS name, ENGINE AS engine, TABLE_ROWS AS row_count, DATA_LENGTH + INDEX_LENGTH AS size, DATA_FREE AS free_space FROM information_schema.TABLES WHERE {$where} ORDER BY size DESC",
+				$args
+			)
+		);
+		// phpcs:enable
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Server setting, read once.
+		$file_per_table = (bool) $wpdb->get_var( 'SELECT @@innodb_file_per_table' );
+
+		$tables = array();
+		$totals = array(
+			'count' => 0,
+			'size'  => 0,
+		);
+
+		foreach ( (array) $rows as $row ) {
+			$is_shared = 'innodb' === strtolower( (string) $row->engine ) && ! $file_per_table;
+
+			$tables[] = array(
+				'name'       => (string) $row->name,
+				'rows'       => (int) $row->row_count,
+				'size'       => (int) $row->size,
+				'free_space' => $is_shared ? null : (int) $row->free_space,
+			);
+
+			++$totals['count'];
+			$totals['size'] += (int) $row->size;
+		}
+
+		return array(
+			'tables' => $tables,
+			'totals' => $totals,
+		);
+	}
+
+	/**
+	 * Count revisions, auto-drafts, trashed posts and spam or trashed comments.
+	 *
+	 * @return array - Counts keyed by type.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_content_counts() {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
+		$counts = array(
+			'revisions'        => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s", 'revision' ) ),
+			'auto_drafts'      => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status = %s", 'auto-draft' ) ),
+			'trashed_posts'    => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status = %s", 'trash' ) ),
+			'spam_comments'    => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->comments} WHERE comment_approved = %s", 'spam' ) ),
+			'trashed_comments' => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->comments} WHERE comment_approved = %s", 'trash' ) ),
+		);
+		// phpcs:enable
+
+		return $counts;
+	}
+
+	/**
+	 * Get the posts with the most revisions, above the number to keep.
+	 *
+	 * @param int $keep  - Newest revisions to keep per post.
+	 * @param int $limit - Maximum number of posts.
+	 *
+	 * @return array - Rows with parent ID and revision count, most revisions first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_revision_parents( $keep, $limit ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_parent AS parent, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_type = %s GROUP BY post_parent HAVING total > %d ORDER BY total DESC LIMIT %d",
+				'revision',
+				\absint( $keep ),
+				\absint( $limit )
+			)
+		);
+
+		return self::format_revision_parents( $rows );
+	}
+
+	/**
+	 * Get a page of posts with more revisions than the number to keep, after a post ID.
+	 *
+	 * Keyset paging by post ID, so a revision that fails to delete can't make the loop repeat.
+	 *
+	 * @param int $keep  - Newest revisions to keep per post.
+	 * @param int $after - Only posts with a higher ID than this.
+	 * @param int $limit - Maximum number of posts.
+	 *
+	 * @return array - Rows with parent ID and revision count, lowest post ID first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_revision_parents_after( $keep, $after, $limit ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_parent AS parent, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_type = %s AND post_parent > %d GROUP BY post_parent HAVING total > %d ORDER BY post_parent ASC LIMIT %d",
+				'revision',
+				// Not absint(), the first page starts at -1 so orphaned revisions with parent 0 are included.
+				(int) $after,
+				\absint( $keep ),
+				\absint( $limit )
+			)
+		);
+
+		return self::format_revision_parents( $rows );
+	}
+
+	/**
+	 * Convert revision parent rows to arrays with integer values.
+	 *
+	 * @param array $rows - Database rows with parent and total.
+	 *
+	 * @return array - Rows with parent ID and revision count.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function format_revision_parents( $rows ) {
+		$parents = array();
+
+		foreach ( (array) $rows as $row ) {
+			$parents[] = array(
+				'parent' => (int) $row->parent,
+				'total'  => (int) $row->total,
+			);
+		}
+
+		return $parents;
+	}
+
+	/**
+	 * Count the revisions that would be deleted when keeping the newest ones per post.
+	 *
+	 * @param int $keep - Newest revisions to keep per post.
+	 *
+	 * @return int - Number of revisions to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function count_revisions( $keep ) {
+		global $wpdb;
+
+		$keep = \absint( $keep );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count, summed in SQL.
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COALESCE( SUM( total - %d ), 0 ) FROM ( SELECT COUNT(*) AS total FROM {$wpdb->posts} WHERE post_type = %s GROUP BY post_parent HAVING total > %d ) AS parents",
+				$keep,
+				'revision',
+				$keep
+			)
+		);
+	}
+
+	/**
+	 * Delete old revisions, keeping the newest ones of each post.
+	 *
+	 * Deletes at most DELETE_BATCH revisions per run, the rest can be deleted by running it again.
+	 * Posts are read in pages of 50, so memory use doesn't grow with the size of the site.
+	 *
+	 * @param int $keep - Newest revisions to keep per post.
+	 *
+	 * @return array - Number of deleted and remaining revisions.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_revisions( $keep ) {
+		global $wpdb;
+
+		$keep        = \absint( $keep );
+		$deleted     = 0;
+		$last_parent = -1;
+
+		while ( $deleted < self::DELETE_BATCH ) {
+			$parents = self::get_revision_parents_after( $keep, $last_parent, 50 );
+
+			if ( empty( $parents ) ) {
+				break;
+			}
+
+			foreach ( $parents as $parent ) {
+				$last_parent = $parent['parent'];
+
+				if ( $deleted >= self::DELETE_BATCH ) {
+					break;
+				}
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list, newest first, skipping the ones to keep.
+				$revision_ids = $wpdb->get_col(
+					$wpdb->prepare(
+						"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = %d ORDER BY post_date DESC, ID DESC LIMIT %d, %d",
+						'revision',
+						$parent['parent'],
+						$keep,
+						self::DELETE_BATCH - $deleted
+					)
+				);
+
+				foreach ( $revision_ids as $revision_id ) {
+					if ( \wp_delete_post_revision( (int) $revision_id ) ) {
+						++$deleted;
+					}
+				}
+			}
+		}
+
+		return array(
+			'deleted'   => $deleted,
+			'remaining' => self::count_revisions( $keep ),
+		);
+	}
+
+	/**
+	 * Get the date before which auto-drafts are deleted. Newer ones may still be open in the editor.
+	 *
+	 * @return string - Date in the site timezone, MySQL format.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_auto_draft_cutoff() {
+		return \wp_date( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+	}
+
+	/**
+	 * Count auto-drafts older than one day.
+	 *
+	 * @return int - Number of auto-drafts.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function count_auto_drafts() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count.
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status = %s AND post_date < %s",
+				'auto-draft',
+				self::get_auto_draft_cutoff()
+			)
+		);
+	}
+
+	/**
+	 * Delete auto-drafts older than one day.
+	 *
+	 * Deletes at most DELETE_BATCH auto-drafts per run, the rest can be deleted by running it again.
+	 *
+	 * @return array - Number of deleted and remaining auto-drafts.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_auto_drafts() {
+		global $wpdb;
+
+		$deleted = 0;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list.
+		$post_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_status = %s AND post_date < %s ORDER BY ID ASC LIMIT %d",
+				'auto-draft',
+				self::get_auto_draft_cutoff(),
+				self::DELETE_BATCH
+			)
+		);
+
+		foreach ( $post_ids as $post_id ) {
+			if ( \wp_delete_post( (int) $post_id, true ) ) {
+				++$deleted;
+			}
+		}
+
+		return array(
+			'deleted'   => $deleted,
+			'remaining' => self::count_auto_drafts(),
+		);
 	}
 }

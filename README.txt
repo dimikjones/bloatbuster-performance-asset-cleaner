@@ -17,6 +17,8 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 = Features =
 
 * Disable Gutenberg block styles on the frontend
+* Disable classic theme styles on the frontend
+* Disable global styles on the frontend (classic themes only)
 * Disable the Heartbeat API on the frontend
 * Control Heartbeat API interval for the frontend, dashboard and post editor
 * Disable Dashicons on the frontend when the toolbar is hidden
@@ -28,9 +30,17 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable capital_P_dangit
 * Remove unnecessary head tags
 * Disable XML-RPC
+* Disable core XML sitemaps
+* WP-Cron status checker with overdue events and next scheduled events
+* Control the post editor autosave interval
+* Disable unneeded image sizes for new uploads
+* Control large image scaling (big image size threshold)
 * Disable user enumeration
 * Control speculative loading mode and eagerness
 * Manually clean expired transients
+* Delete old revisions, keeping the newest ones per post
+* Delete old auto-drafts
+* Database statistics: size, largest tables with free space, revisions, auto-drafts, trash and spam counts
 * Autoloaded options manager: browse, search, filter and sort options, see the likely owner, change autoload, delete, view values, export and restore
 * Disable comments site-wide
 

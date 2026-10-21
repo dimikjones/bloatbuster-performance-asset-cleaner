@@ -185,3 +185,14 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 	} );
 } );
+
+/**
+ * Ask for confirmation before action buttons that delete data, e.g. in the Database tab.
+ */
+document.addEventListener( 'click', ( event ) => {
+	const button = event.target.closest( '[data-bbpac-confirm]' );
+
+	if ( button && ! window.confirm( button.dataset.bbpacConfirm ) ) {
+		event.preventDefault();
+	}
+} );

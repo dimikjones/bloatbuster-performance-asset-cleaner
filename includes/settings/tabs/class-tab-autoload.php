@@ -174,6 +174,11 @@ final class Tab_Autoload extends Settings_Tab {
 
 		self::render_summary();
 		?>
+		<?php if ( ! Autoload_Actions::can_change_options() ) : ?>
+			<div class="notice notice-info inline">
+				<p><?php \esc_html_e( 'Only network administrators can change options on a multisite network. You can browse, view and export them.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			</div>
+		<?php endif; ?>
 		<div class="bbpac-autoload-manager">
 			<?php $table->views(); ?>
 			<form method="get" action="<?php echo \esc_url( \admin_url( 'admin.php' ) ); ?>" class="bbpac-autoload-search">
@@ -189,6 +194,7 @@ final class Tab_Autoload extends Settings_Tab {
 				<?php // display() prints the nonce field, see Autoload_Actions::BULK_NONCE. ?>
 				<?php $table->display(); ?>
 			</form>
+			<?php if ( Autoload_Actions::can_change_options() ) : ?>
 			<div class="bbpac-autoload-import">
 				<h3><?php \esc_html_e( 'Restore from backup', 'bloatbuster-performance-asset-cleaner' ); ?></h3>
 				<p class="description"><?php \esc_html_e( 'Upload a file created with the Export bulk action. Missing options are created again, existing options only get their autoload state restored. Protected options are skipped.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
@@ -199,6 +205,7 @@ final class Tab_Autoload extends Settings_Tab {
 					<?php \submit_button( \__( 'Restore options', 'bloatbuster-performance-asset-cleaner' ), 'secondary', 'bbpac_import_submit', false ); ?>
 				</form>
 			</div>
+			<?php endif; ?>
 		</div>
 		<?php
 		self::render_value_dialog();

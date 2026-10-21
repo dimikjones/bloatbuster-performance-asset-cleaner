@@ -5,6 +5,8 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 ## Features
 
 * Disable Gutenberg block styles on the frontend
+* Disable classic theme styles on the frontend
+* Disable global styles on the frontend (classic themes only)
 * Disable the Heartbeat API on the frontend
 * Control Heartbeat API interval for the frontend, dashboard and post editor
 * Disable Dashicons on the frontend when the toolbar is hidden
@@ -16,12 +18,29 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Disable capital_P_dangit
 * Remove unnecessary head tags
 * Disable XML-RPC
+* Disable core XML sitemaps
+* WP-Cron status checker with overdue events and next scheduled events
+* Control the post editor autosave interval
+* Disable unneeded image sizes for new uploads
+* Control large image scaling (big image size threshold)
 * Disable user enumeration
 * Control speculative loading mode and eagerness
 * Manually clean expired transients
+* Delete old revisions, keeping the newest ones per post
+* Delete old auto-drafts
+* Database statistics: size, largest tables with free space, revisions, auto-drafts, trash and spam counts
 * Autoloaded options manager: summary, browse, search, filter and sort all options, likely plugin or theme owner,
   enable or disable autoload (single and bulk), delete, view values with secrets masked, export and restore from backup
 * Disable comments site-wide
+
+## Multisite
+
+* Settings are per site. Each site has its own settings page, configured by that site's administrator. There are no network-wide settings yet.
+* Network activation works, every site starts with all options off.
+* In the Autoloaded Options tab, only network administrators can change autoload, delete or restore options. Site administrators can browse, view and export them.
+* Network transients (stored in the sitemeta table) are listed and cleaned only on the main site.
+* Database statistics on the main site only count the main site's tables.
+* Uninstall removes the plugin data on every site that opted in.
 
 ## Developers
 
@@ -40,7 +59,7 @@ All values are stored in one option array (`bloatbuster_performance_asset_cleane
 3. Require the file in the main plugin file, inside the `is_admin()` block.
 4. Add the class to `Plugin_Options::get_tab_classes()`.
 
-Current tab priorities: Assets 10, WordPress Core 20, Database 30, Autoloaded Options 35, Background Processes 40, Advanced 50.
+Current tab priorities: Assets 10, WordPress Core 20, Database 30, Autoloaded Options 35, Background Processes 40, Media 45, Advanced 50.
 
 Form types from `get_form_type()`: `'options'` (fields saved through `options.php`), `'admin-post'` (form sent to `admin-post.php` with `get_form_action()`), `'custom'` (no fields form, the tab prints its own content in `render_content()`, like Autoloaded Options).
 
@@ -50,15 +69,16 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 
 | Key | Used by | Description |
 | --- | --- | --- |
-| `type` | all | `toggle`, `checkbox`, `select`, `number`, `action`, `report`, or a custom type. Required. |
+| `type` | all | `toggle`, `checkbox`, `checkbox_list`, `select`, `number`, `action`, `report`, or a custom type. Required. |
 | `id` | all | Option key. Required. |
 | `label` | all | Row title. |
 | `description` | all | Help text below the field. |
 | `note` | all | Extra help text below the description. |
 | `parent` | all | ID of a toggle. The field only shows while that toggle is on. |
-| `options` | `select` | Array of `value => label`. |
+| `options` | `select`, `checkbox_list` | Array of `value => label`. `checkbox_list` saves an array of the checked values. |
 | `min`, `max`, `step`, `default` | `number` | Input limits and the default value. |
 | `button` | `action` | Submit button label. |
+| `confirm` | `action` | Confirmation message shown before the action runs. |
 | `render_callback` | `action`, `report` | Callable that prints the content. For `action`, returning `false` disables the button. |
 | `locked`, `locked_message` | all | Disables the field and shows the message (HTML, run through `wp_kses_post()`). |
 
