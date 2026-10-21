@@ -62,7 +62,10 @@ final class Plugin_Options {
 			return $links;
 		}
 
-		$settings_link = '<a href="' . \esc_url( \admin_url( 'admin.php?page=' . BLOATBUSTER_OPTION ) ) . '">' . \esc_html__( 'Settings', 'bloatbuster-performance-asset-cleaner' ) . '</a>';
+		/* translators: Plugin list link to the settings page. "Bust bloat" is a play on the plugin name. */
+		$label = \__( 'Bust bloat (Settings)', 'bloatbuster-performance-asset-cleaner' );
+
+		$settings_link = '<a href="' . \esc_url( \admin_url( 'admin.php?page=' . BLOATBUSTER_OPTION ) ) . '">' . \esc_html( $label ) . '</a>';
 
 		array_unshift( $links, $settings_link );
 
