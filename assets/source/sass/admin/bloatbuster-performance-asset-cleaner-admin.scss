@@ -518,6 +518,11 @@
     background: rgba(0, 0, 0, 0.5);
   }
 
+  // WordPress .button sets display, which would override the hidden attribute.
+  [hidden] {
+    display: none !important;
+  }
+
   .bbpac-value-dialog-header {
     display: flex;
     flex-wrap: wrap;

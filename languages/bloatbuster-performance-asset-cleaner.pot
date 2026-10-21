@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-16T22:33:42+02:00\n"
+"POT-Creation-Date: 2026-10-21T12:26:10+02:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -34,23 +34,214 @@ msgstr ""
 msgid "https://www.linkedin.com/in/diwebdeveloper/"
 msgstr ""
 
+#: includes/autoload/class-autoload-actions.php:120
 #: includes/class-database-tools.php:255
 msgid "You are not allowed to do this."
 msgstr ""
 
-#: includes/class-options-dispatch.php:504
+#: includes/autoload/class-autoload-actions.php:151
+msgid "Only network administrators can change options on a multisite network."
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:125
+msgid "Option"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:126
+#: includes/settings/tabs/class-tab-database.php:220
+msgid "Size"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:127
+msgid "Autoload"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:156
+#: includes/autoload/class-autoload-list-table.php:163
+msgid "Export"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:161
+#: includes/autoload/class-autoload-list-table.php:336
+msgid "Enable autoload"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:162
+#: includes/autoload/class-autoload-list-table.php:336
+msgid "Disable autoload"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:164
+#: includes/autoload/class-autoload-list-table.php:342
+msgid "Delete"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:183
+msgid "Select bulk action"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:185
+msgid "Bulk actions"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:191
+msgid "Apply"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:204
+msgid "All"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:205
+msgid "Autoloaded"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:206
+msgid "Not autoloaded"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:207
+#: includes/settings/tabs/class-tab-autoload.php:244
+msgid "Needs review"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:279
+msgid "No options found."
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:319
+msgid "Protected"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:326
+msgid "View value"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:382
+msgid "Auto (on)"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:382
+msgid "On"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:384
+msgid "Auto (off)"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:384
+msgid "Off"
+msgstr ""
+
+#: includes/autoload/class-autoload-options.php:653
+#: includes/settings/tabs/class-tab-autoload.php:153
+msgid "This is not a BloatBuster options export file."
+msgstr ""
+
+#: includes/autoload/class-autoload-options.php:659
+#: includes/settings/tabs/class-tab-autoload.php:154
+msgid "The file has no valid options to restore."
+msgstr ""
+
+#: includes/autoload/class-autoload-owners.php:38
+msgid "WordPress"
+msgstr ""
+
+#: includes/autoload/class-autoload-owners.php:54
+msgid "Widgets"
+msgstr ""
+
+#: includes/autoload/class-autoload-owners.php:57
+msgid "Unknown"
+msgstr ""
+
+#. translators: %s: theme name.
+#: includes/autoload/class-autoload-owners.php:72
+#: includes/autoload/class-autoload-owners.php:150
+msgid "Active theme: %s"
+msgstr ""
+
+#. translators: %s: theme name.
+#: includes/autoload/class-autoload-owners.php:79
+msgid "Inactive theme: %s"
+msgstr ""
+
+#. translators: %s: theme slug.
+#: includes/autoload/class-autoload-owners.php:83
+msgid "Deleted theme: %s"
+msgstr ""
+
+#. translators: %s: plugin folder name.
+#: includes/autoload/class-autoload-owners.php:139
+msgid "Not installed: %s"
+msgstr ""
+
+#: includes/autoload/class-autoload-rest.php:113
+msgid "Option not found."
+msgstr ""
+
+#: includes/class-admin-assets.php:67
+msgid "Delete the selected options? This can not be undone. Export them first if you may need them again."
+msgstr ""
+
+#: includes/class-admin-assets.php:68
+msgid "Disable autoload for the selected options? Their values are kept."
+msgstr ""
+
+#: includes/class-admin-assets.php:69
+msgid "Delete this option? This can not be undone."
+msgstr ""
+
+#: includes/class-admin-assets.php:70
+msgid "Loading…"
+msgstr ""
+
+#: includes/class-admin-assets.php:71
+msgid "The value could not be loaded."
+msgstr ""
+
+#: includes/class-admin-assets.php:72
+msgid "This value may contain a secret, like an API key, so it is hidden."
+msgstr ""
+
+#: includes/class-admin-assets.php:73
+msgid "The value is long, only the start is shown."
+msgstr ""
+
+#: includes/class-admin-assets.php:74
+msgid "This value has bytes that are not valid text. They are shown as � here, the stored value is not changed. Use Export to get the exact value."
+msgstr ""
+
+#: includes/class-admin-assets.php:75
+msgid "Copied"
+msgstr ""
+
+#: includes/class-admin-assets.php:76
+#: includes/settings/tabs/class-tab-autoload.php:291
+msgid "Copy"
+msgstr ""
+
+#: includes/class-cron-status.php:102
+msgid "Once"
+msgstr ""
+
+#: includes/class-options-dispatch.php:659
 msgid "XML-RPC is disabled on this site."
 msgstr ""
 
-#: includes/class-plugin-options.php:355
+#: includes/class-plugin-options.php:65
+msgid "Settings"
+msgstr ""
+
+#: includes/class-plugin-options.php:383
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:373
+#: includes/class-plugin-options.php:401
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
-#: includes/class-plugin-options.php:452
+#: includes/class-plugin-options.php:483
 msgid "BloatBuster"
 msgstr ""
 
@@ -152,27 +343,169 @@ msgid "Removes the block library CSS (wp-block-library) on the frontend. Only en
 msgstr ""
 
 #: includes/settings/tabs/class-tab-assets.php:82
-msgid "Disable emoji scripts and styles"
+msgid "Disable classic theme styles"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-assets.php:83
-msgid "Disable all WordPress emoji scripts and styles."
+msgid "Removes the classic-theme-styles CSS on the frontend, default styles for the Button and File blocks. WordPress only loads it for classic themes."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-assets.php:88
-msgid "Disable Dashicons on the frontend when the toolbar is hidden"
+msgid "Disable global styles"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-assets.php:89
+msgid "Removes the global-styles inline CSS on the frontend, the color, font size and spacing presets used by blocks. Only for classic themes that do not use blocks, block colors and sizes may change."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:91
+msgid "Not available with a block theme, its design comes from global styles."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:96
+msgid "Disable emoji scripts and styles"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:97
+msgid "Disable all WordPress emoji scripts and styles."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:102
+msgid "Disable Dashicons on the frontend when the toolbar is hidden"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:103
 msgid "Removes the Dashicons stylesheet for logged-out visitors and users who do not see the admin toolbar. Users with the toolbar keep it, so the toolbar never breaks."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:94
+#: includes/settings/tabs/class-tab-assets.php:108
 msgid "Disable jQuery Migrate"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:95
+#: includes/settings/tabs/class-tab-assets.php:109
 msgid "Stop loading jQuery Migrate on the frontend. It stays active in the admin area."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:39
+msgid "Autoloaded Options"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:50
+msgid "Options WordPress loads on every page request. Large values here slow down the whole site. Disable autoload for options that are not needed on every page, and delete options left behind by removed plugins. Expiring transients are not listed, clean them up in the Database tab."
+msgstr ""
+
+#. translators: %d: number of options.
+#: includes/settings/tabs/class-tab-autoload.php:108
+msgid "Autoload enabled for %d option."
+msgid_plural "Autoload enabled for %d options."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of options.
+#: includes/settings/tabs/class-tab-autoload.php:111
+msgid "Autoload disabled for %d option."
+msgid_plural "Autoload disabled for %d options."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of options.
+#: includes/settings/tabs/class-tab-autoload.php:114
+msgid "Deleted %d option."
+msgid_plural "Deleted %d options."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-autoload.php:116
+msgid "No options were changed. Select at least one option that is not protected."
+msgstr ""
+
+#. translators: 1: number of created options, 2: number of options with restored autoload.
+#: includes/settings/tabs/class-tab-autoload.php:120
+msgid "Restore finished: %1$d options created, autoload restored for %2$d options. Existing option values were not changed."
+msgstr ""
+
+#. translators: %d: number of skipped options.
+#: includes/settings/tabs/class-tab-autoload.php:132
+msgid "%d protected or invalid option was skipped."
+msgid_plural "%d protected or invalid options were skipped."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-autoload.php:149
+msgid "The file could not be uploaded."
+msgstr ""
+
+#. translators: %s: maximum file size, e.g. 10 MB.
+#: includes/settings/tabs/class-tab-autoload.php:151
+msgid "The file is empty or larger than %s."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:152
+msgid "The file is not valid JSON."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:157
+msgid "The options could not be restored."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:179
+msgid "Only network administrators can change options on a multisite network. You can browse, view and export them."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:190
+msgid "Search options"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:199
+msgid "Restore from backup"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:200
+msgid "Upload a file created with the Export bulk action. Missing options are created again, existing options only get their autoload state restored. Protected options are skipped."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:205
+msgid "Restore options"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:229
+msgid "Total autoloaded size"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:233
+msgid "Autoloaded options"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:237
+msgid "Largest option"
+msgstr ""
+
+#. translators: %s: size, e.g. 10 KB.
+#: includes/settings/tabs/class-tab-autoload.php:249
+msgid "Autoloaded and %s or larger"
+msgstr ""
+
+#. translators: %s: recommended size limit, e.g. 781 KB.
+#: includes/settings/tabs/class-tab-autoload.php:258
+msgid "Too large: above the recommended limit of %s."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:260
+#: includes/settings/tabs/class-tab-background.php:177
+msgid "Check Site Health"
+msgstr ""
+
+#. translators: %s: recommended size limit, e.g. 781 KB.
+#: includes/settings/tabs/class-tab-autoload.php:266
+msgid "Good: below the recommended limit of %s."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:290
+msgid "Reveal value"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-autoload.php:292
+msgid "Close"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-background.php:39
@@ -183,45 +516,161 @@ msgstr ""
 msgid "Control how often WordPress runs background requests like the Heartbeat API."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:76
+#: includes/settings/tabs/class-tab-background.php:73
+msgid "AUTOSAVE_INTERVAL is already set, for example in wp-config.php."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:79
+msgid "WP-Cron status"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:80
+msgid "WP-Cron runs scheduled tasks like publishing scheduled posts, update checks and cleanups. Overdue tasks mean it is not running."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:86
 msgid "Disable Heartbeat API on the frontend"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:77
+#: includes/settings/tabs/class-tab-background.php:87
 msgid "Disable the WordPress Heartbeat API on the frontend but keep it active in the admin and post editor. Some frontend plugins (live chat, forms, membership) may rely on Heartbeat."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:82
+#: includes/settings/tabs/class-tab-background.php:92
 msgid "Control the Heartbeat API interval"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:83
+#: includes/settings/tabs/class-tab-background.php:93
 msgid "Set how often the Heartbeat API runs on the frontend, in the dashboard and in the post editor."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:89
+#: includes/settings/tabs/class-tab-background.php:99
 msgid "Frontend interval"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:90
+#: includes/settings/tabs/class-tab-background.php:100
 msgid "Seconds between Heartbeat requests on the frontend (15-120)."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:100
+#: includes/settings/tabs/class-tab-background.php:110
 msgid "Dashboard interval"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:101
+#: includes/settings/tabs/class-tab-background.php:111
 msgid "Seconds between Heartbeat requests in the admin area, except the post editor (15-120)."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:111
+#: includes/settings/tabs/class-tab-background.php:121
 msgid "Post editor interval"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-background.php:112
+#: includes/settings/tabs/class-tab-background.php:122
 msgid "Seconds between Heartbeat requests in the post editor, used for autosave and post locking (15-120)."
 msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:131
+msgid "Control the autosave interval"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:132
+msgid "Set how often the post editor saves an autosave of your changes. A longer interval means fewer requests and fewer autosave revisions."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:140
+msgid "Autosave interval"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:141
+msgid "Seconds between autosaves in the post editor (10-600). WordPress default is 60."
+msgstr ""
+
+#. translators: 1: number of overdue events, 2: human readable time difference, e.g. 2 hours.
+#: includes/settings/tabs/class-tab-background.php:168
+msgid "%1$d event is overdue, the oldest by %2$s."
+msgid_plural "%1$d events are overdue, the oldest by %2$s."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-background.php:172
+msgid "Check that the server cron job is running."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:174
+msgid "WP-Cron may not be running."
+msgstr ""
+
+#. translators: %d: number of scheduled events.
+#: includes/settings/tabs/class-tab-background.php:183
+msgid "Scheduled events run on time, %d event scheduled. A server cron job runs them."
+msgid_plural "Scheduled events run on time, %d events scheduled. A server cron job runs them."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of scheduled events.
+#: includes/settings/tabs/class-tab-background.php:190
+msgid "WP-Cron is running, %d event scheduled."
+msgid_plural "WP-Cron is running, %d events scheduled."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-background.php:197
+msgid "Mode: page visits don't run WP-Cron (DISABLE_WP_CRON), a server cron job must call wp-cron.php."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:199
+msgid "Mode: runs on page visits."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:203
+msgid "ALTERNATE_WP_CRON is on, events run with a redirect on page visits."
+msgstr ""
+
+#. translators: %s: human readable time difference, e.g. 5 minutes.
+#: includes/settings/tabs/class-tab-background.php:208
+msgid "Last started %s ago."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:214
+msgid "Tip: on busy sites, turn off WP-Cron on page visits with DISABLE_WP_CRON in wp-config.php and run it from a server cron job instead."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:215
+msgid "How to set up a server cron job"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:222
+msgid "Hook"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:223
+msgid "Next run"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-background.php:224
+msgid "Schedule"
+msgstr ""
+
+#. translators: %s: human readable time difference, e.g. 5 minutes.
+#: includes/settings/tabs/class-tab-background.php:235
+#: includes/settings/tabs/class-tab-database.php:395
+msgid "%s ago"
+msgstr ""
+
+#. translators: %s: human readable time difference, e.g. 5 minutes.
+#: includes/settings/tabs/class-tab-background.php:242
+msgid "in %s"
+msgstr ""
+
+#. translators: %d: number of events not shown in the list.
+#. translators: %d: number of tables not shown in the list.
+#. translators: %d: number of expired transients not shown in the list.
+#: includes/settings/tabs/class-tab-background.php:258
+#: includes/settings/tabs/class-tab-database.php:242
+#: includes/settings/tabs/class-tab-database.php:407
+msgid "And %d more."
+msgid_plural "And %d more."
+msgstr[0] ""
+msgstr[1] ""
 
 #: includes/settings/tabs/class-tab-core.php:39
 msgid "WordPress Core"
@@ -288,10 +737,18 @@ msgid "Disable all XML-RPC methods, including pingbacks. Do not enable if you us
 msgstr ""
 
 #: includes/settings/tabs/class-tab-core.php:123
-msgid "Disable user enumeration"
+msgid "Disable core XML sitemaps"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-core.php:124
+msgid "Removes the WordPress sitemap at /wp-sitemap.xml. SEO plugins with their own sitemaps, like Yoast SEO or Rank Math, already turn it off."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:129
+msgid "Disable user enumeration"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:130
 msgid "Hide usernames from the REST API users endpoint, ?author= URLs, the users sitemap and oEmbed data for visitors who can not edit posts. Makes brute force login attacks harder. Author archive pages keep working."
 msgstr ""
 
@@ -308,11 +765,11 @@ msgid "An object cache is active, so transients are mostly stored there. Only da
 msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:104
-msgid "Autoloaded options"
+msgid "Database statistics"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:105
-msgid "Options WordPress loads on every page request. Large values here slow down the whole site."
+msgid "Size of the tables of this site. Free space is unused space inside a table file, InnoDB keeps a few MB free in larger tables, which is normal. Row counts are estimates for most tables."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:111
@@ -327,77 +784,202 @@ msgstr ""
 msgid "Clean now"
 msgstr ""
 
+#: includes/settings/tabs/class-tab-database.php:120
+msgid "Delete old revisions"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:121
+msgid "Delete post revisions and keep only the newest ones of each post. At most 500 are deleted per run."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:122
+msgid "Delete revisions"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:123
+msgid "Delete old revisions? This can not be undone."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:129
+#: includes/settings/tabs/class-tab-database.php:131
+msgid "Delete auto-drafts"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:130
+msgid "Delete auto-drafts older than one day. WordPress creates them when you open a new post and deletes them by itself after 7 days. At most 500 are deleted per run."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:132
+msgid "Delete auto-drafts older than one day? This can not be undone."
+msgstr ""
+
 #. translators: %d: number of deleted transients.
-#: includes/settings/tabs/class-tab-database.php:135
+#: includes/settings/tabs/class-tab-database.php:156
 msgid "Deleted %d expired transient."
 msgid_plural "Deleted %d expired transients."
 msgstr[0] ""
 msgstr[1] ""
 
-#. translators: 1: number of autoloaded options, 2: total size, e.g. 512 KB.
-#: includes/settings/tabs/class-tab-database.php:157
-msgid "%1$d autoloaded options, %2$s in total."
+#. translators: %d: number of deleted revisions.
+#: includes/settings/tabs/class-tab-database.php:159
+msgid "Deleted %d revision."
+msgid_plural "Deleted %d revisions."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of deleted auto-drafts.
+#: includes/settings/tabs/class-tab-database.php:162
+msgid "Deleted %d auto-draft."
+msgid_plural "Deleted %d auto-drafts."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number of revisions left to delete, 2: number of revisions kept per post.
+#: includes/settings/tabs/class-tab-database.php:173
+msgid "%1$d more left, run it again to delete it (keeping %2$d per post)."
+msgid_plural "%1$d more left, run it again to delete them (keeping %2$d per post)."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of items left to delete.
+#: includes/settings/tabs/class-tab-database.php:176
+msgid "%d more left, run it again to delete it."
+msgid_plural "%d more left, run it again to delete them."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-database.php:196
+#: includes/settings/tabs/class-tab-database.php:309
+msgid "Revisions"
 msgstr ""
 
-#. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/settings/tabs/class-tab-database.php:164
-msgid "Too large: above the recommended limit of %s."
+#: includes/settings/tabs/class-tab-database.php:197
+msgid "Auto-drafts"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:166
-msgid "Check Site Health"
+#: includes/settings/tabs/class-tab-database.php:198
+msgid "Trashed posts"
 msgstr ""
 
-#. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/settings/tabs/class-tab-database.php:172
-msgid "Good: below the recommended limit of %s."
+#: includes/settings/tabs/class-tab-database.php:199
+msgid "Spam comments"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:180
-msgid "Largest options"
+#: includes/settings/tabs/class-tab-database.php:200
+msgid "Trashed comments"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:181
-msgid "Size"
+#. translators: 1: database size, e.g. 12 MB, 2: number of tables.
+#: includes/settings/tabs/class-tab-database.php:206
+msgid "Database size: %1$s in %2$d tables."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:209
+#: includes/settings/tabs/class-tab-database.php:218
+msgid "Table"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:219
+msgid "Rows (approx.)"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:221
+msgid "Free space"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:295
+msgid "Keep the newest revisions per post:"
+msgstr ""
+
+#. translators: 1: number of revisions to delete, 2: number of revisions kept per post.
+#: includes/settings/tabs/class-tab-database.php:301
+msgid "%1$d revision to delete when keeping %2$d per post."
+msgid_plural "%1$d revisions to delete when keeping %2$d per post."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-database.php:308
+msgid "Post"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:318
+#: includes/settings/tabs/class-tab-database.php:320
+msgid "(no title)"
+msgstr ""
+
+#. translators: %d: number of auto-drafts.
+#: includes/settings/tabs/class-tab-database.php:348
+msgid "%d auto-draft older than one day."
+msgid_plural "%d auto-drafts older than one day."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-database.php:367
 msgid "No expired transients found."
 msgstr ""
 
 #. translators: %d: number of expired transients.
-#: includes/settings/tabs/class-tab-database.php:218
+#: includes/settings/tabs/class-tab-database.php:376
 msgid "Expired transients in database: %d"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:224
+#: includes/settings/tabs/class-tab-database.php:382
 msgid "Name"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:225
+#: includes/settings/tabs/class-tab-database.php:383
 msgid "Type"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:226
+#: includes/settings/tabs/class-tab-database.php:384
 msgid "Expired"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:233
+#: includes/settings/tabs/class-tab-database.php:391
 msgid "Network"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:233
+#: includes/settings/tabs/class-tab-database.php:391
 msgid "Site"
 msgstr ""
 
-#. translators: %s: human readable time difference, e.g. 5 minutes.
-#: includes/settings/tabs/class-tab-database.php:237
-msgid "%s ago"
+#: includes/settings/tabs/class-tab-media.php:39
+msgid "Media"
 msgstr ""
 
-#. translators: %d: number of expired transients not shown in the list.
-#: includes/settings/tabs/class-tab-database.php:249
-msgid "And %d more."
-msgid_plural "And %d more."
-msgstr[0] ""
-msgstr[1] ""
+#: includes/settings/tabs/class-tab-media.php:50
+msgid "Control which image files WordPress creates for every upload. These settings only apply to new uploads, existing files are not changed."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-media.php:76
+msgid "Disable image sizes"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-media.php:77
+msgid "WordPress creates a file for every image size on upload. Checked sizes are no longer created. The thumbnail size is used by the Media Library grid, and the 1536x1536 and 2048x2048 sizes are used for sharp images on large screens."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-media.php:83
+msgid "Control large image scaling"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-media.php:84
+msgid "WordPress scales down uploaded images larger than 2560 pixels and keeps the original file. Set a different limit, or turn scaling off."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-media.php:90
+msgid "Maximum image size"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-media.php:91
+msgid "Largest width or height in pixels. 0 turns scaling off and keeps the uploaded size."
+msgstr ""
+
+#. translators: 1: image size name, 2: width in pixels, 3: height in pixels.
+#: includes/settings/tabs/class-tab-media.php:113
+msgid "%1$s (%2$d × %3$d, cropped)"
+msgstr ""
+
+#. translators: 1: image size name, 2: width in pixels, 3: height in pixels.
+#: includes/settings/tabs/class-tab-media.php:116
+msgid "%1$s (%2$d × %3$d)"
+msgstr ""
