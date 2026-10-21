@@ -306,14 +306,23 @@ final class Database_Tools {
 	public static function get_table_stats() {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live report from information_schema.
+		$where = 'TABLE_SCHEMA = %s AND TABLE_NAME LIKE %s';
+		$args  = array( $wpdb->dbname, $wpdb->esc_like( $wpdb->prefix ) . '%' );
+
+		// On the multisite main site, the prefix also matches the tables of other sites, like wp_2_posts.
+		if ( \is_multisite() && \is_main_site() ) {
+			$where .= ' AND TABLE_NAME NOT REGEXP %s';
+			$args[] = '^' . preg_quote( $wpdb->prefix, '/' ) . '[0-9]+_';
+		}
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Live report from information_schema, WHERE built with placeholders.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT TABLE_NAME AS name, ENGINE AS engine, TABLE_ROWS AS row_count, DATA_LENGTH + INDEX_LENGTH AS size, DATA_FREE AS free_space FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME LIKE %s ORDER BY size DESC',
-				$wpdb->dbname,
-				$wpdb->esc_like( $wpdb->prefix ) . '%'
+				"SELECT TABLE_NAME AS name, ENGINE AS engine, TABLE_ROWS AS row_count, DATA_LENGTH + INDEX_LENGTH AS size, DATA_FREE AS free_space FROM information_schema.TABLES WHERE {$where} ORDER BY size DESC",
+				$args
 			)
 		);
+		// phpcs:enable
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Server setting, read once.
 		$file_per_table = (bool) $wpdb->get_var( 'SELECT @@innodb_file_per_table' );
@@ -324,14 +333,7 @@ final class Database_Tools {
 			'size'  => 0,
 		);
 
-		// On the multisite main site, the prefix also matches the tables of other sites, like wp_2_posts.
-		$other_sites = '/^' . preg_quote( $wpdb->prefix, '/' ) . '[0-9]+_/';
-
 		foreach ( (array) $rows as $row ) {
-			if ( \is_multisite() && \is_main_site() && preg_match( $other_sites, $row->name ) ) {
-				continue;
-			}
-
 			$is_shared = 'innodb' === strtolower( (string) $row->engine ) && ! $file_per_table;
 
 			$tables[] = array(
