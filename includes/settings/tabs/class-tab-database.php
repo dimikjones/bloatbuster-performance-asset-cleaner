@@ -102,7 +102,7 @@ final class Tab_Database extends Settings_Tab {
 				'type'            => 'report',
 				'id'              => 'database_stats',
 				'label'           => \__( 'Database statistics', 'bloatbuster-performance-asset-cleaner' ),
-				'description'     => \__( 'Size of the tables of this site. Overhead is unused space left after deleting rows. Row counts are estimates for most tables.', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Size of the tables of this site. Free space is unused space inside a table file, InnoDB keeps a few MB free in larger tables, which is normal. Row counts are estimates for most tables.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_database_stats' ),
 			),
 			array(
@@ -202,8 +202,8 @@ final class Tab_Database extends Settings_Tab {
 		?>
 		<p>
 			<?php
-			/* translators: 1: database size, e.g. 12 MB, 2: number of tables, 3: overhead size, e.g. 1 MB. */
-			echo \esc_html( sprintf( \__( 'Database size: %1$s in %2$d tables, %3$s overhead.', 'bloatbuster-performance-asset-cleaner' ), \size_format( $totals['size'], 1 ), $totals['count'], \size_format( $totals['overhead'], 1 ) ) );
+			/* translators: 1: database size, e.g. 12 MB, 2: number of tables. */
+			echo \esc_html( sprintf( \__( 'Database size: %1$s in %2$d tables.', 'bloatbuster-performance-asset-cleaner' ), \size_format( $totals['size'], 1 ), $totals['count'] ) );
 			?>
 		</p>
 		<ul class="bbpac-db-counts">
@@ -218,7 +218,7 @@ final class Tab_Database extends Settings_Tab {
 						<th><?php \esc_html_e( 'Table', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 						<th><?php \esc_html_e( 'Rows (approx.)', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 						<th><?php \esc_html_e( 'Size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-						<th><?php \esc_html_e( 'Overhead', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th><?php \esc_html_e( 'Free space', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -227,7 +227,7 @@ final class Tab_Database extends Settings_Tab {
 							<td><code><?php echo \esc_html( $table['name'] ); ?></code></td>
 							<td><?php echo \esc_html( \number_format_i18n( $table['rows'] ) ); ?></td>
 							<td><?php echo \esc_html( \size_format( $table['size'], 1 ) ); ?></td>
-							<td><?php echo \esc_html( $table['overhead'] > 0 ? \size_format( $table['overhead'], 1 ) : '-' ); ?></td>
+							<td><?php echo \esc_html( $table['free_space'] > 0 ? \size_format( $table['free_space'], 1 ) : '-' ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>

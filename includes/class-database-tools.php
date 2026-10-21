@@ -293,7 +293,11 @@ final class Database_Tools {
 	}
 
 	/**
-	 * Get the size, rows and overhead of the tables with this site's prefix.
+	 * Get the size, rows and free space of the tables with this site's prefix.
+	 *
+	 * Free space is not added up: InnoDB keeps some free space reserved in larger
+	 * tables, and without innodb_file_per_table every InnoDB table reports the free
+	 * space of the same shared file, so it is shown as unknown for those tables.
 	 *
 	 * @return array - Tables sorted by size, largest first, and totals.
 	 *
@@ -305,17 +309,19 @@ final class Database_Tools {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live report from information_schema.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT TABLE_NAME AS name, TABLE_ROWS AS row_count, DATA_LENGTH + INDEX_LENGTH AS size, DATA_FREE AS overhead FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME LIKE %s ORDER BY size DESC',
+				'SELECT TABLE_NAME AS name, ENGINE AS engine, TABLE_ROWS AS row_count, DATA_LENGTH + INDEX_LENGTH AS size, DATA_FREE AS free_space FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME LIKE %s ORDER BY size DESC',
 				$wpdb->dbname,
 				$wpdb->esc_like( $wpdb->prefix ) . '%'
 			)
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Server setting, read once.
+		$file_per_table = (bool) $wpdb->get_var( 'SELECT @@innodb_file_per_table' );
+
 		$tables = array();
 		$totals = array(
-			'count'    => 0,
-			'size'     => 0,
-			'overhead' => 0,
+			'count' => 0,
+			'size'  => 0,
 		);
 
 		// On the multisite main site, the prefix also matches the tables of other sites, like wp_2_posts.
@@ -326,16 +332,17 @@ final class Database_Tools {
 				continue;
 			}
 
+			$is_shared = 'innodb' === strtolower( (string) $row->engine ) && ! $file_per_table;
+
 			$tables[] = array(
-				'name'     => (string) $row->name,
-				'rows'     => (int) $row->row_count,
-				'size'     => (int) $row->size,
-				'overhead' => (int) $row->overhead,
+				'name'       => (string) $row->name,
+				'rows'       => (int) $row->row_count,
+				'size'       => (int) $row->size,
+				'free_space' => $is_shared ? null : (int) $row->free_space,
 			);
 
 			++$totals['count'];
-			$totals['size']     += (int) $row->size;
-			$totals['overhead'] += (int) $row->overhead;
+			$totals['size'] += (int) $row->size;
 		}
 
 		return array(
