@@ -348,9 +348,12 @@
     display: none;
   }
 
-  .form-table tr.bbpac-child th {
+  .form-table tr.bbpac-child {
     padding-left: 24px;
-    font-weight: 400;
+
+    th {
+      font-weight: 500;
+    }
   }
 
   .bbpac-field.number input {
@@ -564,7 +567,12 @@
 }
 
 // Checkbox list field, shown under the label instead of next to it.
-#bloatbuster-performance-asset-cleaner-options .form-table > tbody > tr > td > .bbpac-field.checkbox-list {
+#bloatbuster-performance-asset-cleaner-options
+  .form-table
+  > tbody
+  > tr
+  > td
+  > .bbpac-field.checkbox-list {
   position: static;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
