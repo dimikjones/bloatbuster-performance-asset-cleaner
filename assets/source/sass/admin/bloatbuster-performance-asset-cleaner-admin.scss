@@ -95,6 +95,7 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      box-sizing: border-box;
       width: 60%;
       margin: 20px 0;
       padding-right: 40px;
@@ -350,7 +351,6 @@
 
   .form-table tr.bbpac-child {
     padding-left: 24px;
-    box-sizing: border-box;
 
     th {
       font-weight: 500;
