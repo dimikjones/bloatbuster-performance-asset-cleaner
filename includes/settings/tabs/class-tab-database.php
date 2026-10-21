@@ -289,7 +289,7 @@ final class Tab_Database extends Settings_Tab {
 	public static function render_revisions() {
 		$keep    = self::get_revisions_to_keep();
 		$count   = Database_Tools::count_revisions( $keep );
-		$parents = array_slice( Database_Tools::get_revision_parents( 0 ), 0, 10 );
+		$parents = Database_Tools::get_revision_parents( 0, 10 );
 		?>
 		<p>
 			<label for="bbpac-keep-revisions"><?php \esc_html_e( 'Keep the newest revisions per post:', 'bloatbuster-performance-asset-cleaner' ); ?></label>
@@ -328,8 +328,8 @@ final class Tab_Database extends Settings_Tab {
 			<?php
 		endif;
 
-		// Keep the button enabled when the number to keep is changed in the form.
-		return Database_Tools::count_revisions( 0 ) > 0;
+		// Enabled when any post has revisions, the number to keep can be changed in the form.
+		return ! empty( $parents );
 	}
 
 	/**

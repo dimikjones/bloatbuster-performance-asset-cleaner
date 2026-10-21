@@ -368,26 +368,72 @@ final class Database_Tools {
 	}
 
 	/**
-	 * Get the posts that have more revisions than the number to keep.
+	 * Get the posts with the most revisions, above the number to keep.
 	 *
-	 * @param int $keep - Newest revisions to keep per post.
+	 * @param int $keep  - Newest revisions to keep per post.
+	 * @param int $limit - Maximum number of posts.
 	 *
 	 * @return array - Rows with parent ID and revision count, most revisions first.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_revision_parents( $keep ) {
+	public static function get_revision_parents( $keep, $limit ) {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT post_parent AS parent, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_type = %s GROUP BY post_parent HAVING total > %d ORDER BY total DESC",
+				"SELECT post_parent AS parent, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_type = %s GROUP BY post_parent HAVING total > %d ORDER BY total DESC LIMIT %d",
 				'revision',
-				\absint( $keep )
+				\absint( $keep ),
+				\absint( $limit )
 			)
 		);
 
+		return self::format_revision_parents( $rows );
+	}
+
+	/**
+	 * Get a page of posts with more revisions than the number to keep, after a post ID.
+	 *
+	 * Keyset paging by post ID, so a revision that fails to delete can't make the loop repeat.
+	 *
+	 * @param int $keep  - Newest revisions to keep per post.
+	 * @param int $after - Only posts with a higher ID than this.
+	 * @param int $limit - Maximum number of posts.
+	 *
+	 * @return array - Rows with parent ID and revision count, lowest post ID first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_revision_parents_after( $keep, $after, $limit ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_parent AS parent, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_type = %s AND post_parent > %d GROUP BY post_parent HAVING total > %d ORDER BY post_parent ASC LIMIT %d",
+				'revision',
+				// Not absint(), the first page starts at -1 so orphaned revisions with parent 0 are included.
+				(int) $after,
+				\absint( $keep ),
+				\absint( $limit )
+			)
+		);
+
+		return self::format_revision_parents( $rows );
+	}
+
+	/**
+	 * Convert revision parent rows to arrays with integer values.
+	 *
+	 * @param array $rows - Database rows with parent and total.
+	 *
+	 * @return array - Rows with parent ID and revision count.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function format_revision_parents( $rows ) {
 		$parents = array();
 
 		foreach ( (array) $rows as $row ) {
@@ -410,19 +456,26 @@ final class Database_Tools {
 	 * @since 1.0.0
 	 */
 	public static function count_revisions( $keep ) {
-		$count = 0;
+		global $wpdb;
 
-		foreach ( self::get_revision_parents( $keep ) as $parent ) {
-			$count += $parent['total'] - \absint( $keep );
-		}
+		$keep = \absint( $keep );
 
-		return $count;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count, summed in SQL.
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COALESCE( SUM( total - %d ), 0 ) FROM ( SELECT COUNT(*) AS total FROM {$wpdb->posts} WHERE post_type = %s GROUP BY post_parent HAVING total > %d ) AS parents",
+				$keep,
+				'revision',
+				$keep
+			)
+		);
 	}
 
 	/**
 	 * Delete old revisions, keeping the newest ones of each post.
 	 *
 	 * Deletes at most DELETE_BATCH revisions per run, the rest can be deleted by running it again.
+	 * Posts are read in pages of 50, so memory use doesn't grow with the size of the site.
 	 *
 	 * @param int $keep - Newest revisions to keep per post.
 	 *
@@ -433,28 +486,39 @@ final class Database_Tools {
 	public static function delete_revisions( $keep ) {
 		global $wpdb;
 
-		$keep    = \absint( $keep );
-		$deleted = 0;
+		$keep        = \absint( $keep );
+		$deleted     = 0;
+		$last_parent = -1;
 
-		foreach ( self::get_revision_parents( $keep ) as $parent ) {
-			if ( $deleted >= self::DELETE_BATCH ) {
+		while ( $deleted < self::DELETE_BATCH ) {
+			$parents = self::get_revision_parents_after( $keep, $last_parent, 50 );
+
+			if ( empty( $parents ) ) {
 				break;
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list, newest first, skipping the ones to keep.
-			$revision_ids = $wpdb->get_col(
-				$wpdb->prepare(
-					"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = %d ORDER BY post_date DESC, ID DESC LIMIT %d, %d",
-					'revision',
-					$parent['parent'],
-					$keep,
-					self::DELETE_BATCH - $deleted
-				)
-			);
+			foreach ( $parents as $parent ) {
+				$last_parent = $parent['parent'];
 
-			foreach ( $revision_ids as $revision_id ) {
-				if ( \wp_delete_post_revision( (int) $revision_id ) ) {
-					++$deleted;
+				if ( $deleted >= self::DELETE_BATCH ) {
+					break;
+				}
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list, newest first, skipping the ones to keep.
+				$revision_ids = $wpdb->get_col(
+					$wpdb->prepare(
+						"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_parent = %d ORDER BY post_date DESC, ID DESC LIMIT %d, %d",
+						'revision',
+						$parent['parent'],
+						$keep,
+						self::DELETE_BATCH - $deleted
+					)
+				);
+
+				foreach ( $revision_ids as $revision_id ) {
+					if ( \wp_delete_post_revision( (int) $revision_id ) ) {
+						++$deleted;
+					}
 				}
 			}
 		}
