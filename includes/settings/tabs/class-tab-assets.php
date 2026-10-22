@@ -69,8 +69,11 @@ final class Tab_Assets extends Settings_Tab {
 	 * @since 1.0.0
 	 */
 	public static function get_fields() {
-		// Block themes need block and global styles, and WordPress loads classic theme styles only for classic themes.
+		// Block themes need block and global styles.
 		$block_theme_lock = \wp_is_block_theme() ? 'block_theme' : '';
+
+		// WordPress loads classic theme styles only for themes without a theme.json file, see wp_enqueue_classic_theme_styles().
+		$theme_json_lock = \wp_theme_has_theme_json() ? 'theme_json' : '';
 
 		return array(
 			array(
@@ -85,9 +88,9 @@ final class Tab_Assets extends Settings_Tab {
 				'type'           => 'toggle',
 				'id'             => 'disable_classic_theme_styles',
 				'label'          => \__( 'Disable classic theme styles', 'bloatbuster-performance-asset-cleaner' ),
-				'description'    => \__( 'Removes the classic-theme-styles CSS on the frontend, default styles for the Button and File blocks. WordPress only loads it for classic themes.', 'bloatbuster-performance-asset-cleaner' ),
-				'locked'         => $block_theme_lock,
-				'locked_message' => \esc_html__( 'Not needed with a block theme, WordPress only loads these styles for classic themes.', 'bloatbuster-performance-asset-cleaner' ),
+				'description'    => \__( 'Removes the classic-theme-styles CSS on the frontend, default styles for the Button and File blocks. WordPress only loads it for themes without a theme.json file.', 'bloatbuster-performance-asset-cleaner' ),
+				'locked'         => $theme_json_lock,
+				'locked_message' => \esc_html__( 'Not needed with this theme, WordPress only loads these styles for themes without a theme.json file.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
 				'type'           => 'toggle',
