@@ -45,21 +45,135 @@ const getBulkAction = ( form, submitter ) => {
 	return select ? select.value : '-1';
 };
 
-const confirmBulkAction = ( event ) => {
-	const form = event.target;
-	const action = getBulkAction( form, event.submitter );
-	const selected = form.querySelectorAll( 'input[name="option_names[]"]:checked' ).length;
+/**
+ * Confirmation dialog for actions that change or delete data.
+ *
+ * ask() resolves to true when the user confirms. Escape, Cancel and a click
+ * outside the dialog resolve to false. Falls back to window.confirm() when
+ * the browser has no dialog element.
+ */
+const confirmDialog = {
+	element: null,
+	resolve: null,
 
-	if ( 0 === selected ) {
+	init() {
+		this.element = document.getElementById( 'bbpac-confirm-dialog' );
+
+		if ( ! this.element || 'function' !== typeof this.element.showModal ) {
+			this.element = null;
+			return;
+		}
+
+		this.element.querySelector( '.bbpac-confirm-cancel' ).addEventListener( 'click', () => this.element.close( 'cancel' ) );
+		this.element.querySelector( '.bbpac-confirm-ok' ).addEventListener( 'click', () => this.element.close( 'confirm' ) );
+
+		// The dialog has no padding, so a click on the dialog element itself is a click on the backdrop.
+		this.element.addEventListener( 'click', ( event ) => {
+			if ( event.target === this.element ) {
+				this.element.close( 'cancel' );
+			}
+		} );
+
+		this.element.addEventListener( 'close', () => {
+			if ( this.resolve ) {
+				this.resolve( 'confirm' === this.element.returnValue );
+				this.resolve = null;
+			}
+		} );
+	},
+
+	ask( { title, message, confirmLabel, destructive = true } ) {
+		if ( ! this.element ) {
+			return Promise.resolve( window.confirm( `${ title }\n\n${ message }` ) );
+		}
+
+		const okButton = this.element.querySelector( '.bbpac-confirm-ok' );
+
+		this.element.querySelector( '.bbpac-confirm-title' ).textContent = title;
+		this.element.querySelector( '.bbpac-confirm-message' ).textContent = message;
+		okButton.textContent = confirmLabel;
+		okButton.classList.toggle( 'bbpac-button-danger', destructive );
+
+		this.element.returnValue = '';
+		this.element.showModal();
+
+		// Cancel is the safe default for actions that can't be undone.
+		this.element.querySelector( '.bbpac-confirm-cancel' ).focus();
+
+		return new Promise( ( resolve ) => {
+			this.resolve = resolve;
+		} );
+	},
+};
+
+/**
+ * Submit a form again after confirmation, keeping the clicked button's name and value.
+ *
+ * @param {HTMLFormElement}        form      - Form to submit.
+ * @param {HTMLButtonElement|null} submitter - Button that submitted the form.
+ */
+const submitConfirmed = ( form, submitter ) => {
+	form.dataset.bbpacConfirmed = '1';
+
+	if ( 'function' === typeof form.requestSubmit ) {
+		form.requestSubmit( submitter || undefined );
 		return;
 	}
 
-	if ( 'delete' === action && ! window.confirm( `${ bbpacData.i18n.confirmDelete } (${ selected })` ) ) {
-		event.preventDefault();
+	// form.submit() skips validation, so check the fields first.
+	if ( ! form.noValidate && ! ( submitter && submitter.formNoValidate ) && ! form.checkValidity() ) {
+		delete form.dataset.bbpacConfirmed;
+
+		if ( 'function' === typeof form.reportValidity ) {
+			form.reportValidity();
+		}
+
+		return;
 	}
 
-	if ( 'disable' === action && ! window.confirm( `${ bbpacData.i18n.confirmDisable } (${ selected })` ) ) {
-		event.preventDefault();
+	// Older browsers: form.submit() doesn't send the button, add its value as a hidden field.
+	if ( submitter && submitter.name ) {
+		const input = document.createElement( 'input' );
+
+		input.type = 'hidden';
+		input.name = submitter.name;
+		input.value = submitter.value;
+		form.appendChild( input );
+	}
+
+	form.submit();
+};
+
+const confirmBulkAction = async ( event ) => {
+	const form = event.target;
+
+	if ( form.dataset.bbpacConfirmed ) {
+		delete form.dataset.bbpacConfirmed;
+		return;
+	}
+
+	const submitter = event.submitter;
+	const action = getBulkAction( form, submitter );
+	const selected = form.querySelectorAll( 'input[name="option_names[]"]:checked' ).length;
+
+	if ( 0 === selected || ( 'delete' !== action && 'disable' !== action ) ) {
+		return;
+	}
+
+	event.preventDefault();
+
+	const isDelete = 'delete' === action;
+	const count = bbpacData.i18n.selectedCount.replace( '%d', selected );
+
+	const confirmed = await confirmDialog.ask( {
+		title: isDelete ? bbpacData.i18n.bulkDeleteTitle : bbpacData.i18n.bulkDisableTitle,
+		message: `${ count } ${ isDelete ? bbpacData.i18n.bulkDeleteMessage : bbpacData.i18n.bulkDisableMessage }`,
+		confirmLabel: isDelete ? bbpacData.i18n.deleteLabel : bbpacData.i18n.disableLabel,
+		destructive: isDelete,
+	} );
+
+	if ( confirmed ) {
+		submitConfirmed( form, submitter );
 	}
 };
 
@@ -70,7 +184,9 @@ const valueDialog = {
 	init() {
 		this.element = document.getElementById( 'bbpac-value-dialog' );
 
-		if ( ! this.element ) {
+		// Without dialog support, "View value" does nothing instead of throwing.
+		if ( ! this.element || 'function' !== typeof this.element.showModal ) {
+			this.element = null;
 			return;
 		}
 
@@ -161,6 +277,8 @@ const valueDialog = {
 };
 
 document.addEventListener( 'DOMContentLoaded', () => {
+	confirmDialog.init();
+
 	const autoloadForm = document.getElementById( 'bbpac-autoload-form' );
 
 	if ( ! autoloadForm ) {
@@ -171,7 +289,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	autoloadForm.addEventListener( 'submit', confirmBulkAction );
 
-	autoloadForm.addEventListener( 'click', ( event ) => {
+	autoloadForm.addEventListener( 'click', async ( event ) => {
 		const viewButton = event.target.closest( '.bbpac-view-value' );
 		const deleteLink = event.target.closest( '.bbpac-delete-option' );
 
@@ -180,8 +298,23 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			valueDialog.open( viewButton.dataset.option );
 		}
 
-		if ( deleteLink && ! window.confirm( bbpacData.i18n.confirmRow ) ) {
+		if ( deleteLink ) {
 			event.preventDefault();
+
+			const row = deleteLink.closest( 'tr' );
+			const nameElement = row ? row.querySelector( '.bbpac-option-name' ) : null;
+			const name = nameElement ? nameElement.textContent : '';
+
+			const confirmed = await confirmDialog.ask( {
+				title: bbpacData.i18n.rowDeleteTitle,
+				// A callback inserts the name literally, a string would turn "$&" and similar into patterns.
+				message: bbpacData.i18n.rowDeleteMessage.replace( '%s', () => name ),
+				confirmLabel: bbpacData.i18n.deleteLabel,
+			} );
+
+			if ( confirmed ) {
+				window.location.href = deleteLink.href;
+			}
 		}
 	} );
 } );
@@ -189,10 +322,27 @@ document.addEventListener( 'DOMContentLoaded', () => {
 /**
  * Ask for confirmation before action buttons that delete data, e.g. in the Database tab.
  */
-document.addEventListener( 'click', ( event ) => {
+document.addEventListener( 'click', async ( event ) => {
 	const button = event.target.closest( '[data-bbpac-confirm]' );
 
-	if ( button && ! window.confirm( button.dataset.bbpacConfirm ) ) {
-		event.preventDefault();
+	if ( ! button || ! button.form ) {
+		return;
+	}
+
+	// Let the browser show its validation message instead of asking to confirm invalid input.
+	if ( ! button.form.checkValidity() ) {
+		return;
+	}
+
+	event.preventDefault();
+
+	const confirmed = await confirmDialog.ask( {
+		title: button.dataset.bbpacConfirmTitle,
+		message: button.dataset.bbpacConfirm,
+		confirmLabel: button.dataset.bbpacConfirmLabel,
+	} );
+
+	if ( confirmed ) {
+		submitConfirmed( button.form, button );
 	}
 } );

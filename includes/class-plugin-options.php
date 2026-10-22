@@ -446,6 +446,31 @@ final class Plugin_Options {
 			?>
 		</div>
 		<?php
+		self::render_confirm_dialog();
+	}
+
+	/**
+	 * Render the dialog used to confirm actions that change or delete data.
+	 *
+	 * The title, message and confirm label are set by JS for each action.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_confirm_dialog() {
+		?>
+		<dialog id="bbpac-confirm-dialog" class="bbpac-confirm-dialog" aria-labelledby="bbpac-confirm-title" aria-describedby="bbpac-confirm-message">
+			<div class="bbpac-confirm-inner">
+				<h2 id="bbpac-confirm-title" class="bbpac-confirm-title"></h2>
+				<p id="bbpac-confirm-message" class="bbpac-confirm-message"></p>
+				<div class="bbpac-confirm-actions">
+					<button type="button" class="button bbpac-confirm-cancel"><?php \esc_html_e( 'Cancel', 'bloatbuster-performance-asset-cleaner' ); ?></button>
+					<button type="button" class="button button-primary bbpac-confirm-ok"></button>
+				</div>
+			</div>
+		</dialog>
+		<?php
 	}
 
 	/**

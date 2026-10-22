@@ -18,6 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Tab_Database extends Settings_Tab {
 
 	/**
+	 * Revisions kept per post by default when deleting old revisions, same as the "Revisions to keep" setting default.
+	 *
+	 * @var int
+	 */
+	const DEFAULT_REVISIONS_TO_KEEP = 5;
+
+	/**
 	 * Get the tab slug.
 	 *
 	 * @return string - Tab slug.
@@ -120,7 +127,8 @@ final class Tab_Database extends Settings_Tab {
 				'label'           => \__( 'Delete old revisions', 'bloatbuster-performance-asset-cleaner' ),
 				'description'     => \__( 'Delete post revisions and keep only the newest ones of each post. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
 				'button'          => \__( 'Delete revisions', 'bloatbuster-performance-asset-cleaner' ),
-				'confirm'         => \__( 'Delete old revisions? This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete old revisions?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Revisions beyond the number to keep are deleted from every post. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_revisions' ),
 			),
 			array(
@@ -129,7 +137,8 @@ final class Tab_Database extends Settings_Tab {
 				'label'           => \__( 'Delete auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
 				'description'     => \__( 'Delete auto-drafts older than one day. WordPress creates them when you open a new post and deletes them by itself after 7 days. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
 				'button'          => \__( 'Delete auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
-				'confirm'         => \__( 'Delete auto-drafts older than one day? This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete auto-drafts?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Auto-drafts older than one day are deleted. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_auto_drafts' ),
 			),
 		);
@@ -246,7 +255,7 @@ final class Tab_Database extends Settings_Tab {
 	/**
 	 * Get the number of revisions to keep per post shown in the form.
 	 *
-	 * Uses the "Revisions to keep" setting when the revision limit is on, otherwise 0.
+	 * Uses the "Revisions to keep" setting when the revision limit is on, otherwise DEFAULT_REVISIONS_TO_KEEP.
 	 *
 	 * @return int - Revisions to keep per post.
 	 *
@@ -254,10 +263,10 @@ final class Tab_Database extends Settings_Tab {
 	 */
 	public static function get_default_revisions_to_keep() {
 		if ( ! Options_Dispatch::get_option_value( 'limit_post_revisions' ) ) {
-			return 0;
+			return self::DEFAULT_REVISIONS_TO_KEEP;
 		}
 
-		return \absint( Options_Dispatch::get_option_value( 'post_revisions_limit', 0 ) );
+		return \absint( Options_Dispatch::get_option_value( 'post_revisions_limit', self::DEFAULT_REVISIONS_TO_KEEP ) );
 	}
 
 	/**
@@ -293,7 +302,7 @@ final class Tab_Database extends Settings_Tab {
 		?>
 		<p>
 			<label for="bbpac-keep-revisions"><?php \esc_html_e( 'Keep the newest revisions per post:', 'bloatbuster-performance-asset-cleaner' ); ?></label>
-			<input type="number" id="bbpac-keep-revisions" name="bbpac_keep_revisions" value="<?php echo \esc_attr( $keep ); ?>" min="0" max="100" step="1" class="small-text">
+			<input type="number" id="bbpac-keep-revisions" name="bbpac_keep_revisions" value="<?php echo \esc_attr( $keep ); ?>" min="0" max="100" step="1" class="small-text" required>
 		</p>
 		<p>
 			<?php
