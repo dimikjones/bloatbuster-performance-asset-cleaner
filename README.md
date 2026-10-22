@@ -42,6 +42,26 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 * Database statistics on the main site only count the main site's tables.
 * Uninstall removes the plugin data on every site that opted in.
 
+## WP-CLI
+
+There are no BloatBuster commands yet. All settings are stored in one array option, so they can be scripted with core WP-CLI commands:
+
+```bash
+# Show all settings.
+wp option get bloatbuster_performance_asset_cleaner_options --format=json
+
+# Turn a setting on (insert adds a new key, update changes an existing one).
+wp option patch insert bloatbuster_performance_asset_cleaner_options disable_emojis 1
+wp option patch update bloatbuster_performance_asset_cleaner_options post_revisions_limit 3
+
+# Turn a setting off.
+wp option patch delete bloatbuster_performance_asset_cleaner_options disable_emojis
+```
+
+* Setting IDs are the `id` keys in the tab classes in `includes/settings/tabs/`.
+* Values set this way skip the settings page validation, so use the same values the settings page saves (`1` for toggles, numbers within the field limits).
+* On multisite, add `--url=<site URL>` to target a site.
+
 ## Developers
 
 ### Settings structure
