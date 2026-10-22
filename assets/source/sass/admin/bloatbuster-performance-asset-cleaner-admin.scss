@@ -588,3 +588,56 @@
     font-size: 14px;
   }
 }
+
+// Confirmation dialog for actions that change or delete data.
+.bbpac-confirm-dialog {
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .bbpac-confirm-inner {
+    padding: 24px;
+  }
+
+  .bbpac-confirm-title {
+    margin: 0 0 12px;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .bbpac-confirm-message {
+    margin: 0;
+    font-size: 14px;
+    color: #3c434a;
+    word-break: break-word;
+  }
+
+  .bbpac-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  .button-primary.bbpac-button-danger {
+    background: #b32d2e;
+    border-color: #b32d2e;
+
+    &:hover,
+    &:focus {
+      background: #8a2424;
+      border-color: #8a2424;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 1px #fff, 0 0 0 3px #8a2424;
+    }
+  }
+}

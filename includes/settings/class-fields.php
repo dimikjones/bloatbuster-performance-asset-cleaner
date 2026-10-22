@@ -210,9 +210,17 @@ final class Fields {
 		if ( ! empty( $args['render_callback'] ) && is_callable( $args['render_callback'] ) ) {
 			$has_items = false !== call_user_func( $args['render_callback'], $args );
 		}
+		$confirm = '';
+
+		// JS shows a confirmation dialog with these texts before the form is sent.
+		if ( ! empty( $args['confirm'] ) ) {
+			$confirm .= ' data-bbpac-confirm="' . \esc_attr( $args['confirm'] ) . '"';
+			$confirm .= ' data-bbpac-confirm-title="' . \esc_attr( $args['confirm_title'] ?? $args['label'] ) . '"';
+			$confirm .= ' data-bbpac-confirm-label="' . \esc_attr( $args['button'] ) . '"';
+		}
 		?>
 		<p>
-			<button type="submit" name="bloatbuster_action" value="<?php echo \esc_attr( $args['id'] ); ?>" class="button button-secondary" <?php echo ! empty( $args['confirm'] ) ? 'data-bbpac-confirm="' . \esc_attr( $args['confirm'] ) . '"' : ''; ?> <?php \disabled( ! $has_items ); ?>><?php echo \esc_html( $args['button'] ); ?></button>
+			<button type="submit" name="bloatbuster_action" value="<?php echo \esc_attr( $args['id'] ); ?>" class="button button-secondary"<?php echo $confirm; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attributes escaped above. ?> <?php \disabled( ! $has_items ); ?>><?php echo \esc_html( $args['button'] ); ?></button>
 		</p>
 		<?php
 	}

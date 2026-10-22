@@ -120,7 +120,8 @@ final class Tab_Database extends Settings_Tab {
 				'label'           => \__( 'Delete old revisions', 'bloatbuster-performance-asset-cleaner' ),
 				'description'     => \__( 'Delete post revisions and keep only the newest ones of each post. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
 				'button'          => \__( 'Delete revisions', 'bloatbuster-performance-asset-cleaner' ),
-				'confirm'         => \__( 'Delete old revisions? This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete old revisions?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Revisions beyond the number to keep are deleted from every post. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_revisions' ),
 			),
 			array(
@@ -129,7 +130,8 @@ final class Tab_Database extends Settings_Tab {
 				'label'           => \__( 'Delete auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
 				'description'     => \__( 'Delete auto-drafts older than one day. WordPress creates them when you open a new post and deletes them by itself after 7 days. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
 				'button'          => \__( 'Delete auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
-				'confirm'         => \__( 'Delete auto-drafts older than one day? This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete auto-drafts?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Auto-drafts older than one day are deleted. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_auto_drafts' ),
 			),
 		);
