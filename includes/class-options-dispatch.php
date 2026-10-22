@@ -91,7 +91,8 @@ final class Options_Dispatch {
 	 * Dequeue block editor styles on frontend.
 	 */
 	public static function disable_block_editor_styles_frontend() {
-		if ( self::is_frontend() ) {
+		// Never on block themes, they are built from blocks. Also covers a value saved before a theme switch.
+		if ( self::is_frontend() && ! \wp_is_block_theme() ) {
 
 			if ( self::get_option_value( 'disable_block_editor_styles_frontend' ) ) {
 				// Removes core block styles.
