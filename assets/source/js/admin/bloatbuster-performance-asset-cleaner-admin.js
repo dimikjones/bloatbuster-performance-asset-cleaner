@@ -305,7 +305,8 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 			const confirmed = await confirmDialog.ask( {
 				title: bbpacData.i18n.rowDeleteTitle,
-				message: bbpacData.i18n.rowDeleteMessage.replace( '%s', name ),
+				// A callback inserts the name literally, a string would turn "$&" and similar into patterns.
+				message: bbpacData.i18n.rowDeleteMessage.replace( '%s', () => name ),
 				confirmLabel: bbpacData.i18n.deleteLabel,
 			} );
 
