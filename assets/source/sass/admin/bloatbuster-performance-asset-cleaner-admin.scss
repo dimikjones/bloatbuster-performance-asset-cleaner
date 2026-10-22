@@ -510,6 +510,11 @@
 }
 
 .bbpac-value-dialog {
+  // Browsers without <dialog> support would show it as page content.
+  &:not([open]) {
+    display: none;
+  }
+
   width: 900px;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 64px);
@@ -591,6 +596,11 @@
 
 // Confirmation dialog for actions that change or delete data.
 .bbpac-confirm-dialog {
+  // Browsers without <dialog> support would show it as page content.
+  &:not([open]) {
+    display: none;
+  }
+
   width: 480px;
   max-width: calc(100vw - 32px);
   padding: 0;

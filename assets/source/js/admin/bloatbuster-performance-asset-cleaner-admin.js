@@ -184,7 +184,9 @@ const valueDialog = {
 	init() {
 		this.element = document.getElementById( 'bbpac-value-dialog' );
 
-		if ( ! this.element ) {
+		// Without dialog support, "View value" does nothing instead of throwing.
+		if ( ! this.element || 'function' !== typeof this.element.showModal ) {
+			this.element = null;
 			return;
 		}
 
