@@ -1,121 +1,110 @@
 === BloatBuster – Performance & Asset Cleaner ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: http://example.com/
-Tags: speed, optimization
+Contributors: dimikjones
+Tags: performance, optimization, speed, cleanup, database
 Requires at least: 6.6
-Tested up to: 6.8
-Stable tag: 5.3
+Tested up to: 7.1
+Requires PHP: 7.4
+Stable tag: 1.0.0
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Strip away WordPress bloat, cut HTTP requests and tune background API execution for a faster, lighter frontend.
+Strip away WordPress bloat, cut HTTP requests and tune background tasks for a faster, lighter site.
 
 == Description ==
 
-Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean.
+Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features you need to keep your frontend fast, light, and clean.
 
-= Features =
+Every option is off by default, so nothing changes until you turn it on.
+
+= Assets =
 
 * Disable Gutenberg block styles on the frontend
 * Disable classic theme styles on the frontend
 * Disable global styles on the frontend (classic themes only)
-* Disable the Heartbeat API on the frontend
-* Control Heartbeat API interval for the frontend, dashboard and post editor
 * Disable Dashicons on the frontend when the toolbar is hidden
 * Disable jQuery Migrate on the frontend
 * Disable emoji scripts and styles
-* Disable oEmbed discovery and embed script (external embeds keep working)
+
+= WordPress Core =
+
+* Disable oEmbed discovery and embed script (embeds from YouTube and other services keep working)
+* Disable comments site-wide
 * Disable self-pingbacks
-* Limit post revisions to a configurable number
-* Disable capital_P_dangit
+* Limit post revisions to a set number
 * Remove unnecessary head tags
 * Disable XML-RPC
 * Disable core XML sitemaps
-* WP-Cron status checker with overdue events and next scheduled events
-* Control the post editor autosave interval
-* Disable unneeded image sizes for new uploads
-* Control large image scaling (big image size threshold)
 * Disable user enumeration
-* Control speculative loading mode and eagerness
-* Manually clean expired transients
+
+= Database =
+
+* Database statistics: size, largest tables, revisions, auto-drafts, trash and spam counts
+* Clean expired transients
 * Delete old revisions, keeping the newest ones per post
 * Delete old auto-drafts
-* Database statistics: size, largest tables with free space, revisions, auto-drafts, trash and spam counts
-* Autoloaded options manager: browse, search, filter and sort options, see the likely owner, change autoload, delete, view values, export and restore
-* Disable comments site-wide
+
+= Autoloaded Options =
+
+* Summary of autoloaded options: total size, count, largest option and options to review
+* Browse, search, filter and sort all options, with the likely plugin or theme owner
+* Enable or disable autoload, one by one or in bulk
+* Delete options left behind by removed plugins
+* View option values, with secrets like API keys hidden until you reveal them
+* Export options to a file and restore them from that file
+* Core WordPress options are protected from changes
+
+= Background Processes =
+
+* WP-Cron status: overdue events and the next scheduled events
+* Disable the Heartbeat API on the frontend
+* Control the Heartbeat API interval for the frontend, dashboard and post editor
+* Control the post editor autosave interval
+
+= Media =
+
+* Disable image sizes you don't need, for new uploads
+* Control large image scaling (the 2560 pixel limit)
+
+= Advanced =
+
+* Control speculative loading mode and eagerness
+* Disable capital_P_dangit
+* Delete plugin data on uninstall
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
-
-e.g.
-
-1. Upload `bloatbuster-performance-asset-cleaner.php` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `<?php do_action('plugin_name_hook'); ?>` in your templates
+1. In your WordPress admin, go to Plugins → Add New Plugin and search for "BloatBuster". You can also upload the plugin zip file with Upload Plugin.
+2. Install and activate the plugin.
+3. Open BloatBuster in the admin menu.
+4. Turn on the options you need, one tab at a time, and check your site after each change.
 
 == Frequently Asked Questions ==
 
-= A question that someone might have =
+= Will it break my site? =
 
-An answer to that question.
+Every option is off by default. Turn options on one by one and check your site after each change. Each option explains what it removes. Some need care: only disable block styles if your theme does not use blocks, don't disable XML-RPC if you use Jetpack or the WordPress mobile app, and keep the Heartbeat API on the frontend if a plugin like live chat or a membership plugin needs it.
 
-= What about foo bar? =
+= I use a block theme. Can I disable global styles? =
 
-Answer to foo bar dilemma.
+No. A block theme's design comes from global styles, so the option is locked when a block theme is active. It is meant for classic themes that don't use blocks.
 
-== Screenshots ==
+= Can I undo changes in Autoloaded Options? =
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the screenshot is taken from
-the /assets directory or the directory that contains the stable readme.txt (tags or trunk). Screenshots in the /assets
-directory take precedence. For example, `/assets/screenshot-1.png` would win over `/tags/4.3/screenshot-1.png`
-(or jpg, jpeg, gif).
-2. This is the second screen shot
+Changing autoload only changes when WordPress loads an option, the value is kept, and you can turn it back. Deleting an option can't be undone, so use the Export bulk action first. You can restore exported options later with "Restore from backup". Core WordPress options are protected and can't be changed or deleted.
+
+= Does it work on multisite? =
+
+Yes. Each site has its own settings. In the Autoloaded Options tab, only network administrators can change, delete or restore options, site administrators can browse, view and export them.
+
+= What is the WP-Cron status for? =
+
+WP-Cron runs scheduled tasks like publishing scheduled posts and update checks. The status shows overdue tasks, which means WP-Cron is not running. On busy sites you can run WP-Cron from a server cron job instead of on page visits, the status links to a guide.
+
+= Does it replace a caching plugin? =
+
+No. BloatBuster removes what WordPress loads but your site may not need. It works next to caching plugins.
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
-* Another change.
-
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
-
-== Upgrade Notice ==
-
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
-
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
-
-== Arbitrary section ==
-
-You may provide arbitrary sections, in the same format as the ones above.  This may be of use for extremely complicated
-plugins where more information needs to be conveyed that doesn't fit into the categories of "description" or
-"installation."  Arbitrary sections will be shown below the built-in sections outlined above.
-
-== A brief Markdown Example ==
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
-
-Here's a link to [WordPress](http://wordpress.org/ "Your favorite software") and one to [Markdown's Syntax Documentation][markdown syntax].
-Titles are optional, naturally.
-
-[markdown syntax]: http://daringfireball.net/projects/markdown/syntax
-            "Markdown is what the parser uses to process much of the readme file"
-
-Markdown uses email style notation for blockquotes and I've been told:
-> Asterisks for *emphasis*. Double it up  for **strong**.
-
-`<?php code(); // goes in backticks ?>`
+= 1.0.0 - 2026-10-22 =
+* Initial release.

@@ -4,34 +4,59 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 
 ## Features
 
+Every option is off by default.
+
+### Assets
+
 * Disable Gutenberg block styles on the frontend
 * Disable classic theme styles on the frontend
 * Disable global styles on the frontend (classic themes only)
-* Disable the Heartbeat API on the frontend
-* Control Heartbeat API interval for the frontend, dashboard and post editor
 * Disable Dashicons on the frontend when the toolbar is hidden
 * Disable jQuery Migrate on the frontend
 * Disable emoji scripts and styles
+
+### WordPress Core
+
 * Disable oEmbed discovery and embed script (external embeds keep working)
+* Disable comments site-wide
 * Disable self-pingbacks
 * Limit post revisions to a configurable number
-* Disable capital_P_dangit
 * Remove unnecessary head tags
 * Disable XML-RPC
 * Disable core XML sitemaps
-* WP-Cron status checker with overdue events and next scheduled events
-* Control the post editor autosave interval
-* Disable unneeded image sizes for new uploads
-* Control large image scaling (big image size threshold)
 * Disable user enumeration
-* Control speculative loading mode and eagerness
-* Manually clean expired transients
+
+### Database
+
+* Database statistics: size, largest tables with free space, revisions, auto-drafts, trash and spam counts
+* Clean expired transients, including timeouts left without a value
 * Delete old revisions, keeping the newest ones per post
 * Delete old auto-drafts
-* Database statistics: size, largest tables with free space, revisions, auto-drafts, trash and spam counts
-* Autoloaded options manager: summary, browse, search, filter and sort all options, likely plugin or theme owner,
-  enable or disable autoload (single and bulk), delete, view values with secrets masked, export and restore from backup
-* Disable comments site-wide
+
+### Autoloaded Options
+
+* Summary, browse, search, filter and sort all options, with the likely plugin or theme owner
+* Enable or disable autoload (single and bulk), delete
+* View values with secrets masked, export and restore from backup
+* Core options are protected
+
+### Background Processes
+
+* WP-Cron status checker with overdue events and next scheduled events
+* Disable the Heartbeat API on the frontend
+* Control Heartbeat API interval for the frontend, dashboard and post editor
+* Control the post editor autosave interval
+
+### Media
+
+* Disable unneeded image sizes for new uploads
+* Control large image scaling (big image size threshold)
+
+### Advanced
+
+* Control speculative loading mode and eagerness
+* Disable capital_P_dangit
+* Delete plugin data on uninstall
 
 ## Multisite
 

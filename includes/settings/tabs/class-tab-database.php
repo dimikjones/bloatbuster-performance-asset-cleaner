@@ -18,6 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Tab_Database extends Settings_Tab {
 
 	/**
+	 * Revisions kept per post by default when deleting old revisions, same as the "Revisions to keep" setting default.
+	 *
+	 * @var int
+	 */
+	const DEFAULT_REVISIONS_TO_KEEP = 5;
+
+	/**
 	 * Get the tab slug.
 	 *
 	 * @return string - Tab slug.
@@ -248,7 +255,7 @@ final class Tab_Database extends Settings_Tab {
 	/**
 	 * Get the number of revisions to keep per post shown in the form.
 	 *
-	 * Uses the "Revisions to keep" setting when the revision limit is on, otherwise 0.
+	 * Uses the "Revisions to keep" setting when the revision limit is on, otherwise DEFAULT_REVISIONS_TO_KEEP.
 	 *
 	 * @return int - Revisions to keep per post.
 	 *
@@ -256,10 +263,10 @@ final class Tab_Database extends Settings_Tab {
 	 */
 	public static function get_default_revisions_to_keep() {
 		if ( ! Options_Dispatch::get_option_value( 'limit_post_revisions' ) ) {
-			return 0;
+			return self::DEFAULT_REVISIONS_TO_KEEP;
 		}
 
-		return \absint( Options_Dispatch::get_option_value( 'post_revisions_limit', 0 ) );
+		return \absint( Options_Dispatch::get_option_value( 'post_revisions_limit', self::DEFAULT_REVISIONS_TO_KEEP ) );
 	}
 
 	/**
