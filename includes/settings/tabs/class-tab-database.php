@@ -302,7 +302,7 @@ final class Tab_Database extends Settings_Tab {
 		?>
 		<p>
 			<label for="bbpac-keep-revisions"><?php \esc_html_e( 'Keep the newest revisions per post:', 'bloatbuster-performance-asset-cleaner' ); ?></label>
-			<input type="number" id="bbpac-keep-revisions" name="bbpac_keep_revisions" value="<?php echo \esc_attr( $keep ); ?>" min="0" max="100" step="1" class="small-text">
+			<input type="number" id="bbpac-keep-revisions" name="bbpac_keep_revisions" value="<?php echo \esc_attr( $keep ); ?>" min="0" max="100" step="1" class="small-text" required>
 		</p>
 		<p>
 			<?php

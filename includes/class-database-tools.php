@@ -268,7 +268,10 @@ final class Database_Tools {
 
 			case 'delete_revisions':
 				// Same limit as the form input.
-				$keep   = isset( $_POST['bbpac_keep_revisions'] ) ? min( 100, \absint( $_POST['bbpac_keep_revisions'] ) ) : Tab_Database::get_default_revisions_to_keep();
+				$raw_keep = isset( $_POST['bbpac_keep_revisions'] ) ? \sanitize_text_field( \wp_unslash( $_POST['bbpac_keep_revisions'] ) ) : '';
+
+				// An empty or non-numeric value must never become 0, that would delete every revision.
+				$keep   = ( '' !== $raw_keep && is_numeric( $raw_keep ) ) ? min( 100, \absint( $raw_keep ) ) : Tab_Database::get_default_revisions_to_keep();
 				$result = self::delete_revisions( $keep );
 
 				$args['bloatbuster_notice']    = 'revisions_deleted';

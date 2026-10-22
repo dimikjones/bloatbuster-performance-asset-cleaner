@@ -120,6 +120,17 @@ const submitConfirmed = ( form, submitter ) => {
 		return;
 	}
 
+	// form.submit() skips validation, so check the fields first.
+	if ( ! form.noValidate && ! ( submitter && submitter.formNoValidate ) && ! form.checkValidity() ) {
+		delete form.dataset.bbpacConfirmed;
+
+		if ( 'function' === typeof form.reportValidity ) {
+			form.reportValidity();
+		}
+
+		return;
+	}
+
 	// Older browsers: form.submit() doesn't send the button, add its value as a hidden field.
 	if ( submitter && submitter.name ) {
 		const input = document.createElement( 'input' );
@@ -312,6 +323,11 @@ document.addEventListener( 'click', async ( event ) => {
 	const button = event.target.closest( '[data-bbpac-confirm]' );
 
 	if ( ! button || ! button.form ) {
+		return;
+	}
+
+	// Let the browser show its validation message instead of asking to confirm invalid input.
+	if ( ! button.form.checkValidity() ) {
 		return;
 	}
 
