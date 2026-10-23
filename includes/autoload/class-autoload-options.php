@@ -554,23 +554,69 @@ final class Autoload_Options {
 	}
 
 	/**
+	 * Get the timeout option name of an ordinary transient value.
+	 *
+	 * @param string $name - Option name.
+	 *
+	 * @return string - Timeout option name, or an empty string for other options.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_transient_timeout_name( $name ) {
+		if ( 0 !== strpos( $name, '_transient_' ) || 0 === strpos( $name, '_transient_timeout_' ) ) {
+			return '';
+		}
+
+		return '_transient_timeout_' . substr( $name, strlen( '_transient_' ) );
+	}
+
+	/**
+	 * Find ordinary transient values with existing or incoming timeout rows.
+	 *
+	 * @param array $names            - Option names to check.
+	 * @param array $additional_names - Timeout names that will be imported.
+	 *
+	 * @return array - Transient value names that must not have autoload enabled.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_expiring_transient_names( $names, $additional_names = array() ) {
+		$timeouts = array();
+
+		foreach ( $names as $name ) {
+			$timeout = self::get_transient_timeout_name( $name );
+
+			if ( '' !== $timeout ) {
+				$timeouts[ $timeout ] = $name;
+			}
+		}
+
+		$existing = self::get_existing_names( array_keys( $timeouts ) );
+		$found    = array_intersect_key( $timeouts, array_fill_keys( array_merge( $existing, $additional_names ), true ) );
+
+		return array_values( $found );
+	}
+
+	/**
 	 * Enable or disable autoload for options, without changing their values.
 	 *
 	 * @param array $names    - Option names.
 	 * @param bool  $autoload - True to autoload.
 	 *
-	 * @return int - Number of options changed.
+	 * @return array - Changed and skipped option counts.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function set_autoload( $names, $autoload ) {
-		if ( empty( $names ) ) {
-			return 0;
-		}
+		$names   = array_values( array_unique( $names ) );
+		$blocked = $autoload ? self::get_expiring_transient_names( $names ) : array();
+		$names   = array_values( array_diff( $names, $blocked ) );
+		$results = empty( $names ) ? array() : \wp_set_options_autoload( $names, (bool) $autoload );
 
-		$results = \wp_set_options_autoload( $names, (bool) $autoload );
-
-		return count( array_filter( $results ) );
+		return array(
+			'changed' => count( array_filter( $results ) ),
+			'skipped' => count( $blocked ),
+		);
 	}
 
 	/**
@@ -667,11 +713,42 @@ final class Autoload_Options {
 			'skipped'   => count( $data['options'] ) - count( $options ),
 		);
 
-		$current = self::get_raw_options( array_keys( $options ) );
+		$names         = array_keys( $options );
+		$blocked       = array_fill_keys( self::get_expiring_transient_names( $names, $names ), true );
+		$timeout_rows  = array();
+		$value_rows    = array();
+		$related_names = $names;
 
 		foreach ( $options as $name => $option ) {
+			if ( 0 === strpos( $name, '_transient_timeout_' ) ) {
+				$timeout_rows[ $name ] = $option;
+				$related_names[]       = '_transient_' . substr( $name, strlen( '_transient_timeout_' ) );
+			} else {
+				$value_rows[ $name ] = $option;
+			}
+		}
+
+		$current = self::get_raw_options( array_unique( $related_names ) );
+
+		// Restore values first so a safe autoload disable precedes its timeout row.
+		foreach ( array_merge( $value_rows, $timeout_rows ) as $name => $option ) {
+			$should_autoload = self::is_autoloaded( $option['autoload'] );
+
+			if ( $should_autoload && isset( $blocked[ $name ] ) ) {
+				++$counts['skipped'];
+				continue;
+			}
+
+			if ( isset( $timeout_rows[ $name ] ) ) {
+				$value_name = '_transient_' . substr( $name, strlen( '_transient_timeout_' ) );
+
+				if ( isset( $current[ $value_name ] ) && self::is_autoloaded( $current[ $value_name ]['autoload'] ) ) {
+					++$counts['skipped'];
+					continue;
+				}
+			}
+
 			if ( isset( $current[ $name ] ) ) {
-				$should_autoload = self::is_autoloaded( $option['autoload'] );
 
 				if ( self::is_autoloaded( $current[ $name ]['autoload'] ) === $should_autoload ) {
 					++$counts['unchanged'];
@@ -680,6 +757,7 @@ final class Autoload_Options {
 
 				if ( \wp_set_option_autoload( $name, $should_autoload ) ) {
 					++$counts['updated'];
+					$current[ $name ]['autoload'] = $should_autoload ? 'on' : 'off';
 				}
 
 				continue;
@@ -699,6 +777,7 @@ final class Autoload_Options {
 
 			if ( $inserted ) {
 				++$counts['created'];
+				$current[ $name ] = $option;
 				\wp_cache_delete( $name, 'options' );
 			}
 		}

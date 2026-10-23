@@ -244,7 +244,9 @@ final class Autoload_Actions {
 		if ( 'delete' === $action ) {
 			$count = Autoload_Options::delete( $filtered['names'] );
 		} else {
-			$count = Autoload_Options::set_autoload( $filtered['names'], 'enable' === $action );
+			$result               = Autoload_Options::set_autoload( $filtered['names'], 'enable' === $action );
+			$count                = $result['changed'];
+			$filtered['skipped'] += $result['skipped'];
 		}
 
 		return array(

@@ -113,7 +113,7 @@ final class Tab_Autoload extends Settings_Tab {
 			/* translators: %d: number of options. */
 			$message = sprintf( \_n( 'Deleted %d option.', 'Deleted %d options.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		} elseif ( 'autoload_none' === $notice ) {
-			$message = \__( 'No options were changed. Select at least one option that is not protected.', 'bloatbuster-performance-asset-cleaner' );
+			$message = \__( 'No options were changed. Select at least one option eligible for this action.', 'bloatbuster-performance-asset-cleaner' );
 			$type    = 'warning';
 		} elseif ( 'autoload_imported' === $notice ) {
 			/* translators: 1: number of created options, 2: number of options with restored autoload. */
@@ -129,7 +129,7 @@ final class Tab_Autoload extends Settings_Tab {
 
 		if ( $skipped > 0 ) {
 			/* translators: %d: number of skipped options. */
-			$message .= ' ' . sprintf( \_n( '%d protected or invalid option was skipped.', '%d protected or invalid options were skipped.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, invalid, or would bypass transient expiration.', '%d options were skipped because they are protected, invalid, or would bypass transient expiration.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
 		}
 
 		\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), $type );
@@ -180,7 +180,7 @@ final class Tab_Autoload extends Settings_Tab {
 			</div>
 		<?php endif; ?>
 		<div class="bbpac-autoload-manager">
-			<p class="description"><?php \esc_html_e( 'Transients are hidden by default. Summary cards always include all autoloaded options, including transients.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			<p class="description"><?php \esc_html_e( 'Transients are hidden by default. Summary cards always include all autoloaded options, including transients. Autoload cannot be enabled for ordinary transients with timeout rows because this would bypass expiration checks.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 			<?php $table->views(); ?>
 			<form method="get" action="<?php echo \esc_url( \admin_url( 'admin.php' ) ); ?>" class="bbpac-autoload-search">
 				<input type="hidden" name="page" value="<?php echo \esc_attr( BLOATBUSTER_OPTION ); ?>">
@@ -208,7 +208,7 @@ final class Tab_Autoload extends Settings_Tab {
 			<?php if ( Autoload_Actions::can_change_options() ) : ?>
 			<div class="bbpac-autoload-import">
 				<h3><?php \esc_html_e( 'Restore from backup', 'bloatbuster-performance-asset-cleaner' ); ?></h3>
-				<p class="description"><?php \esc_html_e( 'Upload a file created with the Export bulk action. Missing options are created again, existing options only get their autoload state restored. Protected options are skipped.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+				<p class="description"><?php \esc_html_e( 'Upload a file created with the Export bulk action. Missing options are created again, existing options only get their autoload state restored. Protected options and changes that would bypass transient expiration are skipped.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 					<input type="hidden" name="action" value="<?php echo \esc_attr( Autoload_Actions::IMPORT_ACTION ); ?>">
 					<?php \wp_nonce_field( Autoload_Actions::IMPORT_ACTION ); ?>

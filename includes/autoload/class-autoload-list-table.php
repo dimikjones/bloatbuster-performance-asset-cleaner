@@ -263,6 +263,13 @@ final class Autoload_List_Table extends \WP_List_Table {
 			)
 		);
 
+		$blocked = array_fill_keys( Autoload_Options::get_expiring_transient_names( array_column( $result['items'], 'name' ) ), true );
+
+		foreach ( $result['items'] as &$item ) {
+			$item['can_enable_autoload'] = ! isset( $blocked[ $item['name'] ] );
+		}
+		unset( $item );
+
 		$this->items           = $result['items'];
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns(), 'name' );
 
@@ -336,11 +343,13 @@ final class Autoload_List_Table extends \WP_List_Table {
 		if ( ! $is_protected && Autoload_Actions::can_change_options() ) {
 			$is_autoloaded = Autoload_Options::is_autoloaded( $item['autoload'] );
 
-			$actions['toggle'] = sprintf(
-				'<a href="%1$s">%2$s</a>',
-				\esc_url( Autoload_Actions::get_row_action_url( $is_autoloaded ? 'disable' : 'enable', $item['name'] ) ),
-				$is_autoloaded ? \esc_html__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ) : \esc_html__( 'Enable autoload', 'bloatbuster-performance-asset-cleaner' )
-			);
+			if ( $is_autoloaded || $item['can_enable_autoload'] ) {
+				$actions['toggle'] = sprintf(
+					'<a href="%1$s">%2$s</a>',
+					\esc_url( Autoload_Actions::get_row_action_url( $is_autoloaded ? 'disable' : 'enable', $item['name'] ) ),
+					$is_autoloaded ? \esc_html__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ) : \esc_html__( 'Enable autoload', 'bloatbuster-performance-asset-cleaner' )
+				);
+			}
 
 			$actions['delete'] = sprintf(
 				'<a href="%1$s" class="bbpac-delete-option">%2$s</a>',
