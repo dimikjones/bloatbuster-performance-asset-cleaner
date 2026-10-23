@@ -622,24 +622,100 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Delete options.
+	 * Get the value option whose expiration is controlled by a timeout row.
+	 *
+	 * @param string $name - Option name.
+	 *
+	 * @return string - Corresponding value name, or an empty string for other options.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_timeout_value_name( $name ) {
+		$name = (string) $name;
+
+		foreach ( array( '_transient_', '_site_transient_' ) as $prefix ) {
+			$timeout_prefix = $prefix . 'timeout_';
+
+			if ( 0 === strpos( $name, $timeout_prefix ) ) {
+				return $prefix . substr( $name, strlen( $timeout_prefix ) );
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Find timeout rows whose corresponding transient values still exist.
+	 *
+	 * @param array $names - Option names to check.
+	 *
+	 * @return array - Timeout names that cannot be deleted individually.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_required_timeout_names( $names ) {
+		$timeouts = array();
+
+		foreach ( $names as $name ) {
+			$value_name = self::get_timeout_value_name( $name );
+
+			if ( '' !== $value_name ) {
+				$timeouts[ $name ] = $value_name;
+			}
+		}
+
+		$existing = self::get_existing_names( array_values( $timeouts ) );
+
+		return array_keys( array_intersect( $timeouts, $existing ) );
+	}
+
+	/**
+	 * Delete selected options without removing a surviving transient's timeout.
 	 *
 	 * @param array $names - Option names.
 	 *
-	 * @return int - Number of deleted options.
+	 * @return array - Deleted and skipped option counts.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function delete( $names ) {
-		$deleted = 0;
+		global $wpdb;
+
+		$counts = array(
+			'deleted' => 0,
+			'skipped' => 0,
+		);
+		$names  = array_values( array_unique( array_map( 'strval', $names ) ) );
+
+		// Attempt each selected value before its longer timeout, including nested keys.
+		usort( $names, array( __CLASS__, 'compare_option_names' ) );
 
 		foreach ( $names as $name ) {
+			if ( self::is_protected( $name ) ) {
+				++$counts['skipped'];
+				continue;
+			}
+
+			$value_name = self::get_timeout_value_name( $name );
+
+			if ( '' !== $value_name ) {
+				// Recheck the database after earlier deletions; selection alone is not enough.
+				$existing = self::get_existing_names( array( $value_name ) );
+
+				if ( ! empty( $existing ) || '' !== $wpdb->last_error ) {
+					++$counts['skipped'];
+					continue;
+				}
+			}
+
 			if ( \delete_option( $name ) ) {
-				++$deleted;
+				++$counts['deleted'];
+			} else {
+				++$counts['skipped'];
 			}
 		}
 
-		return $deleted;
+		return $counts;
 	}
 
 	/**
@@ -683,7 +759,7 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Order import names so a transient value precedes its potential timeout.
+	 * Order option names so a transient value precedes its potential timeout.
 	 *
 	 * Every derived timeout name is longer than its value name. Sorting keys
 	 * by length preserves numeric names and handles repeated timeout_ prefixes.
@@ -695,7 +771,7 @@ final class Autoload_Options {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function compare_import_option_names( $first, $second ) {
+	public static function compare_option_names( $first, $second ) {
 		return strlen( (string) $first ) <=> strlen( (string) $second );
 	}
 
@@ -745,7 +821,7 @@ final class Autoload_Options {
 		$current = self::get_raw_options( array_unique( $related_names ) );
 
 		// Preserve option-name keys and restore each value before its potential timeout.
-		uksort( $options, array( __CLASS__, 'compare_import_option_names' ) );
+		uksort( $options, array( __CLASS__, 'compare_option_names' ) );
 
 		foreach ( $options as $name => $option ) {
 			$name            = (string) $name;

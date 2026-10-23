@@ -242,7 +242,9 @@ final class Autoload_Actions {
 	 */
 	public static function run_action( $action, $filtered ) {
 		if ( 'delete' === $action ) {
-			$count = Autoload_Options::delete( $filtered['names'] );
+			$result               = Autoload_Options::delete( $filtered['names'] );
+			$count                = $result['deleted'];
+			$filtered['skipped'] += $result['skipped'];
 		} else {
 			$result               = Autoload_Options::set_autoload( $filtered['names'], 'enable' === $action );
 			$count                = $result['changed'];

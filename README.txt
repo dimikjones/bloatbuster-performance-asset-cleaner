@@ -92,7 +92,7 @@ No. A block theme's design comes from global styles, so the option is locked whe
 
 = How do I show transients in Autoloaded Options? =
 
-Check "Include transients" and click "Apply filters". This works with or without a search term and applies across views, sorting and pagination. Transient values and timeout rows are hidden by default, but autoloaded transients are always included in the summary cards. Showing or hiding them does not delete or change any options. Autoload cannot be enabled for ordinary transients with timeout rows, because WordPress would skip their expiration checks. They can still be viewed, exported, deleted or have autoload disabled. Imports also skip changes that would bypass transient expiration.
+Check "Include transients" and click "Apply filters". This works with or without a search term and applies across views, sorting and pagination. Transient values and timeout rows are hidden by default, but autoloaded transients are always included in the summary cards. Showing or hiding them does not delete or change any options. Autoload cannot be enabled for ordinary transients with timeout rows, because WordPress would skip their expiration checks. They can still be viewed, exported, deleted or have autoload disabled. Imports also skip changes that would bypass transient expiration. Ordinary and site transient timeout rows cannot be deleted while their values exist. To delete a value and its timeout together, select both rows and use the Delete bulk action; if the value cannot be deleted, its timeout is kept.
 
 = Can I undo changes in Autoloaded Options? =
 

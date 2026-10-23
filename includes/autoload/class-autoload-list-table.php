@@ -263,10 +263,13 @@ final class Autoload_List_Table extends \WP_List_Table {
 			)
 		);
 
-		$blocked = array_fill_keys( Autoload_Options::get_expiring_transient_names( array_column( $result['items'], 'name' ) ), true );
+		$names             = array_column( $result['items'], 'name' );
+		$blocked           = array_fill_keys( Autoload_Options::get_expiring_transient_names( $names ), true );
+		$required_timeouts = array_fill_keys( Autoload_Options::get_required_timeout_names( $names ), true );
 
 		foreach ( $result['items'] as &$item ) {
 			$item['can_enable_autoload'] = ! isset( $blocked[ $item['name'] ] );
+			$item['can_delete']          = ! isset( $required_timeouts[ $item['name'] ] );
 		}
 		unset( $item );
 
@@ -351,11 +354,13 @@ final class Autoload_List_Table extends \WP_List_Table {
 				);
 			}
 
-			$actions['delete'] = sprintf(
-				'<a href="%1$s" class="bbpac-delete-option">%2$s</a>',
-				\esc_url( Autoload_Actions::get_row_action_url( 'delete', $item['name'] ) ),
-				\esc_html__( 'Delete', 'bloatbuster-performance-asset-cleaner' )
-			);
+			if ( $item['can_delete'] ) {
+				$actions['delete'] = sprintf(
+					'<a href="%1$s" class="bbpac-delete-option">%2$s</a>',
+					\esc_url( Autoload_Actions::get_row_action_url( 'delete', $item['name'] ) ),
+					\esc_html__( 'Delete', 'bloatbuster-performance-asset-cleaner' )
+				);
+			}
 		}
 
 		return $html . $this->row_actions( $actions );

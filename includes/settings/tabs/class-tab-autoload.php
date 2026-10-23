@@ -128,8 +128,13 @@ final class Tab_Autoload extends Settings_Tab {
 		}
 
 		if ( $skipped > 0 ) {
-			/* translators: %d: number of skipped options. */
-			$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, invalid, or would bypass transient expiration.', '%d options were skipped because they are protected, invalid, or would bypass transient expiration.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			if ( 'autoload_delete' === $notice ) {
+				/* translators: %d: number of skipped options. */
+				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, could not be deleted, or its transient value still exists.', '%d options were skipped because they are protected, could not be deleted, or their transient values still exist.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			} else {
+				/* translators: %d: number of skipped options. */
+				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, invalid, or would bypass transient expiration.', '%d options were skipped because they are protected, invalid, or would bypass transient expiration.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			}
 		}
 
 		\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), $type );
@@ -180,7 +185,7 @@ final class Tab_Autoload extends Settings_Tab {
 			</div>
 		<?php endif; ?>
 		<div class="bbpac-autoload-manager">
-			<p class="description"><?php \esc_html_e( 'Transients are hidden by default. Summary cards always include all autoloaded options, including transients. Autoload cannot be enabled for ordinary transients with timeout rows because this would bypass expiration checks.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			<p class="description"><?php \esc_html_e( 'Transients are hidden by default. Summary cards always include all autoloaded options, including transients. Autoload cannot be enabled for ordinary transients with timeout rows because this would bypass expiration checks. A timeout cannot be deleted while its value exists; select both rows to delete them together.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 			<?php $table->views(); ?>
 			<form method="get" action="<?php echo \esc_url( \admin_url( 'admin.php' ) ); ?>" class="bbpac-autoload-search">
 				<input type="hidden" name="page" value="<?php echo \esc_attr( BLOATBUSTER_OPTION ); ?>">
