@@ -302,7 +302,7 @@ final class Autoload_Options {
 	/**
 	 * Get a page of options with name, size and autoload value.
 	 *
-	 * @param array $args - Query args: view, search, orderby, order, per_page and page.
+	 * @param array $args - Query args: view, search, include_transients, orderby, order, per_page and page.
 	 *
 	 * @return array - Items and total count.
 	 *
@@ -314,12 +314,13 @@ final class Autoload_Options {
 		$args = \wp_parse_args(
 			$args,
 			array(
-				'view'     => 'all',
-				'search'   => '',
-				'orderby'  => 'size',
-				'order'    => 'desc',
-				'per_page' => 50,
-				'page'     => 1,
+				'view'               => 'all',
+				'search'             => '',
+				'orderby'            => 'size',
+				'order'              => 'desc',
+				'per_page'           => 50,
+				'page'               => 1,
+				'include_transients' => false,
 			)
 		);
 
@@ -363,7 +364,7 @@ final class Autoload_Options {
 	/**
 	 * Count options for a view.
 	 *
-	 * @param array $args - Query args: view and search.
+	 * @param array $args - Query args: view, search and include_transients.
 	 *
 	 * @return int - Number of options.
 	 *
@@ -386,11 +387,10 @@ final class Autoload_Options {
 	/**
 	 * Build the WHERE clause for a view and search.
 	 *
-	 * Transients are listed only when autoloaded, like transients set without
-	 * expiration. Expiring transients are not autoloaded and are cleaned up
-	 * in the Database tab.
+	 * Transient values and timeout rows are hidden unless explicitly included.
+	 * Autoload status does not establish whether a transient expires.
 	 *
-	 * @param array $args - Query args: view and search.
+	 * @param array $args - Query args: view, search and include_transients.
 	 *
 	 * @return array - SQL with placeholders and its args.
 	 *
@@ -417,10 +417,11 @@ final class Autoload_Options {
 			$params[] = self::get_large_threshold();
 		}
 
-		$sql[]    = '( autoload IN ( ' . self::get_placeholders( count( $values ) ) . ' ) OR ( option_name NOT LIKE %s AND option_name NOT LIKE %s ) )';
-		$params   = array_merge( $params, $values );
-		$params[] = $wpdb->esc_like( '_transient_' ) . '%';
-		$params[] = $wpdb->esc_like( '_site_transient_' ) . '%';
+		if ( empty( $args['include_transients'] ) ) {
+			$sql[]    = '( option_name NOT LIKE %s AND option_name NOT LIKE %s )';
+			$params[] = $wpdb->esc_like( '_transient_' ) . '%';
+			$params[] = $wpdb->esc_like( '_site_transient_' ) . '%';
+		}
 
 		// Not empty(), '0' is a valid search term.
 		if ( isset( $args['search'] ) && '' !== $args['search'] ) {

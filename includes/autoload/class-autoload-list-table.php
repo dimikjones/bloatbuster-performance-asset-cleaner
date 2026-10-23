@@ -40,7 +40,7 @@ final class Autoload_List_Table extends \WP_List_Table {
 	}
 
 	/**
-	 * Get the current request filters: view, search and sorting.
+	 * Get the current request filters: view, search, transient visibility and sorting.
 	 *
 	 * @return array - Query args.
 	 *
@@ -48,10 +48,11 @@ final class Autoload_List_Table extends \WP_List_Table {
 	 */
 	public static function get_request_args() {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only list filters.
-		$view    = isset( $_GET['view'] ) ? \sanitize_key( \wp_unslash( $_GET['view'] ) ) : 'all';
-		$orderby = isset( $_GET['orderby'] ) ? \sanitize_key( \wp_unslash( $_GET['orderby'] ) ) : 'size';
-		$order   = isset( $_GET['order'] ) ? \sanitize_key( \wp_unslash( $_GET['order'] ) ) : 'desc';
-		$search  = '';
+		$view               = isset( $_GET['view'] ) ? \sanitize_key( \wp_unslash( $_GET['view'] ) ) : 'all';
+		$orderby            = isset( $_GET['orderby'] ) ? \sanitize_key( \wp_unslash( $_GET['orderby'] ) ) : 'size';
+		$order              = isset( $_GET['order'] ) ? \sanitize_key( \wp_unslash( $_GET['order'] ) ) : 'desc';
+		$search             = '';
+		$include_transients = isset( $_GET['include_transients'] ) && is_string( $_GET['include_transients'] ) && '1' === \sanitize_key( \wp_unslash( $_GET['include_transients'] ) );
 
 		/**
 		 * Not run through sanitize_text_field(), it strips %xx from option names like 'a%2Fb'.
@@ -69,10 +70,11 @@ final class Autoload_List_Table extends \WP_List_Table {
 		}
 
 		return array(
-			'view'    => $view,
-			'orderby' => $orderby,
-			'order'   => $order,
-			'search'  => $search,
+			'view'               => $view,
+			'orderby'            => $orderby,
+			'order'              => $order,
+			'search'             => $search,
+			'include_transients' => $include_transients,
 		);
 	}
 
@@ -88,10 +90,13 @@ final class Autoload_List_Table extends \WP_List_Table {
 	public static function get_tab_url( $args = array() ) {
 		$request = self::get_request_args();
 		$query   = array(
-			'page' => BLOATBUSTER_OPTION,
-			'tab'  => Tab_Autoload::get_slug(),
-			'view' => 'all' !== $request['view'] ? $request['view'] : false,
-			's'    => '' !== $request['search'] ? rawurlencode( $request['search'] ) : false,
+			'page'               => BLOATBUSTER_OPTION,
+			'tab'                => Tab_Autoload::get_slug(),
+			'view'               => 'all' !== $request['view'] ? $request['view'] : false,
+			's'                  => '' !== $request['search'] ? rawurlencode( $request['search'] ) : false,
+			'orderby'            => $request['orderby'],
+			'order'              => $request['order'],
+			'include_transients' => $request['include_transients'] ? 1 : false,
 		);
 
 		$query = array_filter( array_merge( $query, $args ), array( __CLASS__, 'is_query_value' ) );
@@ -211,8 +216,9 @@ final class Autoload_List_Table extends \WP_List_Table {
 		foreach ( $views as $view => $label ) {
 			$count = Autoload_Options::count(
 				array(
-					'view'   => $view,
-					'search' => $request['search'],
+					'view'               => $view,
+					'search'             => $request['search'],
+					'include_transients' => $request['include_transients'],
 				)
 			);
 
