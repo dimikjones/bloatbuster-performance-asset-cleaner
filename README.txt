@@ -46,7 +46,9 @@ Every option is off by default, so nothing changes until you turn it on.
 = Autoloaded Options =
 
 * Summary of autoloaded options: total size, count, largest option and options to review
-* Browse, search, filter and sort all options, with the likely plugin or theme owner
+* Browse, search, filter and sort options, with the likely plugin or theme owner
+* Transients and their timeout rows are hidden by default; use "Include transients" to show them
+* Autoload summary totals include hidden transients
 * Enable or disable autoload, one by one or in bulk
 * Delete options left behind by removed plugins
 * View option values, with secrets like API keys hidden until you reveal them
@@ -87,6 +89,10 @@ Every option is off by default. Turn options on one by one and check your site a
 = I use a block theme. Can I disable global styles? =
 
 No. A block theme's design comes from global styles, so the option is locked when a block theme is active. It is meant for classic themes that don't use blocks.
+
+= How do I show transients in Autoloaded Options? =
+
+Check "Include transients" and click "Apply filters". This works with or without a search term and applies across views, sorting and pagination. Transient values and timeout rows are hidden by default, but autoloaded transients are always included in the summary cards. Showing or hiding them does not delete or change any options.
 
 = Can I undo changes in Autoloaded Options? =
 

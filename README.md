@@ -35,10 +35,14 @@ Every option is off by default.
 
 ### Autoloaded Options
 
-* Summary, browse, search, filter and sort all options, with the likely plugin or theme owner
+* Summary, browse, search, filter and sort options, with the likely plugin or theme owner
+* Transients and their timeout rows are hidden by default; use "Include transients" to show them
+* Autoload summary totals include hidden transients
 * Enable or disable autoload (single and bulk), delete
 * View values with secrets masked, export and restore from backup
 * Core options are protected
+
+To show transient values and timeout rows, check **Include transients** and click **Apply filters**. This works with or without a search term and applies across views, sorting and pagination. List counts follow the selected filters; summary cards always include all autoloaded options, including hidden transients. Showing or hiding transients does not change or delete options.
 
 ### Background Processes
 
