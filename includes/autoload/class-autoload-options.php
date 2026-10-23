@@ -554,7 +554,7 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Get the timeout option name of an ordinary transient value.
+	 * Get the potential timeout name of any ordinary transient option.
 	 *
 	 * @param string $name - Option name.
 	 *
@@ -563,7 +563,9 @@ final class Autoload_Options {
 	 * @since 1.0.0
 	 */
 	public static function get_transient_timeout_name( $name ) {
-		if ( 0 !== strpos( $name, '_transient_' ) || 0 === strpos( $name, '_transient_timeout_' ) ) {
+		$name = (string) $name;
+
+		if ( 0 !== strpos( $name, '_transient_' ) ) {
 			return '';
 		}
 
@@ -681,6 +683,23 @@ final class Autoload_Options {
 	}
 
 	/**
+	 * Order import names so a transient value precedes its potential timeout.
+	 *
+	 * Every derived timeout name is longer than its value name. Sorting keys
+	 * by length preserves numeric names and handles repeated timeout_ prefixes.
+	 *
+	 * @param string|int $first  - First option name, possibly a numeric array key.
+	 * @param string|int $second - Second option name, possibly a numeric array key.
+	 *
+	 * @return int - Comparison of option name lengths.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function compare_import_option_names( $first, $second ) {
+		return strlen( (string) $first ) <=> strlen( (string) $second );
+	}
+
+	/**
 	 * Restore options from export data.
 	 *
 	 * Missing options are created with their exported raw value. Existing
@@ -713,25 +732,23 @@ final class Autoload_Options {
 			'skipped'   => count( $data['options'] ) - count( $options ),
 		);
 
-		$names         = array_keys( $options );
+		$names         = array_map( 'strval', array_keys( $options ) );
 		$blocked       = array_fill_keys( self::get_expiring_transient_names( $names, $names ), true );
-		$timeout_rows  = array();
-		$value_rows    = array();
 		$related_names = $names;
 
-		foreach ( $options as $name => $option ) {
+		foreach ( $names as $name ) {
 			if ( 0 === strpos( $name, '_transient_timeout_' ) ) {
-				$timeout_rows[ $name ] = $option;
-				$related_names[]       = '_transient_' . substr( $name, strlen( '_transient_timeout_' ) );
-			} else {
-				$value_rows[ $name ] = $option;
+				$related_names[] = '_transient_' . substr( $name, strlen( '_transient_timeout_' ) );
 			}
 		}
 
 		$current = self::get_raw_options( array_unique( $related_names ) );
 
-		// Restore values first so a safe autoload disable precedes its timeout row.
-		foreach ( array_merge( $value_rows, $timeout_rows ) as $name => $option ) {
+		// Preserve option-name keys and restore each value before its potential timeout.
+		uksort( $options, array( __CLASS__, 'compare_import_option_names' ) );
+
+		foreach ( $options as $name => $option ) {
+			$name            = (string) $name;
 			$should_autoload = self::is_autoloaded( $option['autoload'] );
 
 			if ( $should_autoload && isset( $blocked[ $name ] ) ) {
@@ -739,7 +756,7 @@ final class Autoload_Options {
 				continue;
 			}
 
-			if ( isset( $timeout_rows[ $name ] ) ) {
+			if ( 0 === strpos( $name, '_transient_timeout_' ) ) {
 				$value_name = '_transient_' . substr( $name, strlen( '_transient_timeout_' ) );
 
 				if ( isset( $current[ $value_name ] ) && self::is_autoloaded( $current[ $value_name ]['autoload'] ) ) {
