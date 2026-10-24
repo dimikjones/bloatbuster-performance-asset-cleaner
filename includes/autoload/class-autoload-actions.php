@@ -46,6 +46,13 @@ final class Autoload_Actions {
 	const IMPORT_ACTION = 'bloatbuster_autoload_import';
 
 	/**
+	 * Full export action name and nonce action.
+	 *
+	 * @var string
+	 */
+	const EXPORT_ALL_ACTION = 'bloatbuster_autoload_export_all';
+
+	/**
 	 * Maximum import file size in bytes.
 	 *
 	 * @var int
@@ -70,6 +77,7 @@ final class Autoload_Actions {
 		\add_action( 'admin_post_' . self::BULK_ACTION, array( __CLASS__, 'handle_bulk_action' ) );
 		\add_action( 'admin_post_' . self::ROW_ACTION, array( __CLASS__, 'handle_row_action' ) );
 		\add_action( 'admin_post_' . self::IMPORT_ACTION, array( __CLASS__, 'handle_import' ) );
+		\add_action( 'admin_post_' . self::EXPORT_ALL_ACTION, array( __CLASS__, 'handle_export_all' ) );
 	}
 
 	/**
@@ -188,7 +196,7 @@ final class Autoload_Actions {
 		if ( empty( $filtered['names'] ) ) {
 			self::redirect(
 				array(
-					'bloatbuster_notice'  => 'autoload_none',
+					'bloatbuster_notice'  => 'export' === $action ? 'autoload_export_none' : 'autoload_none',
 					'bloatbuster_skipped' => $filtered['skipped'],
 				)
 			);
@@ -242,9 +250,13 @@ final class Autoload_Actions {
 	 */
 	public static function run_action( $action, $filtered ) {
 		if ( 'delete' === $action ) {
-			$count = Autoload_Options::delete( $filtered['names'] );
+			$result               = Autoload_Options::delete( $filtered['names'] );
+			$count                = $result['deleted'];
+			$filtered['skipped'] += $result['skipped'];
 		} else {
-			$count = Autoload_Options::set_autoload( $filtered['names'], 'enable' === $action );
+			$result               = Autoload_Options::set_autoload( $filtered['names'], 'enable' === $action );
+			$count                = $result['changed'];
+			$filtered['skipped'] += $result['skipped'];
 		}
 
 		return array(
@@ -255,24 +267,72 @@ final class Autoload_Actions {
 	}
 
 	/**
-	 * Send the export file of options as a download.
-	 *
-	 * @param array $names - Option names.
+	 * Check full-export permissions, request method and the POST nonce.
 	 *
 	 * @return void
 	 *
 	 * @since 1.0.0
 	 */
-	public static function send_export( $names ) {
-		$host     = \wp_parse_url( \home_url(), PHP_URL_HOST );
-		$filename = 'bloatbuster-options-' . \sanitize_file_name( (string) $host ) . '-' . \gmdate( 'Y-m-d-His' ) . '.json';
+	public static function check_export_all_request() {
+		self::check_permission();
 
-		\nocache_headers();
-		header( 'Content-Type: application/json; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
-		header( 'X-Content-Type-Options: nosniff' );
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
+			\wp_die( \esc_html__( 'Export requires a POST request.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 405 ) );
+		}
 
-		echo \wp_json_encode( Autoload_Options::get_export( $names ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		if ( ! isset( $_POST['_wpnonce'] ) || ! is_string( $_POST['_wpnonce'] ) || ! \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['_wpnonce'] ) ), self::EXPORT_ALL_ACTION ) ) {
+			\wp_die( \esc_html__( 'The export request could not be verified.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 403 ) );
+		}
+	}
+
+	/**
+	 * Export every persistent option for the current site.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function handle_export_all() {
+		self::check_export_all_request();
+		self::send_export();
+	}
+
+	/**
+	 * Download a completely validated backup in bounded response chunks.
+	 *
+	 * @param array|null $names - Selection, or null for every persistent option.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function send_export( $names = null ) {
+		$stream = Autoload_Options::get_export_stream( $names, self::MAX_IMPORT_SIZE );
+
+		if ( \is_wp_error( $stream ) ) {
+			if ( 'no_export_options' === $stream->get_error_code() ) {
+				self::redirect( array( 'bloatbuster_notice' => 'autoload_export_none' ) );
+			}
+
+			\wp_die( \esc_html( $stream->get_error_message() ), '', array( 'response' => 'export_size' === $stream->get_error_code() ? 413 : 500 ) );
+		}
+
+		try {
+			$host     = \wp_parse_url( \home_url(), PHP_URL_HOST );
+			$filename = 'bloatbuster-options-' . \sanitize_file_name( (string) $host ) . '-' . gmdate( 'Y-m-d-His' ) . '.json';
+			\nocache_headers();
+			header( 'Content-Type: application/json; charset=utf-8' );
+			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+			header( 'X-Content-Type-Options: nosniff' );
+
+			while ( ! feof( $stream ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Complete validated JSON download, not HTML.
+				echo Autoload_Export::read( $stream );
+			}
+		} finally {
+			Autoload_Export::close_stream( $stream );
+		}
+
 		exit;
 	}
 

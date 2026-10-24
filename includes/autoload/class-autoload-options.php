@@ -302,7 +302,7 @@ final class Autoload_Options {
 	/**
 	 * Get a page of options with name, size and autoload value.
 	 *
-	 * @param array $args - Query args: view, search, orderby, order, per_page and page.
+	 * @param array $args - Query args: view, search, include_transients, orderby, order, per_page and page.
 	 *
 	 * @return array - Items and total count.
 	 *
@@ -314,12 +314,13 @@ final class Autoload_Options {
 		$args = \wp_parse_args(
 			$args,
 			array(
-				'view'     => 'all',
-				'search'   => '',
-				'orderby'  => 'size',
-				'order'    => 'desc',
-				'per_page' => 50,
-				'page'     => 1,
+				'view'               => 'all',
+				'search'             => '',
+				'orderby'            => 'size',
+				'order'              => 'desc',
+				'per_page'           => 50,
+				'page'               => 1,
+				'include_transients' => false,
 			)
 		);
 
@@ -363,7 +364,7 @@ final class Autoload_Options {
 	/**
 	 * Count options for a view.
 	 *
-	 * @param array $args - Query args: view and search.
+	 * @param array $args - Query args: view, search and include_transients.
 	 *
 	 * @return int - Number of options.
 	 *
@@ -386,11 +387,10 @@ final class Autoload_Options {
 	/**
 	 * Build the WHERE clause for a view and search.
 	 *
-	 * Transients are listed only when autoloaded, like transients set without
-	 * expiration. Expiring transients are not autoloaded and are cleaned up
-	 * in the Database tab.
+	 * Transient values and timeout rows are hidden unless explicitly included.
+	 * Autoload status does not establish whether a transient expires.
 	 *
-	 * @param array $args - Query args: view and search.
+	 * @param array $args - Query args: view, search and include_transients.
 	 *
 	 * @return array - SQL with placeholders and its args.
 	 *
@@ -417,10 +417,11 @@ final class Autoload_Options {
 			$params[] = self::get_large_threshold();
 		}
 
-		$sql[]    = '( autoload IN ( ' . self::get_placeholders( count( $values ) ) . ' ) OR ( option_name NOT LIKE %s AND option_name NOT LIKE %s ) )';
-		$params   = array_merge( $params, $values );
-		$params[] = $wpdb->esc_like( '_transient_' ) . '%';
-		$params[] = $wpdb->esc_like( '_site_transient_' ) . '%';
+		if ( empty( $args['include_transients'] ) ) {
+			$sql[]    = '( option_name NOT LIKE %s AND option_name NOT LIKE %s )';
+			$params[] = $wpdb->esc_like( '_transient_' ) . '%';
+			$params[] = $wpdb->esc_like( '_site_transient_' ) . '%';
+		}
 
 		// Not empty(), '0' is a valid search term.
 		if ( isset( $args['search'] ) && '' !== $args['search'] ) {
@@ -553,139 +554,337 @@ final class Autoload_Options {
 	}
 
 	/**
+	 * Get the potential timeout name of any ordinary transient option.
+	 *
+	 * @param string $name - Option name.
+	 *
+	 * @return string - Timeout option name, or an empty string for other options.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_transient_timeout_name( $name ) {
+		$name = (string) $name;
+
+		if ( 0 !== strpos( $name, '_transient_' ) ) {
+			return '';
+		}
+
+		return '_transient_timeout_' . substr( $name, strlen( '_transient_' ) );
+	}
+
+	/**
+	 * Find requested options whose associated names exist under the column collation.
+	 *
+	 * @param array $associations - Original option name mapped to its associated name.
+	 *
+	 * @return array - Original names with matches, or all candidates on lookup failure.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_existing_association_names( $associations ) {
+		global $wpdb;
+
+		$matched = array();
+
+		foreach ( array_chunk( $associations, 500, true ) as $chunk ) {
+			$selects = array();
+			$params  = array();
+
+			foreach ( $chunk as $name => $associated_name ) {
+				// Comparing the column directly to a literal uses its native collation.
+				$selects[] = "SELECT %s AS requested_name WHERE EXISTS ( SELECT 1 FROM {$wpdb->options} WHERE option_name = %s )";
+				$params[]  = (string) $name;
+				$params[]  = $associated_name;
+			}
+
+			$sql = implode( ' UNION ALL ', $selects );
+
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Live safety check; each branch has two placeholders and returns its original requested name.
+			$found = $wpdb->get_col( $wpdb->prepare( $sql, $params ) );
+			// phpcs:enable
+
+			if ( null === $found || '' !== $wpdb->last_error ) {
+				return array_map( 'strval', array_keys( $associations ) );
+			}
+
+			$matched = array_merge( $matched, $found );
+		}
+
+		return $matched;
+	}
+
+	/**
+	 * Find ordinary transient values whose timeout rows exist in the database.
+	 *
+	 * @param array $names - Option names to check.
+	 *
+	 * @return array - Original value names that must not have autoload enabled.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_expiring_transient_names( $names ) {
+		$associations = array();
+
+		foreach ( $names as $name ) {
+			$timeout = self::get_transient_timeout_name( $name );
+
+			if ( '' !== $timeout ) {
+				$associations[ $name ] = $timeout;
+			}
+		}
+
+		return self::get_existing_association_names( $associations );
+	}
+
+	/**
 	 * Enable or disable autoload for options, without changing their values.
 	 *
 	 * @param array $names    - Option names.
 	 * @param bool  $autoload - True to autoload.
 	 *
-	 * @return int - Number of options changed.
+	 * @return array - Changed and skipped option counts.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function set_autoload( $names, $autoload ) {
-		if ( empty( $names ) ) {
-			return 0;
-		}
-
-		$results = \wp_set_options_autoload( $names, (bool) $autoload );
-
-		return count( array_filter( $results ) );
-	}
-
-	/**
-	 * Delete options.
-	 *
-	 * @param array $names - Option names.
-	 *
-	 * @return int - Number of deleted options.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function delete( $names ) {
-		$deleted = 0;
-
-		foreach ( $names as $name ) {
-			if ( \delete_option( $name ) ) {
-				++$deleted;
-			}
-		}
-
-		return $deleted;
-	}
-
-	/**
-	 * Build the export data for options.
-	 *
-	 * Values are the raw database strings. Values that are not valid UTF-8
-	 * are base64 encoded so they are restored byte for byte.
-	 *
-	 * @param array $names - Option names.
-	 *
-	 * @return array - Export data.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_export( $names ) {
-		$options = array();
-
-		foreach ( self::get_raw_options( $names ) as $option ) {
-			$item = array(
-				'name'     => $option['name'],
-				'autoload' => $option['autoload'],
-			);
-
-			if ( \wp_check_invalid_utf8( $option['value'] ) === $option['value'] ) {
-				$item['value'] = $option['value'];
-			} else {
-				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Keeps binary values intact in JSON.
-				$item['value_base64'] = base64_encode( $option['value'] );
-			}
-
-			$options[] = $item;
-		}
+		$names   = array_values( array_unique( $names ) );
+		$blocked = $autoload ? self::get_expiring_transient_names( $names ) : array();
+		$names   = array_values( array_diff( $names, $blocked ) );
+		$results = empty( $names ) ? array() : \wp_set_options_autoload( $names, (bool) $autoload );
 
 		return array(
-			'plugin'   => 'bloatbuster',
-			'version'  => BLOATBUSTER_VERSION,
-			'site_url' => \home_url(),
-			'created'  => \gmdate( 'c' ),
-			'options'  => $options,
+			'changed' => count( array_filter( $results ) ),
+			'skipped' => count( $blocked ),
 		);
 	}
 
 	/**
-	 * Restore options from export data.
+	 * Get the value option whose expiration is controlled by a timeout row.
 	 *
-	 * Missing options are created with their exported raw value. Existing
-	 * options only get their autoload state restored, values are kept.
-	 * Protected options are skipped.
+	 * @param string $name - Option name.
 	 *
-	 * @param array $data - Decoded export data.
+	 * @return string - Corresponding value name, or an empty string for other options.
 	 *
-	 * @return array|\WP_Error - Counts of created, updated, unchanged and skipped options, or an error.
+	 * @since 1.0.0
+	 */
+	public static function get_timeout_value_name( $name ) {
+		$name = (string) $name;
+
+		foreach ( array( '_transient_', '_site_transient_' ) as $prefix ) {
+			$timeout_prefix = $prefix . 'timeout_';
+
+			if ( 0 === strpos( $name, $timeout_prefix ) ) {
+				return $prefix . substr( $name, strlen( $timeout_prefix ) );
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Find timeout rows whose corresponding transient values still exist.
+	 *
+	 * @param array $names - Option names to check.
+	 *
+	 * @return array - Timeout names that cannot be deleted individually.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_required_timeout_names( $names ) {
+		$timeouts = array();
+
+		foreach ( $names as $name ) {
+			$value_name = self::get_timeout_value_name( $name );
+
+			if ( '' !== $value_name ) {
+				$timeouts[ $name ] = $value_name;
+			}
+		}
+
+		return self::get_existing_association_names( $timeouts );
+	}
+
+	/**
+	 * Delete selected options without removing a surviving transient's timeout.
+	 *
+	 * @param array $names - Option names.
+	 *
+	 * @return array - Deleted and skipped option counts.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete( $names ) {
+		global $wpdb;
+
+		$counts = array(
+			'deleted' => 0,
+			'skipped' => 0,
+		);
+		$names  = array_values( array_unique( array_map( 'strval', $names ) ) );
+
+		// Attempt each selected value before its longer timeout, including nested keys.
+		usort( $names, array( __CLASS__, 'compare_option_names' ) );
+
+		foreach ( $names as $name ) {
+			if ( self::is_protected( $name ) ) {
+				++$counts['skipped'];
+				continue;
+			}
+
+			$value_name = self::get_timeout_value_name( $name );
+
+			if ( '' !== $value_name ) {
+				// Recheck the database after earlier deletions; selection alone is not enough.
+				$existing = self::get_existing_names( array( $value_name ) );
+
+				if ( ! empty( $existing ) || '' !== $wpdb->last_error ) {
+					++$counts['skipped'];
+					continue;
+				}
+			}
+
+			if ( \delete_option( $name ) ) {
+				++$counts['deleted'];
+			} else {
+				++$counts['skipped'];
+			}
+		}
+
+		return $counts;
+	}
+
+	/**
+	 * Check whether an option is persistent data eligible for backup.
+	 *
+	 * @param string $name - Option name.
+	 *
+	 * @return bool - False for ordinary/site transient values and timeout rows.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_persistent_option( $name ) {
+		return 0 !== strpos( (string) $name, '_transient_' ) && 0 !== strpos( (string) $name, '_site_transient_' );
+	}
+
+	/**
+	 * Read raw backup rows, stopping on any database lookup failure.
+	 *
+	 * @param array $names - Option names.
+	 *
+	 * @return array|\WP_Error - Raw rows, or a database error.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function read_backup_options( $names ) {
+		global $wpdb;
+
+		$rows = array();
+
+		foreach ( array_chunk( array_values( array_unique( $names ) ), 500 ) as $chunk ) {
+			$found = self::get_raw_options( $chunk );
+
+			if ( '' !== $wpdb->last_error ) {
+				return new \WP_Error( 'backup_database', \__( 'The database could not be read safely. Try again.', 'bloatbuster-performance-asset-cleaner' ) );
+			}
+
+			$rows += $found;
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build a bounded persistent-options JSON stream for the caller to close.
+	 *
+	 * @param array|null $names - Selected names, or null for all persistent options.
+	 * @param int        $limit - Maximum JSON bytes accepted by the importer.
+	 *
+	 * @return resource|\WP_Error - Complete rewound stream, or an export error.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_export_stream( $names, $limit ) {
+		require_once __DIR__ . '/class-autoload-export.php';
+
+		return Autoload_Export::create( $names, $limit );
+	}
+
+	/**
+	 * Order option names so a transient value precedes its potential timeout.
+	 *
+	 * Every derived timeout name is longer than its value name. Sorting keys
+	 * by length preserves numeric names and handles repeated timeout_ prefixes.
+	 *
+	 * @param string|int $first  - First option name, possibly a numeric array key.
+	 * @param string|int $second - Second option name, possibly a numeric array key.
+	 *
+	 * @return int - Comparison of option name lengths.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function compare_option_names( $first, $second ) {
+		return strlen( (string) $first ) <=> strlen( (string) $second );
+	}
+
+	/**
+	 * Restore persistent options while leaving transients and protected rows alone.
+	 *
+	 * @param array $data - Decoded backup data.
+	 *
+	 * @return array|\WP_Error - Created/updated/unchanged/skipped counts, or an error.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function import( $data ) {
 		global $wpdb;
 
-		if ( ! is_array( $data ) || ! isset( $data['plugin'] ) || 'bloatbuster' !== $data['plugin'] || ! isset( $data['options'] ) || ! is_array( $data['options'] ) ) {
+		if ( ! is_array( $data ) || ! isset( $data['plugin'], $data['options'] ) || 'bloatbuster' !== $data['plugin'] || ! is_array( $data['options'] ) ) {
 			return new \WP_Error( 'invalid_file', \__( 'This is not a BloatBuster options export file.', 'bloatbuster-performance-asset-cleaner' ) );
+		}
+
+		$format = array_key_exists( 'format_version', $data ) ? $data['format_version'] : 1;
+
+		if ( ! is_int( $format ) || ! in_array( $format, array( 1, 2 ), true ) ) {
+			return new \WP_Error( 'backup_format', \__( 'This backup format is not supported.', 'bloatbuster-performance-asset-cleaner' ) );
 		}
 
 		$options = self::get_valid_import_options( $data['options'] );
 
-		if ( empty( $options ) ) {
-			return new \WP_Error( 'no_options', \__( 'The file has no valid options to restore.', 'bloatbuster-performance-asset-cleaner' ) );
+		if ( \is_wp_error( $options ) ) {
+			return $options;
 		}
 
-		$counts = array(
+		$counts  = array(
 			'created'   => 0,
 			'updated'   => 0,
 			'unchanged' => 0,
 			'skipped'   => count( $data['options'] ) - count( $options ),
 		);
+		$current = self::read_backup_options( array_keys( $options ) );
 
-		$current = self::get_raw_options( array_keys( $options ) );
+		if ( \is_wp_error( $current ) ) {
+			return $current;
+		}
 
 		foreach ( $options as $name => $option ) {
+			$name = (string) $name;
+
 			if ( isset( $current[ $name ] ) ) {
-				$should_autoload = self::is_autoloaded( $option['autoload'] );
+				$autoload = self::is_autoloaded( $option['autoload'] );
 
-				if ( self::is_autoloaded( $current[ $name ]['autoload'] ) === $should_autoload ) {
+				if ( self::is_autoloaded( $current[ $name ]['autoload'] ) === $autoload ) {
 					++$counts['unchanged'];
-					continue;
-				}
-
-				if ( \wp_set_option_autoload( $name, $should_autoload ) ) {
+				} elseif ( \wp_set_option_autoload( $name, $autoload ) ) {
 					++$counts['updated'];
+				} else {
+					++$counts['skipped'];
 				}
 
 				continue;
 			}
 
-			// Raw insert, the value is already in database format. Never unserialize uploaded data here.
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Restores the raw stored value.
+			// Raw insert avoids unserializing backup data or overwriting existing values.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Restores raw persistent options.
 			$inserted = $wpdb->insert(
 				$wpdb->options,
 				array(
@@ -699,6 +898,8 @@ final class Autoload_Options {
 			if ( $inserted ) {
 				++$counts['created'];
 				\wp_cache_delete( $name, 'options' );
+			} else {
+				++$counts['skipped'];
 			}
 		}
 
@@ -713,7 +914,7 @@ final class Autoload_Options {
 	 *
 	 * @param array $items - Exported options.
 	 *
-	 * @return array - Valid options keyed by name, each with value and autoload.
+	 * @return array|\WP_Error - Valid persistent options or conflicting duplicates.
 	 *
 	 * @since 1.0.0
 	 */
@@ -727,7 +928,7 @@ final class Autoload_Options {
 
 			$name = $item['name'];
 
-			if ( '' === $name || strlen( $name ) > 191 || self::is_protected( $name ) ) {
+			if ( '' === $name || strlen( $name ) > 191 || ! self::is_persistent_option( $name ) || self::is_protected( $name ) ) {
 				continue;
 			}
 
@@ -748,10 +949,16 @@ final class Autoload_Options {
 				continue;
 			}
 
-			$options[ $name ] = array(
+			$option = array(
 				'value'    => $value,
 				'autoload' => $item['autoload'],
 			);
+
+			if ( isset( $options[ $name ] ) && $options[ $name ] !== $option ) {
+				return new \WP_Error( 'duplicate_options', \__( 'The backup contains conflicting duplicate option rows.', 'bloatbuster-performance-asset-cleaner' ) );
+			}
+
+			$options[ $name ] = $option;
 		}
 
 		return $options;
