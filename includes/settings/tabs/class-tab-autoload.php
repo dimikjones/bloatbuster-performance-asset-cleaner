@@ -47,7 +47,7 @@ final class Tab_Autoload extends Settings_Tab {
 	 * @since 1.0.0
 	 */
 	public static function get_description() {
-		return \__( 'Options WordPress loads on every page request. Large values here slow down the whole site. Disable autoload for options that are not needed on every page, and delete options left behind by removed plugins. Expiring transients are not listed, clean them up in the Database tab.', 'bloatbuster-performance-asset-cleaner' );
+		return \__( 'Options WordPress loads on every page request. Large values here slow down the whole site. Disable autoload for options that are not needed on every page, and delete options left behind by removed plugins. Transients are hidden by default; use the Database tab to clean up expired transients.', 'bloatbuster-performance-asset-cleaner' );
 	}
 
 	/**
@@ -113,11 +113,14 @@ final class Tab_Autoload extends Settings_Tab {
 			/* translators: %d: number of options. */
 			$message = sprintf( \_n( 'Deleted %d option.', 'Deleted %d options.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		} elseif ( 'autoload_none' === $notice ) {
-			$message = \__( 'No options were changed. Select at least one option that is not protected.', 'bloatbuster-performance-asset-cleaner' );
+			$message = \__( 'No options were changed. Select at least one option eligible for this action.', 'bloatbuster-performance-asset-cleaner' );
+			$type    = 'warning';
+		} elseif ( 'autoload_export_none' === $notice ) {
+			$message = \__( 'No persistent options are available to export. Select at least one persistent option; transient values and timeout rows are excluded.', 'bloatbuster-performance-asset-cleaner' );
 			$type    = 'warning';
 		} elseif ( 'autoload_imported' === $notice ) {
 			/* translators: 1: number of created options, 2: number of options with restored autoload. */
-			$message = sprintf( \__( 'Restore finished: %1$d options created, autoload restored for %2$d options. Existing option values were not changed.', 'bloatbuster-performance-asset-cleaner' ), $created, $updated );
+			$message = sprintf( \__( 'Restore finished: %1$d options created, autoload restored for %2$d options. Existing option values were not changed. Transient values and timeout rows were not restored.', 'bloatbuster-performance-asset-cleaner' ), $created, $updated );
 		} elseif ( 'autoload_import_error' === $notice ) {
 			$message = self::get_import_error_message( $error );
 			$type    = 'error';
@@ -128,8 +131,16 @@ final class Tab_Autoload extends Settings_Tab {
 		}
 
 		if ( $skipped > 0 ) {
-			/* translators: %d: number of skipped options. */
-			$message .= ' ' . sprintf( \_n( '%d protected or invalid option was skipped.', '%d protected or invalid options were skipped.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			if ( 'autoload_delete' === $notice ) {
+				/* translators: %d: number of skipped options. */
+				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, could not be deleted, or its transient value still exists.', '%d options were skipped because they are protected, could not be deleted, or their transient values still exist.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			} elseif ( 'autoload_imported' === $notice ) {
+				/* translators: %d: number of skipped options. */
+				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is transient data, protected, invalid, or could not be restored.', '%d options were skipped because they are transient data, protected, invalid, or could not be restored.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			} else {
+				/* translators: %d: number of skipped options. */
+				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, invalid, or would bypass transient expiration.', '%d options were skipped because they are protected, invalid, or would bypass transient expiration.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			}
 		}
 
 		\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), $type );
@@ -146,12 +157,15 @@ final class Tab_Autoload extends Settings_Tab {
 	 */
 	public static function get_import_error_message( $code ) {
 		$messages = array(
-			'upload'       => \__( 'The file could not be uploaded.', 'bloatbuster-performance-asset-cleaner' ),
+			'upload'            => \__( 'The file could not be uploaded.', 'bloatbuster-performance-asset-cleaner' ),
 			/* translators: %s: maximum file size, e.g. 10 MB. */
-			'size'         => sprintf( \__( 'The file is empty or larger than %s.', 'bloatbuster-performance-asset-cleaner' ), \size_format( Autoload_Actions::MAX_IMPORT_SIZE ) ),
-			'json'         => \__( 'The file is not valid JSON.', 'bloatbuster-performance-asset-cleaner' ),
-			'invalid_file' => \__( 'This is not a BloatBuster options export file.', 'bloatbuster-performance-asset-cleaner' ),
-			'no_options'   => \__( 'The file has no valid options to restore.', 'bloatbuster-performance-asset-cleaner' ),
+			'size'              => sprintf( \__( 'The file is empty or larger than %s.', 'bloatbuster-performance-asset-cleaner' ), \size_format( Autoload_Actions::MAX_IMPORT_SIZE ) ),
+			'json'              => \__( 'The file is not valid JSON.', 'bloatbuster-performance-asset-cleaner' ),
+			'invalid_file'      => \__( 'This is not a BloatBuster options export file.', 'bloatbuster-performance-asset-cleaner' ),
+			'backup_format'     => \__( 'This backup format is not supported.', 'bloatbuster-performance-asset-cleaner' ),
+			'duplicate_options' => \__( 'The backup contains conflicting duplicate option rows.', 'bloatbuster-performance-asset-cleaner' ),
+			'backup_database'   => \__( 'The database could not be read safely. Try again.', 'bloatbuster-performance-asset-cleaner' ),
+			'no_options'        => \__( 'The file has no valid options to restore.', 'bloatbuster-performance-asset-cleaner' ),
 		);
 
 		return isset( $messages[ $code ] ) ? $messages[ $code ] : \__( 'The options could not be restored.', 'bloatbuster-performance-asset-cleaner' );
@@ -180,6 +194,16 @@ final class Tab_Autoload extends Settings_Tab {
 			</div>
 		<?php endif; ?>
 		<div class="bbpac-autoload-manager">
+			<p class="description"><?php \esc_html_e( 'Transients are hidden by default. Summary cards always include all autoloaded options, including transients. Autoload cannot be enabled for ordinary transients with timeout rows because this would bypass expiration checks. A timeout cannot be deleted while its value exists; select both rows to delete them together.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			<div class="bbpac-autoload-export">
+				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="<?php echo \esc_attr( Autoload_Actions::EXPORT_ALL_ACTION ); ?>">
+					<?php \wp_nonce_field( Autoload_Actions::EXPORT_ALL_ACTION ); ?>
+					<?php \submit_button( \__( 'Export all options', 'bloatbuster-performance-asset-cleaner' ), 'secondary', 'bbpac_export_all', false ); ?>
+				</form>
+				<p class="description"><?php \esc_html_e( 'Export all options includes every persistent option for this site, including protected options, regardless of table filters or selection. Export selected includes only selected persistent options. Both exclude transient values and timeout rows.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+				<p class="description"><?php \esc_html_e( 'Both exports contain actual sensitive values, including secrets masked in the table. Store backups securely. Files larger than the 10 MB import limit cannot be exported; select fewer options instead.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			</div>
 			<?php $table->views(); ?>
 			<form method="get" action="<?php echo \esc_url( \admin_url( 'admin.php' ) ); ?>" class="bbpac-autoload-search">
 				<input type="hidden" name="page" value="<?php echo \esc_attr( BLOATBUSTER_OPTION ); ?>">
@@ -187,7 +211,17 @@ final class Tab_Autoload extends Settings_Tab {
 				<?php if ( 'all' !== $request['view'] ) : ?>
 					<input type="hidden" name="view" value="<?php echo \esc_attr( $request['view'] ); ?>">
 				<?php endif; ?>
-				<?php $table->search_box( \__( 'Search options', 'bloatbuster-performance-asset-cleaner' ), 'bbpac-option' ); ?>
+				<input type="hidden" name="orderby" value="<?php echo \esc_attr( $request['orderby'] ); ?>">
+				<input type="hidden" name="order" value="<?php echo \esc_attr( $request['order'] ); ?>">
+				<label for="bbpac-include-transients">
+					<input type="checkbox" name="include_transients" id="bbpac-include-transients" value="1" <?php \checked( $request['include_transients'] ); ?>>
+					<?php \esc_html_e( 'Include transients', 'bloatbuster-performance-asset-cleaner' ); ?>
+				</label>
+				<p class="search-box">
+					<label class="screen-reader-text" for="bbpac-option-search-input"><?php \esc_html_e( 'Search options', 'bloatbuster-performance-asset-cleaner' ); ?></label>
+					<input type="search" id="bbpac-option-search-input" name="s" value="<?php echo \esc_attr( $request['search'] ); ?>">
+					<?php \submit_button( \__( 'Apply filters', 'bloatbuster-performance-asset-cleaner' ), 'secondary', '', false, array( 'id' => 'search-submit' ) ); ?>
+				</p>
 			</form>
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" id="bbpac-autoload-form">
 				<input type="hidden" name="action" value="<?php echo \esc_attr( Autoload_Actions::BULK_ACTION ); ?>">
@@ -197,7 +231,7 @@ final class Tab_Autoload extends Settings_Tab {
 			<?php if ( Autoload_Actions::can_change_options() ) : ?>
 			<div class="bbpac-autoload-import">
 				<h3><?php \esc_html_e( 'Restore from backup', 'bloatbuster-performance-asset-cleaner' ); ?></h3>
-				<p class="description"><?php \esc_html_e( 'Upload a file created with the Export bulk action. Missing options are created again, existing options only get their autoload state restored. Protected options are skipped.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+				<p class="description"><?php \esc_html_e( 'Upload a file created with Export all options or Export selected. Missing persistent options are created again; existing options only get their autoload state restored. Protected options, transient values and timeout rows are skipped, including transient entries in older backups.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 					<input type="hidden" name="action" value="<?php echo \esc_attr( Autoload_Actions::IMPORT_ACTION ); ?>">
 					<?php \wp_nonce_field( Autoload_Actions::IMPORT_ACTION ); ?>

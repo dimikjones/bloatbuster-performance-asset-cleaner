@@ -40,7 +40,7 @@ final class Autoload_List_Table extends \WP_List_Table {
 	}
 
 	/**
-	 * Get the current request filters: view, search and sorting.
+	 * Get the current request filters: view, search, transient visibility and sorting.
 	 *
 	 * @return array - Query args.
 	 *
@@ -48,10 +48,11 @@ final class Autoload_List_Table extends \WP_List_Table {
 	 */
 	public static function get_request_args() {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only list filters.
-		$view    = isset( $_GET['view'] ) ? \sanitize_key( \wp_unslash( $_GET['view'] ) ) : 'all';
-		$orderby = isset( $_GET['orderby'] ) ? \sanitize_key( \wp_unslash( $_GET['orderby'] ) ) : 'size';
-		$order   = isset( $_GET['order'] ) ? \sanitize_key( \wp_unslash( $_GET['order'] ) ) : 'desc';
-		$search  = '';
+		$view               = isset( $_GET['view'] ) ? \sanitize_key( \wp_unslash( $_GET['view'] ) ) : 'all';
+		$orderby            = isset( $_GET['orderby'] ) ? \sanitize_key( \wp_unslash( $_GET['orderby'] ) ) : 'size';
+		$order              = isset( $_GET['order'] ) ? \sanitize_key( \wp_unslash( $_GET['order'] ) ) : 'desc';
+		$search             = '';
+		$include_transients = isset( $_GET['include_transients'] ) && is_string( $_GET['include_transients'] ) && '1' === \sanitize_key( \wp_unslash( $_GET['include_transients'] ) );
 
 		/**
 		 * Not run through sanitize_text_field(), it strips %xx from option names like 'a%2Fb'.
@@ -69,10 +70,11 @@ final class Autoload_List_Table extends \WP_List_Table {
 		}
 
 		return array(
-			'view'    => $view,
-			'orderby' => $orderby,
-			'order'   => $order,
-			'search'  => $search,
+			'view'               => $view,
+			'orderby'            => $orderby,
+			'order'              => $order,
+			'search'             => $search,
+			'include_transients' => $include_transients,
 		);
 	}
 
@@ -88,10 +90,13 @@ final class Autoload_List_Table extends \WP_List_Table {
 	public static function get_tab_url( $args = array() ) {
 		$request = self::get_request_args();
 		$query   = array(
-			'page' => BLOATBUSTER_OPTION,
-			'tab'  => Tab_Autoload::get_slug(),
-			'view' => 'all' !== $request['view'] ? $request['view'] : false,
-			's'    => '' !== $request['search'] ? rawurlencode( $request['search'] ) : false,
+			'page'               => BLOATBUSTER_OPTION,
+			'tab'                => Tab_Autoload::get_slug(),
+			'view'               => 'all' !== $request['view'] ? $request['view'] : false,
+			's'                  => '' !== $request['search'] ? rawurlencode( $request['search'] ) : false,
+			'orderby'            => $request['orderby'],
+			'order'              => $request['order'],
+			'include_transients' => $request['include_transients'] ? 1 : false,
 		);
 
 		$query = array_filter( array_merge( $query, $args ), array( __CLASS__, 'is_query_value' ) );
@@ -153,14 +158,14 @@ final class Autoload_List_Table extends \WP_List_Table {
 	protected function get_bulk_actions() {
 		if ( ! Autoload_Actions::can_change_options() ) {
 			return array(
-				'export' => \__( 'Export', 'bloatbuster-performance-asset-cleaner' ),
+				'export' => \__( 'Export selected', 'bloatbuster-performance-asset-cleaner' ),
 			);
 		}
 
 		return array(
 			'enable'  => \__( 'Enable autoload', 'bloatbuster-performance-asset-cleaner' ),
 			'disable' => \__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ),
-			'export'  => \__( 'Export', 'bloatbuster-performance-asset-cleaner' ),
+			'export'  => \__( 'Export selected', 'bloatbuster-performance-asset-cleaner' ),
 			'delete'  => \__( 'Delete', 'bloatbuster-performance-asset-cleaner' ),
 		);
 	}
@@ -211,8 +216,9 @@ final class Autoload_List_Table extends \WP_List_Table {
 		foreach ( $views as $view => $label ) {
 			$count = Autoload_Options::count(
 				array(
-					'view'   => $view,
-					'search' => $request['search'],
+					'view'               => $view,
+					'search'             => $request['search'],
+					'include_transients' => $request['include_transients'],
 				)
 			);
 
@@ -256,6 +262,16 @@ final class Autoload_List_Table extends \WP_List_Table {
 				)
 			)
 		);
+
+		$names             = array_column( $result['items'], 'name' );
+		$blocked           = array_fill_keys( Autoload_Options::get_expiring_transient_names( $names ), true );
+		$required_timeouts = array_fill_keys( Autoload_Options::get_required_timeout_names( $names ), true );
+
+		foreach ( $result['items'] as &$item ) {
+			$item['can_enable_autoload'] = ! isset( $blocked[ $item['name'] ] );
+			$item['can_delete']          = ! isset( $required_timeouts[ $item['name'] ] );
+		}
+		unset( $item );
 
 		$this->items           = $result['items'];
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns(), 'name' );
@@ -330,17 +346,21 @@ final class Autoload_List_Table extends \WP_List_Table {
 		if ( ! $is_protected && Autoload_Actions::can_change_options() ) {
 			$is_autoloaded = Autoload_Options::is_autoloaded( $item['autoload'] );
 
-			$actions['toggle'] = sprintf(
-				'<a href="%1$s">%2$s</a>',
-				\esc_url( Autoload_Actions::get_row_action_url( $is_autoloaded ? 'disable' : 'enable', $item['name'] ) ),
-				$is_autoloaded ? \esc_html__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ) : \esc_html__( 'Enable autoload', 'bloatbuster-performance-asset-cleaner' )
-			);
+			if ( $is_autoloaded || $item['can_enable_autoload'] ) {
+				$actions['toggle'] = sprintf(
+					'<a href="%1$s">%2$s</a>',
+					\esc_url( Autoload_Actions::get_row_action_url( $is_autoloaded ? 'disable' : 'enable', $item['name'] ) ),
+					$is_autoloaded ? \esc_html__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ) : \esc_html__( 'Enable autoload', 'bloatbuster-performance-asset-cleaner' )
+				);
+			}
 
-			$actions['delete'] = sprintf(
-				'<a href="%1$s" class="bbpac-delete-option">%2$s</a>',
-				\esc_url( Autoload_Actions::get_row_action_url( 'delete', $item['name'] ) ),
-				\esc_html__( 'Delete', 'bloatbuster-performance-asset-cleaner' )
-			);
+			if ( $item['can_delete'] ) {
+				$actions['delete'] = sprintf(
+					'<a href="%1$s" class="bbpac-delete-option">%2$s</a>',
+					\esc_url( Autoload_Actions::get_row_action_url( 'delete', $item['name'] ) ),
+					\esc_html__( 'Delete', 'bloatbuster-performance-asset-cleaner' )
+				);
+			}
 		}
 
 		return $html . $this->row_actions( $actions );
