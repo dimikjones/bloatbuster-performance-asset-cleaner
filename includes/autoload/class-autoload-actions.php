@@ -298,63 +298,41 @@ final class Autoload_Actions {
 	}
 
 	/**
-	 * Build and validate the downloadable JSON before sending any headers.
+	 * Download a completely validated backup in bounded response chunks.
 	 *
-	 * @param array|null $names - Selected option names, or null for all persistent options.
-	 *
-	 * @return string|\WP_Error - Importable JSON, or a validation error.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_export_json( $names = null ) {
-		$export = Autoload_Options::get_export( $names );
-
-		if ( \is_wp_error( $export ) ) {
-			return $export;
-		}
-
-		$json = \wp_json_encode( $export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-
-		if ( false === $json ) {
-			return new \WP_Error( 'export_encoding', \__( 'The backup could not be encoded. No file was exported.', 'bloatbuster-performance-asset-cleaner' ) );
-		}
-
-		if ( strlen( $json ) > self::MAX_IMPORT_SIZE ) {
-			return new \WP_Error( 'export_size', \__( 'The backup exceeds the 10 MB import limit. Use Export selected to create smaller files.', 'bloatbuster-performance-asset-cleaner' ) );
-		}
-
-		return $json;
-	}
-
-	/**
-	 * Download persistent options using the shared backup response.
-	 *
-	 * @param array|null $names - Selected option names, or null for every persistent option.
+	 * @param array|null $names - Selection, or null for every persistent option.
 	 *
 	 * @return void
 	 *
 	 * @since 1.0.0
 	 */
 	public static function send_export( $names = null ) {
-		$json = self::get_export_json( $names );
+		$stream = Autoload_Options::get_export_stream( $names, self::MAX_IMPORT_SIZE );
 
-		if ( \is_wp_error( $json ) ) {
-			if ( 'no_export_options' === $json->get_error_code() ) {
+		if ( \is_wp_error( $stream ) ) {
+			if ( 'no_export_options' === $stream->get_error_code() ) {
 				self::redirect( array( 'bloatbuster_notice' => 'autoload_export_none' ) );
 			}
 
-			\wp_die( \esc_html( $json->get_error_message() ), '', array( 'response' => 'export_size' === $json->get_error_code() ? 413 : 500 ) );
+			\wp_die( \esc_html( $stream->get_error_message() ), '', array( 'response' => 'export_size' === $stream->get_error_code() ? 413 : 500 ) );
 		}
 
-		$host     = \wp_parse_url( \home_url(), PHP_URL_HOST );
-		$filename = 'bloatbuster-options-' . \sanitize_file_name( (string) $host ) . '-' . \gmdate( 'Y-m-d-His' ) . '.json';
+		try {
+			$host     = \wp_parse_url( \home_url(), PHP_URL_HOST );
+			$filename = 'bloatbuster-options-' . \sanitize_file_name( (string) $host ) . '-' . gmdate( 'Y-m-d-His' ) . '.json';
+			\nocache_headers();
+			header( 'Content-Type: application/json; charset=utf-8' );
+			header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+			header( 'X-Content-Type-Options: nosniff' );
 
-		\nocache_headers();
-		header( 'Content-Type: application/json; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
-		header( 'X-Content-Type-Options: nosniff' );
+			while ( ! feof( $stream ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Complete validated JSON download, not HTML.
+				echo Autoload_Export::read( $stream );
+			}
+		} finally {
+			Autoload_Export::close_stream( $stream );
+		}
 
-		echo $json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Validated JSON download, not HTML.
 		exit;
 	}
 

@@ -767,33 +767,6 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Get every persistent option name for the current site's full export.
-	 *
-	 * @return array|\WP_Error - Names, or a database error.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_all_export_names() {
-		global $wpdb;
-
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Current database backup, names only.
-		$names = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT option_name FROM {$wpdb->options} WHERE BINARY option_name NOT LIKE %s AND BINARY option_name NOT LIKE %s ORDER BY option_name ASC",
-				$wpdb->esc_like( '_transient_' ) . '%',
-				$wpdb->esc_like( '_site_transient_' ) . '%'
-			)
-		);
-		// phpcs:enable
-
-		if ( '' !== $wpdb->last_error ) {
-			return new \WP_Error( 'backup_database', \__( 'The database could not be read safely. Try again.', 'bloatbuster-performance-asset-cleaner' ) );
-		}
-
-		return $names;
-	}
-
-	/**
 	 * Read raw backup rows, stopping on any database lookup failure.
 	 *
 	 * @param array $names - Option names.
@@ -821,60 +794,19 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Export selected persistent options, or all persistent options when null.
+	 * Build a bounded persistent-options JSON stream for the caller to close.
 	 *
-	 * @param array|null $names - Selected names, or null for every persistent option.
+	 * @param array|null $names - Selected names, or null for all persistent options.
+	 * @param int        $limit - Maximum JSON bytes accepted by the importer.
 	 *
-	 * @return array|\WP_Error - Export data, or an empty selection/database error.
+	 * @return resource|\WP_Error - Complete rewound stream, or an export error.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_export( $names = null ) {
-		if ( null === $names ) {
-			$names = self::get_all_export_names();
+	public static function get_export_stream( $names, $limit ) {
+		require_once __DIR__ . '/class-autoload-export.php';
 
-			if ( \is_wp_error( $names ) ) {
-				return $names;
-			}
-		}
-
-		$names = array_filter( array_map( 'strval', $names ), array( __CLASS__, 'is_persistent_option' ) );
-		$rows  = self::read_backup_options( $names );
-
-		if ( \is_wp_error( $rows ) ) {
-			return $rows;
-		}
-
-		if ( empty( $rows ) ) {
-			return new \WP_Error( 'no_export_options', \__( 'No persistent options are available to export. Transient values and timeout rows are excluded.', 'bloatbuster-performance-asset-cleaner' ) );
-		}
-
-		$options = array();
-
-		foreach ( $rows as $row ) {
-			$item = array(
-				'name'     => $row['name'],
-				'autoload' => $row['autoload'],
-			);
-
-			if ( \wp_check_invalid_utf8( $row['value'] ) === $row['value'] ) {
-				$item['value'] = $row['value'];
-			} else {
-				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Preserves raw binary values.
-				$item['value_base64'] = base64_encode( $row['value'] );
-			}
-
-			$options[] = $item;
-		}
-
-		return array(
-			'plugin'         => 'bloatbuster',
-			'format_version' => 2,
-			'version'        => BLOATBUSTER_VERSION,
-			'site_url'       => \home_url(),
-			'created'        => \gmdate( 'Y-m-d-His' ),
-			'options'        => $options,
-		);
+		return Autoload_Export::create( $names, $limit );
 	}
 
 	/**
