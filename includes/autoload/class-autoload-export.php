@@ -75,21 +75,27 @@ final class Autoload_Export {
 					break;
 				}
 
-				foreach ( $rows as $row ) {
-					$minimum = (int) $row->bytes + strlen( $row->name ) + strlen( $row->autoload ) + strlen( '{"name":"","autoload":"","value":""}' );
+				foreach ( self::get_batches( $rows ) as $batch ) {
+					$values = self::read_batch( $batch );
 
-					if ( $minimum + $written + 2 + ( 0 < $count ? 1 : 0 ) > $limit ) {
-						throw new \RuntimeException( 'export_size' );
+					foreach ( $batch as $row ) {
+						$minimum = (int) $row->bytes + strlen( $row->name ) + strlen( $row->autoload ) + strlen( '{"name":"","autoload":"","value":""}' );
+
+						if ( $minimum + $written + 2 + ( 0 < $count ? 1 : 0 ) > $limit ) {
+							throw new \RuntimeException( 'export_size' );
+						}
+
+						if ( 0 < $count ) {
+							self::write( $stream, ',', $written, $limit );
+						}
+
+						self::write_row( $stream, $row, $written, $limit, $values[ $row->id ] ?? null );
+						$cursor          = (int) $row->id;
+						$metadata_bytes += $minimum;
+						++$count;
 					}
 
-					if ( 0 < $count ) {
-						self::write( $stream, ',', $written, $limit );
-					}
-
-					self::write_row( $stream, $row, $written, $limit );
-					$cursor          = (int) $row->id;
-					$metadata_bytes += $minimum;
-					++$count;
+					unset( $values );
 				}
 			}
 
@@ -201,9 +207,99 @@ final class Autoload_Export {
 	}
 
 	/**
-	 * Read one value in byte-bounded slices and verify it against its metadata.
+	 * Group a metadata page into byte-bounded batches, isolating large values.
 	 *
-	 * @param object $row - Expected option metadata.
+	 * @param array $rows - At most 100 metadata rows.
+	 *
+	 * @return array - Ordered metadata batches with at most CHUNK_BYTES of small values.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_batches( $rows ) {
+		$batches = array();
+		$batch   = array();
+		$bytes   = 0;
+
+		foreach ( $rows as $row ) {
+			if ( ! empty( $batch ) && $bytes + (int) $row->bytes > self::CHUNK_BYTES ) {
+				$batches[] = $batch;
+				$batch     = array();
+				$bytes     = 0;
+			}
+
+			if ( (int) $row->bytes > self::CHUNK_BYTES ) {
+				$batches[] = array( $row );
+			} else {
+				$batch[] = $row;
+				$bytes  += (int) $row->bytes;
+			}
+		}
+
+		if ( ! empty( $batch ) ) {
+			$batches[] = $batch;
+		}
+
+		return $batches;
+	}
+
+	/**
+	 * Fetch and validate a small-value batch without exceeding its expected bytes.
+	 *
+	 * @param array $batch - Bounded metadata batch, or one large value to read later.
+	 *
+	 * @return array - Verified raw strings keyed by identifier; empty for a large value.
+	 *
+	 * @throws \RuntimeException On database failure or changed option data.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function read_batch( $batch ) {
+		global $wpdb;
+
+		if ( (int) $batch[0]->bytes > self::CHUNK_BYTES ) {
+			return array();
+		}
+
+		$queries  = array();
+		$expected = array();
+
+		foreach ( $batch as $row ) {
+			$expected[ $row->id ] = $row;
+			$queries[]            = $wpdb->prepare( "SELECT option_id AS id, SUBSTRING(CAST(option_value AS BINARY), 1, %d) AS chunk, OCTET_LENGTH(option_value) AS bytes, option_name AS name, autoload FROM {$wpdb->options} WHERE option_id = %d", $row->bytes, $row->id );
+		}
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Every UNION branch is prepared and its value slice is bounded by the batch byte budget.
+		$parts = $wpdb->get_results( implode( ' UNION ALL ', $queries ) );
+		// phpcs:enable
+
+		if ( '' !== $wpdb->last_error ) {
+			throw new \RuntimeException( 'backup_database' );
+		}
+
+		if ( ! is_array( $parts ) || count( $parts ) !== count( $expected ) ) {
+			throw new \RuntimeException( 'export_changed' );
+		}
+
+		$values = array();
+
+		foreach ( $parts as $part ) {
+			$row = $expected[ $part->id ] ?? null;
+
+			if ( ! $row || isset( $values[ $part->id ] ) || (int) $part->bytes !== (int) $row->bytes || $part->name !== $row->name || $part->autoload !== $row->autoload || ! is_string( $part->chunk ) || strlen( $part->chunk ) !== (int) $row->bytes || ! is_string( $row->digest ) || ! hash_equals( $row->digest, hash( 'sha256', $part->chunk ) ) ) {
+				throw new \RuntimeException( 'export_changed' );
+			}
+
+			$values[ $part->id ] = $part->chunk;
+		}
+
+		return $values;
+	}
+
+	/**
+	 * Stage verified batch bytes or read a large value in verified bounded slices.
+	 *
+	 * @param object      $row - Expected option metadata.
+	 * @param string|null $value - Verified batch bytes, or null to query slices.
 	 *
 	 * @return resource - Rewound private value stream for the caller to close.
 	 *
@@ -211,7 +307,7 @@ final class Autoload_Export {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function read_value( $row ) {
+	public static function read_value( $row, $value = null ) {
 		global $wpdb;
 
 		$raw      = self::open_stream();
@@ -220,6 +316,11 @@ final class Autoload_Export {
 		try {
 			$hash   = hash_init( 'sha256' );
 			$copied = 0;
+
+			if ( null !== $value ) {
+				self::write( $raw, $value, $copied, (int) $row->bytes );
+				hash_update( $hash, $value );
+			}
 
 			while ( $copied < (int) $row->bytes ) {
 				// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Only a bounded binary slice is transferred, even if the value grew after preflight.
@@ -303,10 +404,11 @@ final class Autoload_Export {
 	/**
 	 * Write one complete option, encoding raw values in bounded chunks.
 	 *
-	 * @param resource $stream  - Destination JSON stream.
-	 * @param object   $row     - Metadata for this option.
-	 * @param int      $written - Total output bytes so far.
-	 * @param int      $limit   - Maximum output bytes.
+	 * @param resource    $stream  - Destination JSON stream.
+	 * @param object      $row     - Metadata for this option.
+	 * @param int         $written - Total output bytes so far.
+	 * @param int         $limit   - Maximum output bytes.
+	 * @param string|null $value - Verified batch bytes, or null to query slices.
 	 *
 	 * @return void
 	 *
@@ -314,8 +416,8 @@ final class Autoload_Export {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function write_row( $stream, $row, &$written, $limit ) {
-		$raw = self::read_value( $row );
+	public static function write_row( $stream, $row, &$written, $limit, $value = null ) {
+		$raw = self::read_value( $row, $value );
 
 		try {
 			$utf8 = self::is_utf8( $raw );
