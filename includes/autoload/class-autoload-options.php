@@ -573,30 +573,67 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Find ordinary transient values with existing or incoming timeout rows.
+	 * Find requested options whose associated names exist under the column collation.
 	 *
-	 * @param array $names            - Option names to check.
-	 * @param array $additional_names - Timeout names that will be imported.
+	 * @param array $associations - Original option name mapped to its associated name.
 	 *
-	 * @return array - Transient value names that must not have autoload enabled.
+	 * @return array - Original names with matches, or all candidates on lookup failure.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_expiring_transient_names( $names, $additional_names = array() ) {
-		$timeouts = array();
+	public static function get_existing_association_names( $associations ) {
+		global $wpdb;
+
+		$matched = array();
+
+		foreach ( array_chunk( $associations, 500, true ) as $chunk ) {
+			$selects = array();
+			$params  = array();
+
+			foreach ( $chunk as $name => $associated_name ) {
+				// Comparing the column directly to a literal uses its native collation.
+				$selects[] = "SELECT %s AS requested_name WHERE EXISTS ( SELECT 1 FROM {$wpdb->options} WHERE option_name = %s )";
+				$params[]  = (string) $name;
+				$params[]  = $associated_name;
+			}
+
+			$sql = implode( ' UNION ALL ', $selects );
+
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Live safety check; each branch has two placeholders and returns its original requested name.
+			$found = $wpdb->get_col( $wpdb->prepare( $sql, $params ) );
+			// phpcs:enable
+
+			if ( null === $found || '' !== $wpdb->last_error ) {
+				return array_map( 'strval', array_keys( $associations ) );
+			}
+
+			$matched = array_merge( $matched, $found );
+		}
+
+		return $matched;
+	}
+
+	/**
+	 * Find ordinary transient values whose timeout rows exist in the database.
+	 *
+	 * @param array $names - Option names to check.
+	 *
+	 * @return array - Original value names that must not have autoload enabled.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_expiring_transient_names( $names ) {
+		$associations = array();
 
 		foreach ( $names as $name ) {
 			$timeout = self::get_transient_timeout_name( $name );
 
 			if ( '' !== $timeout ) {
-				$timeouts[ $timeout ] = $name;
+				$associations[ $name ] = $timeout;
 			}
 		}
 
-		$existing = self::get_existing_names( array_keys( $timeouts ) );
-		$found    = array_intersect_key( $timeouts, array_fill_keys( array_merge( $existing, $additional_names ), true ) );
-
-		return array_values( $found );
+		return self::get_existing_association_names( $associations );
 	}
 
 	/**
@@ -664,9 +701,7 @@ final class Autoload_Options {
 			}
 		}
 
-		$existing = self::get_existing_names( array_values( $timeouts ) );
-
-		return array_keys( array_intersect( $timeouts, $existing ) );
+		return self::get_existing_association_names( $timeouts );
 	}
 
 	/**
