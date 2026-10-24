@@ -158,14 +158,14 @@ final class Autoload_List_Table extends \WP_List_Table {
 	protected function get_bulk_actions() {
 		if ( ! Autoload_Actions::can_change_options() ) {
 			return array(
-				'export' => \__( 'Export', 'bloatbuster-performance-asset-cleaner' ),
+				'export' => \__( 'Export selected', 'bloatbuster-performance-asset-cleaner' ),
 			);
 		}
 
 		return array(
 			'enable'  => \__( 'Enable autoload', 'bloatbuster-performance-asset-cleaner' ),
 			'disable' => \__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ),
-			'export'  => \__( 'Export', 'bloatbuster-performance-asset-cleaner' ),
+			'export'  => \__( 'Export selected', 'bloatbuster-performance-asset-cleaner' ),
 			'delete'  => \__( 'Delete', 'bloatbuster-performance-asset-cleaner' ),
 		);
 	}

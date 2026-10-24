@@ -46,6 +46,13 @@ final class Autoload_Actions {
 	const IMPORT_ACTION = 'bloatbuster_autoload_import';
 
 	/**
+	 * Full export action name and nonce action.
+	 *
+	 * @var string
+	 */
+	const EXPORT_ALL_ACTION = 'bloatbuster_autoload_export_all';
+
+	/**
 	 * Maximum import file size in bytes.
 	 *
 	 * @var int
@@ -70,6 +77,7 @@ final class Autoload_Actions {
 		\add_action( 'admin_post_' . self::BULK_ACTION, array( __CLASS__, 'handle_bulk_action' ) );
 		\add_action( 'admin_post_' . self::ROW_ACTION, array( __CLASS__, 'handle_row_action' ) );
 		\add_action( 'admin_post_' . self::IMPORT_ACTION, array( __CLASS__, 'handle_import' ) );
+		\add_action( 'admin_post_' . self::EXPORT_ALL_ACTION, array( __CLASS__, 'handle_export_all' ) );
 	}
 
 	/**
@@ -188,7 +196,7 @@ final class Autoload_Actions {
 		if ( empty( $filtered['names'] ) ) {
 			self::redirect(
 				array(
-					'bloatbuster_notice'  => 'autoload_none',
+					'bloatbuster_notice'  => 'export' === $action ? 'autoload_export_none' : 'autoload_none',
 					'bloatbuster_skipped' => $filtered['skipped'],
 				)
 			);
@@ -259,19 +267,83 @@ final class Autoload_Actions {
 	}
 
 	/**
-	 * Send the export file of options as a download.
-	 *
-	 * @param array $names - Option names.
+	 * Check full-export permissions, request method and the POST nonce.
 	 *
 	 * @return void
 	 *
 	 * @since 1.0.0
 	 */
-	public static function send_export( $names ) {
+	public static function check_export_all_request() {
+		self::check_permission();
+
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
+			\wp_die( \esc_html__( 'Export requires a POST request.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 405 ) );
+		}
+
+		if ( ! isset( $_POST['_wpnonce'] ) || ! is_string( $_POST['_wpnonce'] ) || ! \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['_wpnonce'] ) ), self::EXPORT_ALL_ACTION ) ) {
+			\wp_die( \esc_html__( 'The export request could not be verified.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 403 ) );
+		}
+	}
+
+	/**
+	 * Export every persistent option for the current site.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function handle_export_all() {
+		self::check_export_all_request();
+		self::send_export();
+	}
+
+	/**
+	 * Build and validate the downloadable JSON before sending any headers.
+	 *
+	 * @param array|null $names - Selected option names, or null for all persistent options.
+	 *
+	 * @return string|\WP_Error - Importable JSON, or a validation error.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_export_json( $names = null ) {
 		$export = Autoload_Options::get_export( $names );
 
 		if ( \is_wp_error( $export ) ) {
-			\wp_die( \esc_html( $export->get_error_message() ), '', array( 'response' => 500 ) );
+			return $export;
+		}
+
+		$json = \wp_json_encode( $export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+
+		if ( false === $json ) {
+			return new \WP_Error( 'export_encoding', \__( 'The backup could not be encoded. No file was exported.', 'bloatbuster-performance-asset-cleaner' ) );
+		}
+
+		if ( strlen( $json ) > self::MAX_IMPORT_SIZE ) {
+			return new \WP_Error( 'export_size', \__( 'The backup exceeds the 10 MB import limit. Use Export selected to create smaller files.', 'bloatbuster-performance-asset-cleaner' ) );
+		}
+
+		return $json;
+	}
+
+	/**
+	 * Download persistent options using the shared backup response.
+	 *
+	 * @param array|null $names - Selected option names, or null for every persistent option.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function send_export( $names = null ) {
+		$json = self::get_export_json( $names );
+
+		if ( \is_wp_error( $json ) ) {
+			if ( 'no_export_options' === $json->get_error_code() ) {
+				self::redirect( array( 'bloatbuster_notice' => 'autoload_export_none' ) );
+			}
+
+			\wp_die( \esc_html( $json->get_error_message() ), '', array( 'response' => 'export_size' === $json->get_error_code() ? 413 : 500 ) );
 		}
 
 		$host     = \wp_parse_url( \home_url(), PHP_URL_HOST );
@@ -282,7 +354,7 @@ final class Autoload_Actions {
 		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 		header( 'X-Content-Type-Options: nosniff' );
 
-		echo \wp_json_encode( $export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		echo $json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Validated JSON download, not HTML.
 		exit;
 	}
 

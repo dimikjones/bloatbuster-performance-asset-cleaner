@@ -719,37 +719,43 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Get the potential ordinary or site transient timeout for a backup row.
+	 * Check whether an option is persistent data eligible for backup.
 	 *
 	 * @param string $name - Option name.
 	 *
-	 * @return string - Timeout name, or an empty string for ordinary options.
+	 * @return bool - False for ordinary/site transient values and timeout rows.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_backup_timeout_name( $name ) {
-		foreach ( array( '_transient_', '_site_transient_' ) as $prefix ) {
-			if ( 0 === strpos( (string) $name, $prefix ) ) {
-				return $prefix . 'timeout_' . substr( (string) $name, strlen( $prefix ) );
-			}
-		}
-
-		return '';
+	public static function is_persistent_option( $name ) {
+		return 0 !== strpos( (string) $name, '_transient_' ) && 0 !== strpos( (string) $name, '_site_transient_' );
 	}
 
 	/**
-	 * Parse a stored absolute expiration without accepting malformed timestamps.
+	 * Get every persistent option name for the current site's full export.
 	 *
-	 * @param string $value - Raw timeout value.
-	 *
-	 * @return int|null - Positive Unix timestamp, or null if invalid.
+	 * @return array|\WP_Error - Names, or a database error.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function parse_backup_expiration( $value ) {
-		$timestamp = filter_var( $value, FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1 ) ) );
+	public static function get_all_export_names() {
+		global $wpdb;
 
-		return false !== $timestamp && (string) $timestamp === $value ? $timestamp : null;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Current database backup, names only.
+		$names = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT option_name FROM {$wpdb->options} WHERE BINARY option_name NOT LIKE %s AND BINARY option_name NOT LIKE %s ORDER BY option_name ASC",
+				$wpdb->esc_like( '_transient_' ) . '%',
+				$wpdb->esc_like( '_site_transient_' ) . '%'
+			)
+		);
+		// phpcs:enable
+
+		if ( '' !== $wpdb->last_error ) {
+			return new \WP_Error( 'backup_database', \__( 'The database could not be read safely. Try again.', 'bloatbuster-performance-asset-cleaner' ) );
+		}
+
+		return $names;
 	}
 
 	/**
@@ -780,70 +786,50 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Export raw options with absolute expiration and required timeout rows.
+	 * Export selected persistent options, or all persistent options when null.
 	 *
-	 * @param array $names - Selected option names.
+	 * @param array|null $names - Selected names, or null for every persistent option.
 	 *
-	 * @return array|\WP_Error - Export data, or an unsafe expiration error.
+	 * @return array|\WP_Error - Export data, or an empty selection/database error.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_export( $names ) {
-		$rows = self::read_backup_options( $names );
+	public static function get_export( $names = null ) {
+		if ( null === $names ) {
+			$names = self::get_all_export_names();
+
+			if ( \is_wp_error( $names ) ) {
+				return $names;
+			}
+		}
+
+		$names = array_filter( array_map( 'strval', $names ), array( __CLASS__, 'is_persistent_option' ) );
+		$rows  = self::read_backup_options( $names );
 
 		if ( \is_wp_error( $rows ) ) {
 			return $rows;
 		}
 
-		$pending = $rows;
+		if ( empty( $rows ) ) {
+			return new \WP_Error( 'no_export_options', \__( 'No persistent options are available to export. Transient values and timeout rows are excluded.', 'bloatbuster-performance-asset-cleaner' ) );
+		}
+
 		$options = array();
 
-		// Follow timeout dependencies, including rows that also hold timeout_* values.
-		while ( ! empty( $pending ) ) {
-			$timeout_names = array();
+		foreach ( $rows as $row ) {
+			$item = array(
+				'name'     => $row['name'],
+				'autoload' => $row['autoload'],
+			);
 
-			foreach ( $pending as $name => $row ) {
-				$timeout = self::get_backup_timeout_name( $name );
-
-				if ( '' !== $timeout ) {
-					$timeout_names[] = $timeout;
-				}
+			if ( \wp_check_invalid_utf8( $row['value'] ) === $row['value'] ) {
+				$item['value'] = $row['value'];
+			} else {
+				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Preserves raw binary values.
+				$item['value_base64'] = base64_encode( $row['value'] );
 			}
 
-			$timeouts = self::read_backup_options( $timeout_names );
-
-			if ( \is_wp_error( $timeouts ) ) {
-				return $timeouts;
-			}
-
-			foreach ( $pending as $name => $row ) {
-				$item    = array(
-					'name'     => (string) $name,
-					'autoload' => $row['autoload'],
-				);
-				$timeout = self::get_backup_timeout_name( $name );
-
-				if ( '' !== $timeout ) {
-					$expires_at = isset( $timeouts[ $timeout ] ) ? self::parse_backup_expiration( $timeouts[ $timeout ]['value'] ) : 0;
-
-					if ( null === $expires_at ) {
-						return new \WP_Error( 'expiration', \__( 'Transient expiration could not be preserved. No backup was exported.', 'bloatbuster-performance-asset-cleaner' ) );
-					}
-
-					$item['expires_at'] = $expires_at;
-				}
-
-				if ( \wp_check_invalid_utf8( $row['value'] ) === $row['value'] ) {
-					$item['value'] = $row['value'];
-				} else {
-					// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Preserves raw binary values.
-					$item['value_base64'] = base64_encode( $row['value'] );
-				}
-
-				$options[ $name ] = $item;
-			}
-
-			$pending = array_diff_key( $timeouts, $options );
+			$options[] = $item;
 		}
 
 		return array(
@@ -852,7 +838,7 @@ final class Autoload_Options {
 			'version'        => BLOATBUSTER_VERSION,
 			'site_url'       => \home_url(),
 			'created'        => \gmdate( 'Y-m-d-His' ),
-			'options'        => array_values( $options ),
+			'options'        => $options,
 		);
 	}
 
@@ -874,21 +860,17 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Restore options from export data.
+	 * Restore persistent options while leaving transients and protected rows alone.
 	 *
-	 * Missing options are created with their exported raw value. Existing
-	 * options only get their autoload state restored, values are kept.
-	 * Missing transient values require known expiration; timeout dependencies are
-	 * restored first. Existing expiration and values are preserved.
-	 * Protected options are skipped.
+	 * @param array $data - Decoded backup data.
 	 *
-	 * @param array $data - Decoded export data.
-	 *
-	 * @return array|\WP_Error - Counts of created, updated, unchanged and skipped options, or an error.
+	 * @return array|\WP_Error - Created/updated/unchanged/skipped counts, or an error.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function import( $data ) {
+		global $wpdb;
+
 		if ( ! is_array( $data ) || ! isset( $data['plugin'], $data['options'] ) || 'bloatbuster' !== $data['plugin'] || ! is_array( $data['options'] ) ) {
 			return new \WP_Error( 'invalid_file', \__( 'This is not a BloatBuster options export file.', 'bloatbuster-performance-asset-cleaner' ) );
 		}
@@ -899,124 +881,57 @@ final class Autoload_Options {
 			return new \WP_Error( 'backup_format', \__( 'This backup format is not supported.', 'bloatbuster-performance-asset-cleaner' ) );
 		}
 
-		$options = self::get_valid_import_options( $data['options'], $format );
+		$options = self::get_valid_import_options( $data['options'] );
 
 		if ( \is_wp_error( $options ) ) {
 			return $options;
 		}
 
-		if ( empty( $options ) ) {
-			return new \WP_Error( 'no_options', \__( 'The file has no valid options to restore.', 'bloatbuster-performance-asset-cleaner' ) );
-		}
-
-		$original_names = array_keys( $options );
-		$related_names  = $original_names;
-
-		foreach ( $options as $name => &$option ) {
-			$timeout = self::get_backup_timeout_name( $name );
-
-			if ( '' !== $timeout ) {
-				$related_names[] = $timeout;
-				$paired          = isset( $options[ $timeout ] ) ? self::parse_backup_expiration( $options[ $timeout ]['value'] ) : null;
-
-				if ( 2 === $format && isset( $options[ $timeout ] ) && $paired !== $option['expires_at'] ) {
-					return new \WP_Error( 'expiration', \__( 'The backup contains conflicting transient expiration metadata.', 'bloatbuster-performance-asset-cleaner' ) );
-				}
-
-				if ( 1 === $format ) {
-					$option['expires_at'] = $paired;
-				}
-			}
-
-			$parent = self::get_timeout_value_name( $name );
-
-			if ( '' !== $parent ) {
-				$related_names[] = $parent;
-			}
-		}
-		unset( $option );
-
-		// Legacy paired timeout rows provide expiration evidence, but unpaired values do not.
-		if ( 1 === $format ) {
-			foreach ( $original_names as $name ) {
-				$timeout = self::get_backup_timeout_name( $name );
-
-				if ( isset( $options[ $name ]['expires_at'], $options[ $timeout ] ) && ! isset( $options[ $timeout ]['expires_at'] ) ) {
-					$options[ $timeout ]['expires_at'] = 0;
-				}
-			}
-		}
-
-		// Metadata is sufficient to restore an unselected timeout without duplicating rows.
-		foreach ( $original_names as $name ) {
-			$option = $options[ $name ];
-
-			if ( isset( $option['expires_at'] ) && 0 < $option['expires_at'] ) {
-				$timeout = self::get_backup_timeout_name( $name );
-
-				if ( ! isset( $options[ $timeout ] ) ) {
-					$options[ $timeout ] = array(
-						'value'      => (string) $option['expires_at'],
-						'autoload'   => 'off',
-						'expires_at' => 0,
-					);
-				}
-			}
-		}
-
-		foreach ( array_keys( $options ) as $name ) {
-			$timeout = self::get_backup_timeout_name( $name );
-
-			if ( '' !== $timeout ) {
-				$related_names[] = $timeout;
-			}
-		}
-
-		$current = self::read_backup_options( $related_names );
+		$counts  = array(
+			'created'   => 0,
+			'updated'   => 0,
+			'unchanged' => 0,
+			'skipped'   => count( $data['options'] ) - count( $options ),
+		);
+		$current = self::read_backup_options( array_keys( $options ) );
 
 		if ( \is_wp_error( $current ) ) {
 			return $current;
 		}
 
-		$initial = $current;
-		$states  = array();
-		$counts  = array(
-			'created'   => 0,
-			'updated'   => 0,
-			'unchanged' => 0,
-			'skipped'   => count( $data['options'] ) - count( $original_names ),
-		);
-		uksort( $options, array( __CLASS__, 'compare_option_names' ) );
-
-		// Existing rows only receive safe autoload changes; expiration and values stay intact.
 		foreach ( $options as $name => $option ) {
-			if ( ! isset( $initial[ $name ] ) || ! in_array( $name, $original_names, true ) ) {
+			$name = (string) $name;
+
+			if ( isset( $current[ $name ] ) ) {
+				$autoload = self::is_autoloaded( $option['autoload'] );
+
+				if ( self::is_autoloaded( $current[ $name ]['autoload'] ) === $autoload ) {
+					++$counts['unchanged'];
+				} elseif ( \wp_set_option_autoload( $name, $autoload ) ) {
+					++$counts['updated'];
+				} else {
+					++$counts['skipped'];
+				}
+
 				continue;
 			}
 
-			$timeout  = self::get_transient_timeout_name( $name );
-			$autoload = self::is_autoloaded( $option['autoload'] );
+			// Raw insert avoids unserializing backup data or overwriting existing values.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Restores raw persistent options.
+			$inserted = $wpdb->insert(
+				$wpdb->options,
+				array(
+					'option_name'  => $name,
+					'option_value' => $option['value'],
+					'autoload'     => $option['autoload'],
+				),
+				array( '%s', '%s', '%s' )
+			);
 
-			if ( $autoload && '' !== $timeout && ( isset( $current[ $timeout ] ) || isset( $options[ $timeout ] ) ) ) {
-				++$counts['skipped'];
-			} elseif ( self::is_autoloaded( $current[ $name ]['autoload'] ) === $autoload ) {
-				++$counts['unchanged'];
-			} elseif ( \wp_set_option_autoload( (string) $name, $autoload ) ) {
-				++$counts['updated'];
-				$current[ $name ]['autoload'] = $autoload ? 'on' : 'off';
+			if ( $inserted ) {
+				++$counts['created'];
+				\wp_cache_delete( $name, 'options' );
 			} else {
-				++$counts['skipped'];
-			}
-
-			$states[ $name ] = true;
-		}
-
-		foreach ( $original_names as $name ) {
-			if ( isset( $initial[ $name ] ) ) {
-				continue;
-			}
-
-			if ( ! self::restore_missing_backup_option( (string) $name, $options, $current, $states, $counts ) ) {
 				++$counts['skipped'];
 			}
 		}
@@ -1028,143 +943,15 @@ final class Autoload_Options {
 	}
 
 	/**
-	 * Restore a missing raw row after preparing its expiration dependencies.
-	 *
-	 * @param string $name    - Option name.
-	 * @param array  $options - Validated backup rows.
-	 * @param array  $current - Current rows, updated after successful writes.
-	 * @param array  $states  - Cached dependency restoration results.
-	 * @param array  $counts  - Import counts.
-	 *
-	 * @return bool - Whether the row exists with compatible expiration.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function restore_missing_backup_option( $name, $options, &$current, &$states, &$counts ) {
-		global $wpdb;
-
-		if ( array_key_exists( $name, $states ) ) {
-			return $states[ $name ];
-		}
-
-		if ( isset( $current[ $name ] ) ) {
-			return true;
-		}
-
-		$states[ $name ] = false;
-
-		if ( ! isset( $options[ $name ] ) || self::is_protected( $name ) ) {
-			return false;
-		}
-
-		$before     = array_keys( $current );
-		$option     = $options[ $name ];
-		$timeout    = self::get_backup_timeout_name( $name );
-		$parent     = self::get_timeout_value_name( $name );
-		$expires_at = isset( $option['expires_at'] ) ? $option['expires_at'] : null;
-
-		// Never introduce backup expiration for a value that already exists.
-		if ( '' !== $parent && isset( $current[ $parent ] ) ) {
-			return false;
-		}
-
-		if ( '' !== $timeout ) {
-			if ( null === $expires_at || ( 0 < $expires_at && $expires_at <= time() ) ) {
-				return false;
-			}
-
-			if ( 0 < $expires_at && 0 === strpos( $name, '_transient_' ) && self::is_autoloaded( $option['autoload'] ) ) {
-				return false;
-			}
-
-			if ( isset( $current[ $timeout ] ) ) {
-				if ( self::parse_backup_expiration( $current[ $timeout ]['value'] ) !== $expires_at ) {
-					return false;
-				}
-			} elseif ( 0 < $expires_at ) {
-				if ( ! self::restore_missing_backup_option( $timeout, $options, $current, $states, $counts ) ) {
-					self::cleanup_backup_dependencies( array_diff( array_keys( $current ), $before ), $current, $states, $counts );
-					return false;
-				}
-			}
-
-			if ( 0 < $expires_at && $expires_at <= time() ) {
-				self::cleanup_backup_dependencies( array_diff( array_keys( $current ), $before ), $current, $states, $counts );
-				return false;
-			}
-		}
-
-		// Raw insert avoids unserializing uploaded data and never overwrites existing values.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Restores raw backup data.
-		$inserted = $wpdb->insert(
-			$wpdb->options,
-			array(
-				'option_name'  => $name,
-				'option_value' => $option['value'],
-				'autoload'     => $option['autoload'],
-			),
-			array( '%s', '%s', '%s' )
-		);
-
-		if ( ! $inserted ) {
-			self::cleanup_backup_dependencies( array_diff( array_keys( $current ), $before ), $current, $states, $counts );
-			return false;
-		}
-
-		$current[ $name ] = $option;
-		$states[ $name ]  = true;
-		++$counts['created'];
-		\wp_cache_delete( $name, 'options' );
-		\wp_cache_delete( 'notoptions', 'options' );
-		\wp_cache_delete( 'alloptions', 'options' );
-
-		return true;
-	}
-
-	/**
-	 * Remove only newly created, unused dependencies after a failed restore.
-	 *
-	 * @param array $names   - Newly inserted dependency names.
-	 * @param array $current - Current database rows.
-	 * @param array $states  - Dependency restoration results.
-	 * @param array $counts  - Import counts.
-	 *
-	 * @return void
-	 *
-	 * @since 1.0.0
-	 */
-	public static function cleanup_backup_dependencies( $names, &$current, &$states, &$counts ) {
-		global $wpdb;
-
-		if ( empty( $names ) ) {
-			return;
-		}
-
-		self::delete( $names );
-		$remaining = self::get_existing_names( $names );
-
-		if ( '' !== $wpdb->last_error ) {
-			return;
-		}
-
-		foreach ( array_diff( $names, $remaining ) as $name ) {
-			unset( $current[ $name ] );
-			$states[ $name ] = false;
-			--$counts['created'];
-		}
-	}
-
-	/**
 	 * Validate the options of an export file.
 	 *
-	 * @param array $items  - Exported options.
-	 * @param int   $format - Backup format version.
+	 * @param array $items - Exported options.
 	 *
-	 * @return array|\WP_Error - Valid raw options or invalid expiration metadata.
+	 * @return array|\WP_Error - Valid persistent options or conflicting duplicates.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_valid_import_options( $items, $format = 1 ) {
+	public static function get_valid_import_options( $items ) {
 		$options = array();
 
 		foreach ( $items as $item ) {
@@ -1174,7 +961,7 @@ final class Autoload_Options {
 
 			$name = $item['name'];
 
-			if ( '' === $name || strlen( $name ) > 191 || self::is_protected( $name ) ) {
+			if ( '' === $name || strlen( $name ) > 191 || ! self::is_persistent_option( $name ) || self::is_protected( $name ) ) {
 				continue;
 			}
 
@@ -1200,16 +987,8 @@ final class Autoload_Options {
 				'autoload' => $item['autoload'],
 			);
 
-			if ( 2 === $format && '' !== self::get_backup_timeout_name( $name ) ) {
-				if ( ! isset( $item['expires_at'] ) || ! is_int( $item['expires_at'] ) || 0 > $item['expires_at'] ) {
-					return new \WP_Error( 'expiration', \__( 'Transient expiration metadata is missing or invalid.', 'bloatbuster-performance-asset-cleaner' ) );
-				}
-
-				$option['expires_at'] = $item['expires_at'];
-			}
-
 			if ( isset( $options[ $name ] ) && $options[ $name ] !== $option ) {
-				return new \WP_Error( 'expiration', \__( 'The backup contains conflicting duplicate option rows.', 'bloatbuster-performance-asset-cleaner' ) );
+				return new \WP_Error( 'duplicate_options', \__( 'The backup contains conflicting duplicate option rows.', 'bloatbuster-performance-asset-cleaner' ) );
 			}
 
 			$options[ $name ] = $option;
