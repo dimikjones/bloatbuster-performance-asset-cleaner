@@ -44,6 +44,8 @@ Every option is off by default.
 
 To show transient values and timeout rows, check **Include transients** and click **Apply filters**. This works with or without a search term and applies across views, sorting and pagination. List counts follow the selected filters; summary cards always include all autoloaded options, including hidden transients. Showing or hiding transients does not change or delete options. Autoload cannot be enabled for ordinary transients with timeout rows, because WordPress would skip their expiration checks. They can still be viewed, exported, deleted or have autoload disabled. Imports also skip changes that would bypass transient expiration. Ordinary and site transient timeout rows cannot be deleted while their values exist. To delete a value and its timeout together, select both rows and use the Delete bulk action; if the value cannot be deleted, its timeout is kept.
 
+Transient exports include their original expiration times and required timeout rows, even when only the value is selected. Restoring a backup keeps those absolute times instead of restarting them; expired values and unknown or conflicting expiration are skipped. Existing values and their expiration are preserved. Older backups can recreate a transient only when its matching future timeout is included; otherwise, create a new export.
+
 ### Background Processes
 
 * WP-Cron status checker with overdue events and next scheduled events

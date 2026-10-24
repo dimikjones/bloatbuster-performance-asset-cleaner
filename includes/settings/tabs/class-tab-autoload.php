@@ -117,7 +117,7 @@ final class Tab_Autoload extends Settings_Tab {
 			$type    = 'warning';
 		} elseif ( 'autoload_imported' === $notice ) {
 			/* translators: 1: number of created options, 2: number of options with restored autoload. */
-			$message = sprintf( \__( 'Restore finished: %1$d options created, autoload restored for %2$d options. Existing option values were not changed.', 'bloatbuster-performance-asset-cleaner' ), $created, $updated );
+			$message = sprintf( \__( 'Restore finished: %1$d options created, including required timeout rows, autoload restored for %2$d options. Existing values and expiration were preserved.', 'bloatbuster-performance-asset-cleaner' ), $created, $updated );
 		} elseif ( 'autoload_import_error' === $notice ) {
 			$message = self::get_import_error_message( $error );
 			$type    = 'error';
@@ -131,6 +131,9 @@ final class Tab_Autoload extends Settings_Tab {
 			if ( 'autoload_delete' === $notice ) {
 				/* translators: %d: number of skipped options. */
 				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, could not be deleted, or its transient value still exists.', '%d options were skipped because they are protected, could not be deleted, or their transient values still exist.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
+			} elseif ( 'autoload_imported' === $notice ) {
+				/* translators: %d: number of skipped options. */
+				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, invalid, expired, or its expiration could not be preserved. Older transient backups may require a new export.', '%d options were skipped because they are protected, invalid, expired, or their expiration could not be preserved. Older transient backups may require a new export.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
 			} else {
 				/* translators: %d: number of skipped options. */
 				$message .= ' ' . sprintf( \_n( '%d option was skipped because it is protected, invalid, or would bypass transient expiration.', '%d options were skipped because they are protected, invalid, or would bypass transient expiration.', $skipped, 'bloatbuster-performance-asset-cleaner' ), $skipped );
@@ -151,12 +154,15 @@ final class Tab_Autoload extends Settings_Tab {
 	 */
 	public static function get_import_error_message( $code ) {
 		$messages = array(
-			'upload'       => \__( 'The file could not be uploaded.', 'bloatbuster-performance-asset-cleaner' ),
+			'upload'          => \__( 'The file could not be uploaded.', 'bloatbuster-performance-asset-cleaner' ),
 			/* translators: %s: maximum file size, e.g. 10 MB. */
-			'size'         => sprintf( \__( 'The file is empty or larger than %s.', 'bloatbuster-performance-asset-cleaner' ), \size_format( Autoload_Actions::MAX_IMPORT_SIZE ) ),
-			'json'         => \__( 'The file is not valid JSON.', 'bloatbuster-performance-asset-cleaner' ),
-			'invalid_file' => \__( 'This is not a BloatBuster options export file.', 'bloatbuster-performance-asset-cleaner' ),
-			'no_options'   => \__( 'The file has no valid options to restore.', 'bloatbuster-performance-asset-cleaner' ),
+			'size'            => sprintf( \__( 'The file is empty or larger than %s.', 'bloatbuster-performance-asset-cleaner' ), \size_format( Autoload_Actions::MAX_IMPORT_SIZE ) ),
+			'json'            => \__( 'The file is not valid JSON.', 'bloatbuster-performance-asset-cleaner' ),
+			'invalid_file'    => \__( 'This is not a BloatBuster options export file.', 'bloatbuster-performance-asset-cleaner' ),
+			'backup_format'   => \__( 'This backup format is not supported.', 'bloatbuster-performance-asset-cleaner' ),
+			'expiration'      => \__( 'The backup has missing, invalid or conflicting transient expiration metadata. Create a new export.', 'bloatbuster-performance-asset-cleaner' ),
+			'backup_database' => \__( 'The database could not be read safely. Try again.', 'bloatbuster-performance-asset-cleaner' ),
+			'no_options'      => \__( 'The file has no valid options to restore.', 'bloatbuster-performance-asset-cleaner' ),
 		);
 
 		return isset( $messages[ $code ] ) ? $messages[ $code ] : \__( 'The options could not be restored.', 'bloatbuster-performance-asset-cleaner' );
@@ -213,7 +219,7 @@ final class Tab_Autoload extends Settings_Tab {
 			<?php if ( Autoload_Actions::can_change_options() ) : ?>
 			<div class="bbpac-autoload-import">
 				<h3><?php \esc_html_e( 'Restore from backup', 'bloatbuster-performance-asset-cleaner' ); ?></h3>
-				<p class="description"><?php \esc_html_e( 'Upload a file created with the Export bulk action. Missing options are created again, existing options only get their autoload state restored. Protected options and changes that would bypass transient expiration are skipped.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+				<p class="description"><?php \esc_html_e( 'Upload a file created with the Export bulk action. Missing options are created again, existing options only get their autoload state restored. Transient backups preserve absolute expiration times. Expired values and restores with unknown or conflicting expiration are skipped. Older backups need a matching timeout row to recreate a transient. Protected options and unsafe autoload changes are skipped.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 					<input type="hidden" name="action" value="<?php echo \esc_attr( Autoload_Actions::IMPORT_ACTION ); ?>">
 					<?php \wp_nonce_field( Autoload_Actions::IMPORT_ACTION ); ?>

@@ -268,6 +268,12 @@ final class Autoload_Actions {
 	 * @since 1.0.0
 	 */
 	public static function send_export( $names ) {
+		$export = Autoload_Options::get_export( $names );
+
+		if ( \is_wp_error( $export ) ) {
+			\wp_die( \esc_html( $export->get_error_message() ), '', array( 'response' => 500 ) );
+		}
+
 		$host     = \wp_parse_url( \home_url(), PHP_URL_HOST );
 		$filename = 'bloatbuster-options-' . \sanitize_file_name( (string) $host ) . '-' . \gmdate( 'Y-m-d-His' ) . '.json';
 
@@ -276,7 +282,7 @@ final class Autoload_Actions {
 		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 		header( 'X-Content-Type-Options: nosniff' );
 
-		echo \wp_json_encode( Autoload_Options::get_export( $names ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		echo \wp_json_encode( $export, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 		exit;
 	}
 

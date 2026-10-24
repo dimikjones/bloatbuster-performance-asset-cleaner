@@ -94,6 +94,8 @@ No. A block theme's design comes from global styles, so the option is locked whe
 
 Check "Include transients" and click "Apply filters". This works with or without a search term and applies across views, sorting and pagination. Transient values and timeout rows are hidden by default, but autoloaded transients are always included in the summary cards. Showing or hiding them does not delete or change any options. Autoload cannot be enabled for ordinary transients with timeout rows, because WordPress would skip their expiration checks. They can still be viewed, exported, deleted or have autoload disabled. Imports also skip changes that would bypass transient expiration. Ordinary and site transient timeout rows cannot be deleted while their values exist. To delete a value and its timeout together, select both rows and use the Delete bulk action; if the value cannot be deleted, its timeout is kept.
 
+Transient exports include their original expiration times and required timeout rows, even when only the value is selected. Restoring a backup keeps those absolute times instead of restarting them; expired values and unknown or conflicting expiration are skipped. Existing values and their expiration are preserved. Older backups can recreate a transient only when its matching future timeout is included; otherwise, create a new export.
+
 = Can I undo changes in Autoloaded Options? =
 
 Changing autoload only changes when WordPress loads an option, the value is kept, and you can turn it back. Deleting an option can't be undone, so use the Export bulk action first. You can restore exported options later with "Restore from backup". Core WordPress options are protected and can't be changed or deleted.
