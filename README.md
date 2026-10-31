@@ -19,6 +19,7 @@ Every option is off by default.
 
 * Disable oEmbed discovery and embed script (external embeds keep working)
 * Disable comments site-wide
+* Keep comments in admin to edit or delete existing comments while comments are disabled
 * Disable self-pingbacks
 * Limit post revisions to a configurable number
 * Remove unnecessary head tags

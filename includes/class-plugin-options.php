@@ -300,6 +300,11 @@ final class Plugin_Options {
 				}
 			}
 
+			// Link the row title to the input, so screen readers announce it and clicking it focuses the field.
+			if ( empty( $field['label_for'] ) && in_array( $field['type'], array( 'toggle', 'checkbox', 'select', 'number' ), true ) ) {
+				$field['label_for'] = 'bbpac-' . $field['id'];
+			}
+
 			\add_settings_field(
 				$field['id'],
 				$field['label'] ?? '',

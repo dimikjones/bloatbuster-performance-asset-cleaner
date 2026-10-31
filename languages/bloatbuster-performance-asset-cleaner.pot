@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T21:59:52+02:00\n"
+"POT-Creation-Date: 2026-10-31T22:20:43+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -284,7 +284,11 @@ msgstr ""
 msgid "Once"
 msgstr ""
 
-#: includes/class-options-dispatch.php:660
+#: includes/class-options-dispatch.php:564
+msgid "Comments are disabled, new replies can not be added."
+msgstr ""
+
+#: includes/class-options-dispatch.php:750
 msgid "XML-RPC is disabled on this site."
 msgstr ""
 
@@ -667,7 +671,7 @@ msgid "Frontend interval"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-background.php:100
-msgid "Seconds between Heartbeat requests on the frontend (15-120)."
+msgid "Seconds between Heartbeat requests on the frontend (15-120). WordPress default is 60."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-background.php:110
@@ -675,7 +679,7 @@ msgid "Dashboard interval"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-background.php:111
-msgid "Seconds between Heartbeat requests in the admin area, except the post editor (15-120)."
+msgid "Seconds between Heartbeat requests in the admin area, except the post editor (15-120). WordPress default is 60."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-background.php:121
@@ -683,7 +687,7 @@ msgid "Post editor interval"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-background.php:122
-msgid "Seconds between Heartbeat requests in the post editor, used for autosave and post locking (15-120)."
+msgid "Seconds between Heartbeat requests in the post editor, used for autosave and post locking (15-120). WordPress default is 10."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-background.php:131
@@ -798,76 +802,104 @@ msgstr ""
 msgid "Turn off WordPress core features you do not use, like oEmbed, comments and pingbacks."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:76
+#: includes/settings/tabs/class-tab-core.php:78
 msgid "Disable oEmbed discovery and embed script"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:77
+#: includes/settings/tabs/class-tab-core.php:79
 msgid "Removes oEmbed discovery links, the wp-embed script and the oEmbed REST endpoint, so other sites can no longer embed your posts. Embeds from YouTube, Vimeo and other services in your content keep working."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:82
+#: includes/settings/tabs/class-tab-core.php:84
 msgid "Disable comments"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:83
+#: includes/settings/tabs/class-tab-core.php:85
 msgid "Disable comments, pingbacks and trackbacks across the entire site, including the admin area. Existing comments are hidden, not deleted."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:88
+#: includes/settings/tabs/class-tab-core.php:91
+msgid "Keep comments in admin"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:92
+msgid "Keep the Comments screen in the admin area so existing comments can be edited or deleted. Comments stay disabled on the front-end."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:97
 msgid "Disable self-pingbacks"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:89
+#: includes/settings/tabs/class-tab-core.php:98
 msgid "Minor core cleanup: stops WordPress from sending pingbacks to its own posts."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:94
+#: includes/settings/tabs/class-tab-core.php:103
 msgid "Limit post revisions"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:95
+#: includes/settings/tabs/class-tab-core.php:104
 msgid "Keep only a set number of revisions per post. Overrides WP_POST_REVISIONS from wp-config.php while enabled."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:101
+#: includes/settings/tabs/class-tab-core.php:110
 msgid "Revisions to keep"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:102
+#: includes/settings/tabs/class-tab-core.php:111
 msgid "Number of revisions to keep per post. 0 disables revisions."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:111
+#: includes/settings/tabs/class-tab-core.php:120
 msgid "Remove unnecessary head tags"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:112
+#: includes/settings/tabs/class-tab-core.php:121
 msgid "Remove the WordPress version, RSD, Windows Live Writer, shortlink, REST API and adjacent post links from the page head and HTTP headers."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:117
+#: includes/settings/tabs/class-tab-core.php:126
 msgid "Disable XML-RPC"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:118
+#: includes/settings/tabs/class-tab-core.php:127
 msgid "Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:123
+#: includes/settings/tabs/class-tab-core.php:132
 msgid "Disable core XML sitemaps"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:124
-msgid "Removes the WordPress sitemap at /wp-sitemap.xml. SEO plugins with their own sitemaps, like Yoast SEO or Rank Math, already turn it off."
+#: includes/settings/tabs/class-tab-core.php:133
+msgid "Removes the WordPress sitemap at /wp-sitemap.xml. Locked when another plugin or the Reading settings already turn it off."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:129
+#: includes/settings/tabs/class-tab-core.php:140
 msgid "Disable user enumeration"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:130
+#: includes/settings/tabs/class-tab-core.php:141
 msgid "Hide usernames from the REST API users endpoint, ?author= URLs, the users sitemap and oEmbed data for visitors who can not edit posts. Makes brute force login attacks harder. Author archive pages keep working."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:157
+msgid "Core XML sitemaps are off because search engines are discouraged in the Reading settings."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:159
+msgid "Go to Reading settings"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:164
+msgid "Core XML sitemaps are already turned off by Yoast SEO."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:168
+msgid "Core XML sitemaps are already turned off by Rank Math."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:172
+msgid "Core XML sitemaps are already turned off by another plugin or theme."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:46

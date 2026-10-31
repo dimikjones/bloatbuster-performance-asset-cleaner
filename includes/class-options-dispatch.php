@@ -120,7 +120,7 @@ final class Options_Dispatch {
 			return;
 		}
 
-		$interval = (int) self::get_option_value( 'autosave_interval', 60 );
+		$interval = (int) self::get_option_value( 'autosave_interval', 120 );
 
 		define( 'AUTOSAVE_INTERVAL', min( 600, max( 10, $interval ) ) );
 	}
@@ -200,6 +200,46 @@ final class Options_Dispatch {
 	}
 
 	/**
+	 * Get the reason why core XML sitemaps are already off without this plugin.
+	 *
+	 * @return string - 'private' if search engines are discouraged, 'yoast', 'rank-math' or 'plugin' if a filter turns them off, empty otherwise.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_sitemaps_lock() {
+		if ( ! \get_option( 'blog_public' ) ) {
+			return 'private';
+		}
+
+		// Check without our own callback, so enabling the option does not lock it.
+		$priority = \has_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ) );
+
+		if ( false !== $priority ) {
+			\remove_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ), $priority );
+		}
+
+		$is_enabled = (bool) \apply_filters( 'wp_sitemaps_enabled', true );
+
+		if ( false !== $priority ) {
+			\add_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ), $priority );
+		}
+
+		if ( $is_enabled ) {
+			return '';
+		}
+
+		if ( defined( 'WPSEO_VERSION' ) ) {
+			return 'yoast';
+		}
+
+		if ( defined( 'RANK_MATH_VERSION' ) ) {
+			return 'rank-math';
+		}
+
+		return 'plugin';
+	}
+
+	/**
 	 * Dequeue the classic theme styles and global styles on the frontend.
 	 *
 	 * @return void
@@ -263,6 +303,8 @@ final class Options_Dispatch {
 	 * @param array $settings - Heartbeat settings.
 	 *
 	 * @return array - Filtered Heartbeat settings.
+	 *
+	 * @since 1.0.0
 	 */
 	public static function control_heartbeat_settings( $settings ) {
 		global $pagenow;
@@ -271,16 +313,24 @@ final class Options_Dispatch {
 			return $settings;
 		}
 
-		if ( self::is_frontend() ) {
-			$interval = self::get_option_value( 'heartbeat_interval_frontend', 60 );
-		} elseif ( in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
+		$is_frontend = self::is_frontend();
+		$is_editor   = ! $is_frontend && in_array( $pagenow, array( 'post.php', 'post-new.php' ), true );
+
+		if ( $is_frontend ) {
+			$interval = self::get_option_value( 'heartbeat_interval_frontend', 120 );
+		} elseif ( $is_editor ) {
 			$interval = self::get_option_value( 'heartbeat_interval_editor', 30 );
 		} else {
-			$interval = self::get_option_value( 'heartbeat_interval_dashboard', 60 );
+			$interval = self::get_option_value( 'heartbeat_interval_dashboard', 120 );
 		}
 
 		// WordPress accepts 15 to 120 seconds.
 		$settings['interval'] = min( 120, max( 15, (int) $interval ) );
+
+		// Core sets 10 seconds in the post editor on page load, the minimal interval keeps the saved value.
+		if ( $is_editor ) {
+			$settings['minimalInterval'] = $settings['interval'];
+		}
 
 		return $settings;
 	}
@@ -489,11 +539,44 @@ final class Options_Dispatch {
 		\add_filter( 'rest_endpoints', array( __CLASS__, 'remove_comments_rest_endpoints' ) );
 		\add_filter( 'xmlrpc_methods', array( __CLASS__, 'remove_comments_xmlrpc_methods' ) );
 
+		// Admin replies skip comments_open(), so block them before the core handler at priority 1.
+		\add_action( 'wp_ajax_replyto-comment', array( __CLASS__, 'block_comment_reply' ), 0 );
+
 		// Remove menu items.
 		\add_action( 'admin_menu', array( __CLASS__, 'remove_comments_menu' ) );
 
-		// Remove admin bar item.
-		\add_action( 'admin_bar_menu', array( __CLASS__, 'remove_admin_bar_comments' ), 999 );
+		// Keep the admin bar item when comments stay manageable in admin, but hide Reply links.
+		if ( self::get_option_value( 'disable_comments_keep_admin' ) ) {
+			\add_filter( 'comment_row_actions', array( __CLASS__, 'remove_comment_reply_action' ) );
+		} else {
+			\add_action( 'admin_bar_menu', array( __CLASS__, 'remove_admin_bar_comments' ), 999 );
+		}
+	}
+
+	/**
+	 * Stop new comment replies from the admin area.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function block_comment_reply() {
+		\wp_die( \esc_html__( 'Comments are disabled, new replies can not be added.', 'bloatbuster-performance-asset-cleaner' ) );
+	}
+
+	/**
+	 * Remove the Reply link from comment row actions.
+	 *
+	 * @param array $actions - Comment row action links.
+	 *
+	 * @return array - Filtered action links.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_comment_reply_action( $actions ) {
+		unset( $actions['reply'] );
+
+		return $actions;
 	}
 
 	/**
@@ -509,12 +592,16 @@ final class Options_Dispatch {
 	public static function admin_disable_comments() {
 		global $pagenow;
 
-		if ( 'edit-comments.php' === $pagenow || 'options-discussion.php' === $pagenow ) {
+		$keep_admin = self::get_option_value( 'disable_comments_keep_admin' );
+
+		if ( 'options-discussion.php' === $pagenow || ( ! $keep_admin && 'edit-comments.php' === $pagenow ) ) {
 			\wp_safe_redirect( \admin_url() );
 			exit;
 		}
 
-		\remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+		if ( ! $keep_admin ) {
+			\remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+		}
 
 		foreach ( \get_post_types() as $post_type ) {
 			if ( \post_type_supports( $post_type, 'comments' ) ) {
@@ -532,7 +619,10 @@ final class Options_Dispatch {
 	 * @since 1.0.0
 	 */
 	public static function remove_comments_menu() {
-		\remove_menu_page( 'edit-comments.php' );
+		if ( ! self::get_option_value( 'disable_comments_keep_admin' ) ) {
+			\remove_menu_page( 'edit-comments.php' );
+		}
+
 		\remove_submenu_page( 'options-general.php', 'options-discussion.php' );
 	}
 
