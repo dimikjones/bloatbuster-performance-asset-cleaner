@@ -307,8 +307,10 @@
           transition: opacity 0.2s ease-out;
         }
 
+        // Outline, so the checked border does not hide the keyboard focus.
         &:focus-visible {
-          border-color: var(--bbpac-border-active);
+          outline: 2px solid var(--bbpac-active-color);
+          outline-offset: 2px;
         }
 
         &:checked {
