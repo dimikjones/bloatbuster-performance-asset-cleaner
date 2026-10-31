@@ -159,7 +159,7 @@ final class Fields {
 			<?php
 		} elseif ( 'toggle' === $args['type'] ) {
 			?>
-			<div class="bbpac-field toggle">
+			<div class="bbpac-field toggle" data-bbpac-parent="<?php echo \esc_attr( $args['parent'] ?? '' ); ?>">
 				<label>
 					<input type="checkbox" id="<?php echo \esc_attr( 'bbpac-' . $args['id'] ); ?>" name="<?php echo \esc_attr( $option_name ); ?>" value="1" <?php \checked( 1, $value ); ?> <?php \disabled( $is_locked ); ?>>
 					<span class="slider round"></span>

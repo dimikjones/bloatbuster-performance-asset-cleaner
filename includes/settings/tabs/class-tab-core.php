@@ -84,6 +84,13 @@ final class Tab_Core extends Settings_Tab {
 			),
 			array(
 				'type'        => 'toggle',
+				'id'          => 'disable_comments_keep_admin',
+				'parent'      => 'disable_comments',
+				'label'       => \__( 'Keep comments in admin', 'bloatbuster-performance-asset-cleaner' ),
+				'description' => \__( 'Keep the Comments screen in the admin area so existing comments can be edited or deleted. Comments stay disabled on the front-end.', 'bloatbuster-performance-asset-cleaner' ),
+			),
+			array(
+				'type'        => 'toggle',
 				'id'          => 'disable_self_pingbacks',
 				'label'       => \__( 'Disable self-pingbacks', 'bloatbuster-performance-asset-cleaner' ),
 				'description' => \__( 'Minor core cleanup: stops WordPress from sending pingbacks to its own posts.', 'bloatbuster-performance-asset-cleaner' ),

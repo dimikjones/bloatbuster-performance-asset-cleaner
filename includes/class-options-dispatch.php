@@ -492,8 +492,10 @@ final class Options_Dispatch {
 		// Remove menu items.
 		\add_action( 'admin_menu', array( __CLASS__, 'remove_comments_menu' ) );
 
-		// Remove admin bar item.
-		\add_action( 'admin_bar_menu', array( __CLASS__, 'remove_admin_bar_comments' ), 999 );
+		// Keep the admin bar item when comments stay manageable in admin.
+		if ( ! self::get_option_value( 'disable_comments_keep_admin' ) ) {
+			\add_action( 'admin_bar_menu', array( __CLASS__, 'remove_admin_bar_comments' ), 999 );
+		}
 	}
 
 	/**
@@ -509,12 +511,16 @@ final class Options_Dispatch {
 	public static function admin_disable_comments() {
 		global $pagenow;
 
-		if ( 'edit-comments.php' === $pagenow || 'options-discussion.php' === $pagenow ) {
+		$keep_admin = self::get_option_value( 'disable_comments_keep_admin' );
+
+		if ( 'options-discussion.php' === $pagenow || ( ! $keep_admin && 'edit-comments.php' === $pagenow ) ) {
 			\wp_safe_redirect( \admin_url() );
 			exit;
 		}
 
-		\remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+		if ( ! $keep_admin ) {
+			\remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+		}
 
 		foreach ( \get_post_types() as $post_type ) {
 			if ( \post_type_supports( $post_type, 'comments' ) ) {
@@ -532,7 +538,10 @@ final class Options_Dispatch {
 	 * @since 1.0.0
 	 */
 	public static function remove_comments_menu() {
-		\remove_menu_page( 'edit-comments.php' );
+		if ( ! self::get_option_value( 'disable_comments_keep_admin' ) ) {
+			\remove_menu_page( 'edit-comments.php' );
+		}
+
 		\remove_submenu_page( 'options-general.php', 'options-discussion.php' );
 	}
 
