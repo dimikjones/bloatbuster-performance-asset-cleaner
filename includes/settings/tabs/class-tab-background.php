@@ -101,7 +101,7 @@ final class Tab_Background extends Settings_Tab {
 				'min'         => 15,
 				'max'         => 120,
 				'step'        => 5,
-				'default'     => 60,
+				'default'     => 120,
 			),
 			array(
 				'type'        => 'number',
@@ -112,7 +112,7 @@ final class Tab_Background extends Settings_Tab {
 				'min'         => 15,
 				'max'         => 120,
 				'step'        => 5,
-				'default'     => 60,
+				'default'     => 120,
 			),
 			array(
 				'type'        => 'number',

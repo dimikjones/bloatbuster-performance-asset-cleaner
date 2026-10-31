@@ -277,11 +277,11 @@ final class Options_Dispatch {
 		$is_editor   = ! $is_frontend && in_array( $pagenow, array( 'post.php', 'post-new.php' ), true );
 
 		if ( $is_frontend ) {
-			$interval = self::get_option_value( 'heartbeat_interval_frontend', 60 );
+			$interval = self::get_option_value( 'heartbeat_interval_frontend', 120 );
 		} elseif ( $is_editor ) {
 			$interval = self::get_option_value( 'heartbeat_interval_editor', 30 );
 		} else {
-			$interval = self::get_option_value( 'heartbeat_interval_dashboard', 60 );
+			$interval = self::get_option_value( 'heartbeat_interval_dashboard', 120 );
 		}
 
 		// WordPress accepts 15 to 120 seconds.
