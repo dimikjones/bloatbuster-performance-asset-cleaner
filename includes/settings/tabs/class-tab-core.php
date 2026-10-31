@@ -69,6 +69,8 @@ final class Tab_Core extends Settings_Tab {
 	 * @since 1.0.0
 	 */
 	public static function get_fields() {
+		$sitemaps_lock = Options_Dispatch::get_sitemaps_lock();
+
 		return array(
 			array(
 				'type'        => 'toggle',
@@ -125,10 +127,12 @@ final class Tab_Core extends Settings_Tab {
 				'description' => \__( 'Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
-				'type'        => 'toggle',
-				'id'          => 'disable_wp_sitemaps',
-				'label'       => \__( 'Disable core XML sitemaps', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Removes the WordPress sitemap at /wp-sitemap.xml. SEO plugins with their own sitemaps, like Yoast SEO or Rank Math, already turn it off.', 'bloatbuster-performance-asset-cleaner' ),
+				'type'           => 'toggle',
+				'id'             => 'disable_wp_sitemaps',
+				'label'          => \__( 'Disable core XML sitemaps', 'bloatbuster-performance-asset-cleaner' ),
+				'description'    => \__( 'Removes the WordPress sitemap at /wp-sitemap.xml. Locked when another plugin or the Reading settings already turn it off.', 'bloatbuster-performance-asset-cleaner' ),
+				'locked'         => $sitemaps_lock,
+				'locked_message' => self::get_sitemaps_locked_message( $sitemaps_lock ),
 			),
 			array(
 				'type'        => 'toggle',
@@ -137,5 +141,37 @@ final class Tab_Core extends Settings_Tab {
 				'description' => \__( 'Hide usernames from the REST API users endpoint, ?author= URLs, the users sitemap and oEmbed data for visitors who can not edit posts. Makes brute force login attacks harder. Author archive pages keep working.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 		);
+	}
+
+	/**
+	 * Get the message explaining why the core XML sitemaps field is locked.
+	 *
+	 * @param string $reason - Lock reason, 'private', 'yoast', 'rank-math', 'plugin' or empty.
+	 *
+	 * @return string - Message HTML, empty when not locked.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_sitemaps_locked_message( $reason ) {
+		if ( 'private' === $reason ) {
+			return \esc_html__( 'Core XML sitemaps are off because search engines are discouraged in the Reading settings.', 'bloatbuster-performance-asset-cleaner' )
+				. ' <a href="' . \esc_url( \admin_url( 'options-reading.php' ) ) . '">'
+				. \esc_html__( 'Go to Reading settings', 'bloatbuster-performance-asset-cleaner' )
+				. '</a>';
+		}
+
+		if ( 'yoast' === $reason ) {
+			return \esc_html__( 'Core XML sitemaps are already turned off by Yoast SEO.', 'bloatbuster-performance-asset-cleaner' );
+		}
+
+		if ( 'rank-math' === $reason ) {
+			return \esc_html__( 'Core XML sitemaps are already turned off by Rank Math.', 'bloatbuster-performance-asset-cleaner' );
+		}
+
+		if ( 'plugin' === $reason ) {
+			return \esc_html__( 'Core XML sitemaps are already turned off by another plugin or theme.', 'bloatbuster-performance-asset-cleaner' );
+		}
+
+		return '';
 	}
 }

@@ -200,6 +200,46 @@ final class Options_Dispatch {
 	}
 
 	/**
+	 * Get the reason why core XML sitemaps are already off without this plugin.
+	 *
+	 * @return string - 'private' if search engines are discouraged, 'yoast', 'rank-math' or 'plugin' if a filter turns them off, empty otherwise.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_sitemaps_lock() {
+		if ( ! \get_option( 'blog_public' ) ) {
+			return 'private';
+		}
+
+		// Check without our own callback, so enabling the option does not lock it.
+		$priority = \has_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ) );
+
+		if ( false !== $priority ) {
+			\remove_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ), $priority );
+		}
+
+		$is_enabled = (bool) \apply_filters( 'wp_sitemaps_enabled', true );
+
+		if ( false !== $priority ) {
+			\add_filter( 'wp_sitemaps_enabled', array( __CLASS__, 'disable_wp_sitemaps' ), $priority );
+		}
+
+		if ( $is_enabled ) {
+			return '';
+		}
+
+		if ( defined( 'WPSEO_VERSION' ) ) {
+			return 'yoast';
+		}
+
+		if ( defined( 'RANK_MATH_VERSION' ) ) {
+			return 'rank-math';
+		}
+
+		return 'plugin';
+	}
+
+	/**
 	 * Dequeue the classic theme styles and global styles on the frontend.
 	 *
 	 * @return void
