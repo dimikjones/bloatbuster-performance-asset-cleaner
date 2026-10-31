@@ -142,7 +142,7 @@ final class Tab_Background extends Settings_Tab {
 				'min'            => 10,
 				'max'            => 600,
 				'step'           => 10,
-				'default'        => 60,
+				'default'        => 120,
 				'locked'         => $autosave_lock,
 				'locked_message' => $autosave_message,
 			),

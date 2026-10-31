@@ -120,7 +120,7 @@ final class Options_Dispatch {
 			return;
 		}
 
-		$interval = (int) self::get_option_value( 'autosave_interval', 60 );
+		$interval = (int) self::get_option_value( 'autosave_interval', 120 );
 
 		define( 'AUTOSAVE_INTERVAL', min( 600, max( 10, $interval ) ) );
 	}
