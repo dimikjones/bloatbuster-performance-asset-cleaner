@@ -263,6 +263,8 @@ final class Options_Dispatch {
 	 * @param array $settings - Heartbeat settings.
 	 *
 	 * @return array - Filtered Heartbeat settings.
+	 *
+	 * @since 1.0.0
 	 */
 	public static function control_heartbeat_settings( $settings ) {
 		global $pagenow;
@@ -271,9 +273,12 @@ final class Options_Dispatch {
 			return $settings;
 		}
 
-		if ( self::is_frontend() ) {
+		$is_frontend = self::is_frontend();
+		$is_editor   = ! $is_frontend && in_array( $pagenow, array( 'post.php', 'post-new.php' ), true );
+
+		if ( $is_frontend ) {
 			$interval = self::get_option_value( 'heartbeat_interval_frontend', 60 );
-		} elseif ( in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
+		} elseif ( $is_editor ) {
 			$interval = self::get_option_value( 'heartbeat_interval_editor', 30 );
 		} else {
 			$interval = self::get_option_value( 'heartbeat_interval_dashboard', 60 );
@@ -281,6 +286,11 @@ final class Options_Dispatch {
 
 		// WordPress accepts 15 to 120 seconds.
 		$settings['interval'] = min( 120, max( 15, (int) $interval ) );
+
+		// Core sets 10 seconds in the post editor on page load, the minimal interval keeps the saved value.
+		if ( $is_editor ) {
+			$settings['minimalInterval'] = $settings['interval'];
+		}
 
 		return $settings;
 	}
