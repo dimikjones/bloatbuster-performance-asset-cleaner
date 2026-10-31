@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T21:59:52+02:00\n"
+"POT-Creation-Date: 2026-10-31T21:30:09+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -284,7 +284,7 @@ msgstr ""
 msgid "Once"
 msgstr ""
 
-#: includes/class-options-dispatch.php:660
+#: includes/class-options-dispatch.php:669
 msgid "XML-RPC is disabled on this site."
 msgstr ""
 
@@ -814,59 +814,67 @@ msgstr ""
 msgid "Disable comments, pingbacks and trackbacks across the entire site, including the admin area. Existing comments are hidden, not deleted."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:88
-msgid "Disable self-pingbacks"
-msgstr ""
-
 #: includes/settings/tabs/class-tab-core.php:89
-msgid "Minor core cleanup: stops WordPress from sending pingbacks to its own posts."
+msgid "Keep comments in admin"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:94
-msgid "Limit post revisions"
+#: includes/settings/tabs/class-tab-core.php:90
+msgid "Keep the Comments screen in the admin area so existing comments can be edited or deleted. Comments stay disabled on the front-end."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-core.php:95
-msgid "Keep only a set number of revisions per post. Overrides WP_POST_REVISIONS from wp-config.php while enabled."
+msgid "Disable self-pingbacks"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:96
+msgid "Minor core cleanup: stops WordPress from sending pingbacks to its own posts."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-core.php:101
-msgid "Revisions to keep"
+msgid "Limit post revisions"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-core.php:102
+msgid "Keep only a set number of revisions per post. Overrides WP_POST_REVISIONS from wp-config.php while enabled."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:108
+msgid "Revisions to keep"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-core.php:109
 msgid "Number of revisions to keep per post. 0 disables revisions."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:111
+#: includes/settings/tabs/class-tab-core.php:118
 msgid "Remove unnecessary head tags"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:112
+#: includes/settings/tabs/class-tab-core.php:119
 msgid "Remove the WordPress version, RSD, Windows Live Writer, shortlink, REST API and adjacent post links from the page head and HTTP headers."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:117
+#: includes/settings/tabs/class-tab-core.php:124
 msgid "Disable XML-RPC"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:118
+#: includes/settings/tabs/class-tab-core.php:125
 msgid "Disable all XML-RPC methods, including pingbacks. Do not enable if you use Jetpack or the WordPress mobile app."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:123
+#: includes/settings/tabs/class-tab-core.php:130
 msgid "Disable core XML sitemaps"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:124
+#: includes/settings/tabs/class-tab-core.php:131
 msgid "Removes the WordPress sitemap at /wp-sitemap.xml. SEO plugins with their own sitemaps, like Yoast SEO or Rank Math, already turn it off."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:129
+#: includes/settings/tabs/class-tab-core.php:136
 msgid "Disable user enumeration"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-core.php:130
+#: includes/settings/tabs/class-tab-core.php:137
 msgid "Hide usernames from the REST API users endpoint, ?author= URLs, the users sitemap and oEmbed data for visitors who can not edit posts. Makes brute force login attacks harder. Author archive pages keep working."
 msgstr ""
 

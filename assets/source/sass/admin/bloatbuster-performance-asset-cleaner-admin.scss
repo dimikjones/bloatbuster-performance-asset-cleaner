@@ -265,7 +265,11 @@
         position: relative;
         display: inline-flex;
       }
+    }
 
+    // Checkbox and checkbox list inputs
+    &.checkbox,
+    &.checkbox-list {
       input {
         appearance: none;
         background: #fff;
@@ -281,6 +285,7 @@
         transition: border-color 0.2s ease-out;
         width: 20px;
         height: 20px;
+        flex-shrink: 0;
 
         &:before {
           display: none !important;
@@ -302,6 +307,10 @@
           transition: opacity 0.2s ease-out;
         }
 
+        &:focus-visible {
+          border-color: var(--bbpac-border-active);
+        }
+
         &:checked {
           border-color: var(--bbpac-active-color);
 
@@ -309,6 +318,15 @@
             opacity: 1;
           }
         }
+      }
+    }
+
+    // Checkbox list items can be combined, so use a rounded square, not a radio-like dot.
+    &.checkbox-list input {
+      border-radius: 4px;
+
+      &:after {
+        border-radius: 2px;
       }
     }
   }
@@ -590,7 +608,11 @@
   border: 0;
 
   label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 14px;
+    cursor: pointer;
   }
 }
 
