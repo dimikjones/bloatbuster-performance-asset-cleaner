@@ -539,13 +539,44 @@ final class Options_Dispatch {
 		\add_filter( 'rest_endpoints', array( __CLASS__, 'remove_comments_rest_endpoints' ) );
 		\add_filter( 'xmlrpc_methods', array( __CLASS__, 'remove_comments_xmlrpc_methods' ) );
 
+		// Admin replies skip comments_open(), so block them before the core handler at priority 1.
+		\add_action( 'wp_ajax_replyto-comment', array( __CLASS__, 'block_comment_reply' ), 0 );
+
 		// Remove menu items.
 		\add_action( 'admin_menu', array( __CLASS__, 'remove_comments_menu' ) );
 
-		// Keep the admin bar item when comments stay manageable in admin.
-		if ( ! self::get_option_value( 'disable_comments_keep_admin' ) ) {
+		// Keep the admin bar item when comments stay manageable in admin, but hide Reply links.
+		if ( self::get_option_value( 'disable_comments_keep_admin' ) ) {
+			\add_filter( 'comment_row_actions', array( __CLASS__, 'remove_comment_reply_action' ) );
+		} else {
 			\add_action( 'admin_bar_menu', array( __CLASS__, 'remove_admin_bar_comments' ), 999 );
 		}
+	}
+
+	/**
+	 * Stop new comment replies from the admin area.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function block_comment_reply() {
+		\wp_die( \esc_html__( 'Comments are disabled, new replies can not be added.', 'bloatbuster-performance-asset-cleaner' ) );
+	}
+
+	/**
+	 * Remove the Reply link from comment row actions.
+	 *
+	 * @param array $actions - Comment row action links.
+	 *
+	 * @return array - Filtered action links.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_comment_reply_action( $actions ) {
+		unset( $actions['reply'] );
+
+		return $actions;
 	}
 
 	/**
