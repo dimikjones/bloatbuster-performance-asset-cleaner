@@ -29,6 +29,7 @@ Every option is off by default, so nothing changes until you turn it on.
 
 * Disable oEmbed discovery and embed script (embeds from YouTube and other services keep working)
 * Disable comments site-wide
+* Keep comments in admin, so existing comments can still be edited or deleted while comments are disabled
 * Disable self-pingbacks
 * Limit post revisions to a set number
 * Remove unnecessary head tags
@@ -85,6 +86,10 @@ Every option is off by default, so nothing changes until you turn it on.
 = Will it break my site? =
 
 Every option is off by default. Turn options on one by one and check your site after each change. Each option explains what it removes. Some need care: only disable block styles if your theme does not use blocks, don't disable XML-RPC if you use Jetpack or the WordPress mobile app, and keep the Heartbeat API on the frontend if a plugin like live chat or a membership plugin needs it.
+
+= Can I still manage existing comments after disabling comments? =
+
+Yes. Turn on "Keep comments in admin" under "Disable comments". The Comments screen stays in the admin area, so you can edit, delete or mark comments as spam. Comments stay disabled on the front-end and new comments can't be added.
 
 = I use a block theme. Can I disable global styles? =
 
