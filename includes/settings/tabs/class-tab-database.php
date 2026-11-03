@@ -365,14 +365,27 @@ final class Tab_Database extends Settings_Tab {
 				continue;
 			}
 
-			$links[] = array(
-				'url'  => \add_query_arg(
+			if ( 'attachment' === $post_type ) {
+				// edit.php redirects attachments to upload.php without the trash filter, the list mode has a trash view.
+				$url = \add_query_arg(
+					array(
+						'mode'              => 'list',
+						'attachment-filter' => 'trash',
+					),
+					\admin_url( 'upload.php' )
+				);
+			} else {
+				$url = \add_query_arg(
 					array(
 						'post_status' => 'trash',
 						'post_type'   => $post_type,
 					),
 					\admin_url( 'edit.php' )
-				),
+				);
+			}
+
+			$links[] = array(
+				'url'  => $url,
 				/* translators: 1: post type name, e.g. Pages, 2: number of trashed items. */
 				'text' => sprintf( \__( '%1$s (%2$s)', 'bloatbuster-performance-asset-cleaner' ), $object->labels->name, \number_format_i18n( $count ) ),
 			);
