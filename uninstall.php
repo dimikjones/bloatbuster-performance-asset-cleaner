@@ -26,6 +26,7 @@ function bloatbuster_uninstall_data() {
 	}
 
 	\delete_option( 'bloatbuster_performance_asset_cleaner_options' );
+	\delete_option( 'bloatbuster_cleanup_log' );
 }
 
 if ( \is_multisite() ) {

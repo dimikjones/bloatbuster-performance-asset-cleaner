@@ -350,9 +350,18 @@
     }
   }
 
+  // Keep the action below the admin bar when opened from a preview link.
+  .bbpac-action {
+    scroll-margin-top: 50px;
+  }
+
   .bbpac-autoload,
   .bbpac-transients,
-  .bbpac-cron {
+  .bbpac-cron,
+  .bbpac-db-tables,
+  .bbpac-db-preview,
+  .bbpac-revisions,
+  .bbpac-cleanup-log {
     margin: 8px 0;
 
     thead {

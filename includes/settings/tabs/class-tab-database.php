@@ -109,7 +109,7 @@ final class Tab_Database extends Settings_Tab {
 				'type'            => 'report',
 				'id'              => 'database_stats',
 				'label'           => \__( 'Database statistics', 'bloatbuster-performance-asset-cleaner' ),
-				'description'     => \__( 'Size of the tables of this site. Free space is unused space inside a table file, InnoDB keeps a few MB free in larger tables, which is normal. Row counts are estimates for most tables.', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Size of the tables of this site and what each cleanup would remove. Free space is unused space inside a table file, InnoDB keeps a few MB free in larger tables, which is normal. Row counts are estimates for most tables.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_database_stats' ),
 			),
 			array(
@@ -141,6 +141,33 @@ final class Tab_Database extends Settings_Tab {
 				'confirm'         => \__( 'Auto-drafts older than one day are deleted. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_auto_drafts' ),
 			),
+			array(
+				'type'            => 'action',
+				'id'              => 'delete_spam_comments',
+				'label'           => \__( 'Delete spam comments', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Permanently delete comments marked as spam. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Delete spam comments', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete spam comments?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'All spam comments are deleted. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_spam_comments' ),
+			),
+			array(
+				'type'            => 'action',
+				'id'              => 'delete_trashed_comments',
+				'label'           => \__( 'Delete trashed comments', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Permanently delete comments in the trash. At most 500 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Delete trashed comments', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete trashed comments?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'All comments in the trash are deleted. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_trashed_comments' ),
+			),
+			array(
+				'type'            => 'report',
+				'id'              => 'cleanup_log',
+				'label'           => \__( 'Recent cleanups', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'The last cleanups run from this tab.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_cleanup_log' ),
+			),
 		);
 	}
 
@@ -169,6 +196,12 @@ final class Tab_Database extends Settings_Tab {
 		} elseif ( 'auto_drafts_deleted' === $notice ) {
 			/* translators: %d: number of deleted auto-drafts. */
 			$message = sprintf( \_n( 'Deleted %d auto-draft.', 'Deleted %d auto-drafts.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+		} elseif ( 'spam_comments_deleted' === $notice ) {
+			/* translators: %d: number of deleted spam comments. */
+			$message = sprintf( \_n( 'Deleted %d spam comment.', 'Deleted %d spam comments.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+		} elseif ( 'trashed_comments_deleted' === $notice ) {
+			/* translators: %d: number of deleted trashed comments. */
+			$message = sprintf( \_n( 'Deleted %d trashed comment.', 'Deleted %d trashed comments.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		}
 
 		if ( '' === $message ) {
@@ -198,16 +231,7 @@ final class Tab_Database extends Settings_Tab {
 	public static function render_database_stats() {
 		$limit  = 15;
 		$stats  = Database_Tools::get_table_stats();
-		$counts = Database_Tools::get_content_counts();
 		$totals = $stats['totals'];
-
-		$count_labels = array(
-			'revisions'        => \__( 'Revisions', 'bloatbuster-performance-asset-cleaner' ),
-			'auto_drafts'      => \__( 'Auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
-			'trashed_posts'    => \__( 'Trashed posts', 'bloatbuster-performance-asset-cleaner' ),
-			'spam_comments'    => \__( 'Spam comments', 'bloatbuster-performance-asset-cleaner' ),
-			'trashed_comments' => \__( 'Trashed comments', 'bloatbuster-performance-asset-cleaner' ),
-		);
 		?>
 		<p>
 			<?php
@@ -215,11 +239,7 @@ final class Tab_Database extends Settings_Tab {
 			echo \esc_html( sprintf( \__( 'Database size: %1$s in %2$d tables.', 'bloatbuster-performance-asset-cleaner' ), \size_format( $totals['size'], 1 ), $totals['count'] ) );
 			?>
 		</p>
-		<ul class="bbpac-db-counts">
-			<?php foreach ( $count_labels as $key => $label ) : ?>
-				<li><?php echo \esc_html( $label ); ?>: <strong><?php echo \esc_html( \number_format_i18n( $counts[ $key ] ) ); ?></strong></li>
-			<?php endforeach; ?>
-		</ul>
+		<?php self::render_cleanup_preview(); ?>
 		<?php if ( ! empty( $stats['tables'] ) ) : ?>
 			<table class="widefat striped bbpac-db-tables">
 				<thead>
@@ -250,6 +270,175 @@ final class Tab_Database extends Settings_Tab {
 			/* translators: %d: number of tables not shown in the list. */
 			echo '<p>' . \esc_html( sprintf( \_n( 'And %d more.', 'And %d more.', $more, 'bloatbuster-performance-asset-cleaner' ), $more ) ) . '</p>';
 		}
+	}
+
+	/**
+	 * Get the cleanup preview rows: what is stored and what each action would delete now.
+	 *
+	 * Eligible counts use the same methods as the actions, so they match the action results.
+	 * A null count is shown as "-".
+	 *
+	 * @return array - Rows with label, stored, eligible, rule, action and links.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_cleanup_preview_rows() {
+		$counts      = Database_Tools::get_content_counts();
+		$keep        = self::get_revisions_to_keep();
+		$trash_links = self::get_trash_links();
+
+		$trash_rule = \__( 'Not cleaned here.', 'bloatbuster-performance-asset-cleaner' );
+
+		if ( ! empty( $trash_links ) ) {
+			$trash_rule = \__( 'Not cleaned here, empty the trash from:', 'bloatbuster-performance-asset-cleaner' );
+		}
+
+		return array(
+			array(
+				'label'    => \__( 'Revisions', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['revisions'],
+				'eligible' => Database_Tools::count_revisions( $keep ),
+				/* translators: %d: number of revisions kept per post. */
+				'rule'     => sprintf( \_n( 'Beyond the newest %d per post.', 'Beyond the newest %d per post.', $keep, 'bloatbuster-performance-asset-cleaner' ), $keep ),
+				'action'   => 'delete_revisions',
+				'links'    => array(),
+			),
+			array(
+				'label'    => \__( 'Auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['auto_drafts'],
+				'eligible' => Database_Tools::count_auto_drafts(),
+				'rule'     => \__( 'Older than one day.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'delete_auto_drafts',
+				'links'    => array(),
+			),
+			array(
+				'label'    => \__( 'Expired transients', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => null,
+				'eligible' => Database_Tools::count_expired_transients(),
+				'rule'     => \__( 'Expired, but still in the database.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'clean_expired_transients',
+				'links'    => array(),
+			),
+			array(
+				'label'    => \__( 'Spam comments', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['spam_comments'],
+				'eligible' => Database_Tools::count_comments( 'spam' ),
+				'rule'     => \__( 'All spam comments.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'delete_spam_comments',
+				'links'    => array(),
+			),
+			array(
+				'label'    => \__( 'Trashed comments', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['trashed_comments'],
+				'eligible' => Database_Tools::count_comments( 'trash' ),
+				'rule'     => \__( 'All comments in the trash.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'delete_trashed_comments',
+				'links'    => array(),
+			),
+			array(
+				'label'    => \__( 'Trashed posts', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['trashed_posts'],
+				'eligible' => null,
+				'rule'     => $trash_rule,
+				'action'   => '',
+				'links'    => $trash_links,
+			),
+		);
+	}
+
+	/**
+	 * Get a trash link for each post type with trashed posts and a list screen the user can open.
+	 *
+	 * Post types without a list screen are still counted in the preview, they just get no link.
+	 *
+	 * @return array - Links with url and text, most trashed post type first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_trash_links() {
+		$links = array();
+
+		foreach ( Database_Tools::get_trashed_post_type_counts() as $post_type => $count ) {
+			$object = \get_post_type_object( $post_type );
+
+			if ( ! $object || ! $object->show_ui || ! \current_user_can( $object->cap->edit_posts ) ) {
+				continue;
+			}
+
+			if ( 'attachment' === $post_type ) {
+				// edit.php redirects attachments to upload.php without the trash filter, the list mode has a trash view.
+				$url = \add_query_arg(
+					array(
+						'mode'              => 'list',
+						'attachment-filter' => 'trash',
+					),
+					\admin_url( 'upload.php' )
+				);
+			} else {
+				$url = \add_query_arg(
+					array(
+						'post_status' => 'trash',
+						'post_type'   => $post_type,
+					),
+					\admin_url( 'edit.php' )
+				);
+			}
+
+			$links[] = array(
+				'url'  => $url,
+				/* translators: 1: post type name, e.g. Pages, 2: number of trashed items. */
+				'text' => sprintf( \__( '%1$s (%2$s)', 'bloatbuster-performance-asset-cleaner' ), $object->labels->name, \number_format_i18n( $count ) ),
+			);
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Render the cleanup preview table.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_cleanup_preview() {
+		$rows = self::get_cleanup_preview_rows();
+		?>
+		<table class="widefat striped bbpac-db-preview">
+			<thead>
+				<tr>
+					<th><?php \esc_html_e( 'Cleanup', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Stored', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Eligible now', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Rule', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $rows as $row ) : ?>
+					<tr>
+						<td><?php echo \esc_html( $row['label'] ); ?></td>
+						<td><?php echo \esc_html( null === $row['stored'] ? '-' : \number_format_i18n( $row['stored'] ) ); ?></td>
+						<td>
+							<?php if ( null === $row['eligible'] ) : ?>
+								-
+							<?php elseif ( $row['eligible'] > 0 && '' !== $row['action'] ) : ?>
+								<a href="<?php echo \esc_attr( '#bbpac-action-' . $row['action'] ); ?>"><?php echo \esc_html( \number_format_i18n( $row['eligible'] ) ); ?></a>
+							<?php else : ?>
+								<?php echo \esc_html( \number_format_i18n( $row['eligible'] ) ); ?>
+							<?php endif; ?>
+						</td>
+						<td>
+							<?php echo \esc_html( $row['rule'] ); ?>
+							<?php foreach ( $row['links'] as $index => $link ) : ?>
+								<?php echo 0 < $index ? ', ' : ''; ?><a href="<?php echo \esc_url( $link['url'] ); ?>"><?php echo \esc_html( $link['text'] ); ?></a>
+							<?php endforeach; ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<p class="description"><?php \esc_html_e( 'Deleting rows does not always shrink the database file size.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+		<?php
 	}
 
 	/**
@@ -359,6 +548,122 @@ final class Tab_Database extends Settings_Tab {
 		</p>
 		<?php
 		return $count > 0;
+	}
+
+	/**
+	 * Render the number of spam comments.
+	 *
+	 * @return bool - True if there are spam comments to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_spam_comments() {
+		$count = Database_Tools::count_comments( 'spam' );
+		?>
+		<p>
+			<?php
+			/* translators: %d: number of spam comments. */
+			echo \esc_html( sprintf( \_n( '%d spam comment.', '%d spam comments.', $count, 'bloatbuster-performance-asset-cleaner' ), $count ) );
+			?>
+		</p>
+		<?php
+		return $count > 0;
+	}
+
+	/**
+	 * Render the number of trashed comments.
+	 *
+	 * @return bool - True if there are trashed comments to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_trashed_comments() {
+		$count = Database_Tools::count_comments( 'trash' );
+		?>
+		<p>
+			<?php
+			/* translators: %d: number of trashed comments. */
+			echo \esc_html( sprintf( \_n( '%d comment in the trash.', '%d comments in the trash.', $count, 'bloatbuster-performance-asset-cleaner' ), $count ) );
+			?>
+		</p>
+		<?php
+		return $count > 0;
+	}
+
+	/**
+	 * Get the label of an action field, used in the cleanup log.
+	 *
+	 * @param string $action_id - Action field ID.
+	 *
+	 * @return string - Field label, or the ID when the action no longer exists.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_action_label( $action_id ) {
+		foreach ( self::get_fields() as $field ) {
+			if ( 'action' === $field['type'] && $action_id === $field['id'] ) {
+				return $field['label'];
+			}
+		}
+
+		return $action_id;
+	}
+
+	/**
+	 * Render the recent cleanup runs.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_cleanup_log() {
+		$log = Database_Tools::get_cleanup_log();
+
+		if ( empty( $log ) ) {
+			echo '<p>' . \esc_html__( 'No cleanups run yet.', 'bloatbuster-performance-asset-cleaner' ) . '</p>';
+			return;
+		}
+
+		$date_format = \get_option( 'date_format' ) . ' ' . \get_option( 'time_format' );
+		?>
+		<table class="widefat striped bbpac-cleanup-log">
+			<thead>
+				<tr>
+					<th><?php \esc_html_e( 'When', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Cleanup', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Removed', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Left', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'By', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $log as $entry ) : ?>
+					<?php
+					if ( ! is_array( $entry ) ) {
+						continue;
+					}
+
+					$time = \absint( $entry['time'] ?? 0 );
+					$user = \get_userdata( \absint( $entry['user'] ?? 0 ) );
+					?>
+					<tr>
+						<td>
+							<span title="<?php echo \esc_attr( \wp_date( $date_format, $time ) ); ?>">
+								<?php
+								/* translators: %s: human readable time difference, e.g. 5 minutes. */
+								echo \esc_html( sprintf( \__( '%s ago', 'bloatbuster-performance-asset-cleaner' ), \human_time_diff( $time ) ) );
+								?>
+							</span>
+						</td>
+						<td><?php echo \esc_html( self::get_action_label( (string) ( $entry['action'] ?? '' ) ) ); ?></td>
+						<td><?php echo \esc_html( \number_format_i18n( \absint( $entry['deleted'] ?? 0 ) ) ); ?></td>
+						<td><?php echo \esc_html( \number_format_i18n( \absint( $entry['remaining'] ?? 0 ) ) ); ?></td>
+						<td><?php echo \esc_html( $user ? $user->display_name : \__( 'Unknown user', 'bloatbuster-performance-asset-cleaner' ) ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
 	}
 
 	/**

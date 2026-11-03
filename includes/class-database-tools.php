@@ -32,6 +32,20 @@ final class Database_Tools {
 	const DELETE_BATCH = 500;
 
 	/**
+	 * Option that stores the recent cleanup runs, not autoloaded.
+	 *
+	 * @var string
+	 */
+	const LOG_OPTION = 'bloatbuster_cleanup_log';
+
+	/**
+	 * Comment statuses that can be deleted.
+	 *
+	 * @var array
+	 */
+	const COMMENT_STATUSES = array( 'spam', 'trash' );
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -264,6 +278,8 @@ final class Database_Tools {
 			case 'clean_expired_transients':
 				$args['bloatbuster_notice'] = 'transients_cleaned';
 				$args['bloatbuster_count']  = self::clean_expired_transients();
+
+				self::log_cleanup( $action, $args['bloatbuster_count'], self::count_expired_transients() );
 				break;
 
 			case 'delete_revisions':
@@ -280,6 +296,8 @@ final class Database_Tools {
 
 				// Fill the form with the same value, so the next batch keeps the same revisions.
 				$args['bloatbuster_keep'] = $keep;
+
+				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
 				break;
 
 			case 'delete_auto_drafts':
@@ -288,6 +306,28 @@ final class Database_Tools {
 				$args['bloatbuster_notice']    = 'auto_drafts_deleted';
 				$args['bloatbuster_count']     = $result['deleted'];
 				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
+				break;
+
+			case 'delete_spam_comments':
+				$result = self::delete_comments( 'spam' );
+
+				$args['bloatbuster_notice']    = 'spam_comments_deleted';
+				$args['bloatbuster_count']     = $result['deleted'];
+				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
+				break;
+
+			case 'delete_trashed_comments':
+				$result = self::delete_comments( 'trash' );
+
+				$args['bloatbuster_notice']    = 'trashed_comments_deleted';
+				$args['bloatbuster_count']     = $result['deleted'];
+				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
 				break;
 		}
 
@@ -375,6 +415,33 @@ final class Database_Tools {
 			'trashed_comments' => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->comments} WHERE comment_approved = %s", 'trash' ) ),
 		);
 		// phpcs:enable
+
+		return $counts;
+	}
+
+	/**
+	 * Count trashed posts per post type.
+	 *
+	 * @return array - Counts keyed by post type, most trashed first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_trashed_post_type_counts() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_type, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_status = %s GROUP BY post_type ORDER BY total DESC",
+				'trash'
+			)
+		);
+
+		$counts = array();
+
+		foreach ( (array) $rows as $row ) {
+			$counts[ (string) $row->post_type ] = (int) $row->total;
+		}
 
 		return $counts;
 	}
@@ -606,5 +673,130 @@ final class Database_Tools {
 			'deleted'   => $deleted,
 			'remaining' => self::count_auto_drafts(),
 		);
+	}
+
+	/**
+	 * Count comments with a status, spam or trash.
+	 *
+	 * @param string $status - Comment status, spam or trash.
+	 *
+	 * @return int - Number of comments.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function count_comments( $status ) {
+		global $wpdb;
+
+		if ( ! in_array( $status, self::COMMENT_STATUSES, true ) ) {
+			return 0;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count.
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->comments} WHERE comment_approved = %s",
+				$status
+			)
+		);
+	}
+
+	/**
+	 * Delete comments with a status, spam or trash.
+	 *
+	 * Deletes at most DELETE_BATCH comments per run, the rest can be deleted by running it again.
+	 * Uses wp_delete_comment(), so core hooks, comment meta and post comment counts stay correct.
+	 *
+	 * @param string $status - Comment status, spam or trash.
+	 *
+	 * @return array - Number of deleted and remaining comments.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_comments( $status ) {
+		global $wpdb;
+
+		$deleted = 0;
+
+		if ( ! in_array( $status, self::COMMENT_STATUSES, true ) ) {
+			return array(
+				'deleted'   => 0,
+				'remaining' => 0,
+			);
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list.
+		$comment_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved = %s ORDER BY comment_ID ASC LIMIT %d",
+				$status,
+				self::DELETE_BATCH
+			)
+		);
+
+		foreach ( $comment_ids as $comment_id ) {
+			if ( \wp_delete_comment( (int) $comment_id, true ) ) {
+				++$deleted;
+			}
+		}
+
+		return array(
+			'deleted'   => $deleted,
+			'remaining' => self::count_comments( $status ),
+		);
+	}
+
+	/**
+	 * Add a cleanup run to the log, newest first.
+	 *
+	 * @param string $action    - Action ID, same as the field ID.
+	 * @param int    $deleted   - Number of deleted items.
+	 * @param int    $remaining - Number of items left to delete.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function log_cleanup( $action, $deleted, $remaining ) {
+		$log = self::get_cleanup_log();
+
+		array_unshift(
+			$log,
+			array(
+				'time'      => time(),
+				'action'    => \sanitize_key( $action ),
+				'user'      => \get_current_user_id(),
+				'deleted'   => \absint( $deleted ),
+				'remaining' => \absint( $remaining ),
+			)
+		);
+
+		/**
+		 * Filters how many cleanup runs are kept in the log.
+		 *
+		 * @param int $size - Number of entries to keep, default 10.
+		 *
+		 * @since 1.0.0
+		 */
+		$size = max( 1, \absint( \apply_filters( 'bloatbuster_cleanup_log_size', 10 ) ) );
+
+		// Not autoloaded, the log is only read on the Database tab.
+		\update_option( self::LOG_OPTION, array_slice( $log, 0, $size ), false );
+	}
+
+	/**
+	 * Get the recent cleanup runs, newest first.
+	 *
+	 * @return array - Entries with time, action, user, deleted and remaining.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_cleanup_log() {
+		$log = \get_option( self::LOG_OPTION, array() );
+
+		if ( ! is_array( $log ) ) {
+			return array();
+		}
+
+		return $log;
 	}
 }
