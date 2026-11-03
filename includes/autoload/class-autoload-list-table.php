@@ -125,12 +125,19 @@ final class Autoload_List_Table extends \WP_List_Table {
 	 * @since 1.0.0
 	 */
 	public function get_columns() {
-		return array(
+		$columns = array(
 			'cb'       => '<input type="checkbox" />',
 			'name'     => \__( 'Option', 'bloatbuster-performance-asset-cleaner' ),
 			'size'     => \__( 'Size', 'bloatbuster-performance-asset-cleaner' ),
 			'autoload' => \__( 'Autoload', 'bloatbuster-performance-asset-cleaner' ),
 		);
+
+		// Without bulk actions there is nothing to select.
+		if ( ! Autoload_Actions::can_change_options() ) {
+			unset( $columns['cb'] );
+		}
+
+		return $columns;
 	}
 
 	/**
@@ -157,9 +164,7 @@ final class Autoload_List_Table extends \WP_List_Table {
 	 */
 	protected function get_bulk_actions() {
 		if ( ! Autoload_Actions::can_change_options() ) {
-			return array(
-				'export' => \__( 'Export selected', 'bloatbuster-performance-asset-cleaner' ),
-			);
+			return array();
 		}
 
 		return array(
@@ -182,13 +187,19 @@ final class Autoload_List_Table extends \WP_List_Table {
 	 * @since 1.0.0
 	 */
 	protected function bulk_actions( $which = '' ) {
+		$bulk_actions = $this->get_bulk_actions();
+
+		if ( empty( $bulk_actions ) ) {
+			return;
+		}
+
 		$name = 'top' === $which ? 'bbpac_bulk_action' : 'bbpac_bulk_action2';
 		$id   = 'top' === $which ? 'doaction' : 'doaction2';
 		?>
 		<label for="<?php echo \esc_attr( $name ); ?>" class="screen-reader-text"><?php \esc_html_e( 'Select bulk action', 'bloatbuster-performance-asset-cleaner' ); ?></label>
 		<select name="<?php echo \esc_attr( $name ); ?>" id="<?php echo \esc_attr( $name ); ?>">
 			<option value="-1"><?php \esc_html_e( 'Bulk actions', 'bloatbuster-performance-asset-cleaner' ); ?></option>
-			<?php foreach ( $this->get_bulk_actions() as $value => $label ) : ?>
+			<?php foreach ( $bulk_actions as $value => $label ) : ?>
 				<option value="<?php echo \esc_attr( $value ); ?>"><?php echo \esc_html( $label ); ?></option>
 			<?php endforeach; ?>
 		</select>
@@ -335,6 +346,11 @@ final class Autoload_List_Table extends \WP_List_Table {
 			$html .= ' <span class="bbpac-badge bbpac-badge-protected">' . \esc_html__( 'Protected', 'bloatbuster-performance-asset-cleaner' ) . '</span>';
 		}
 
+		// Site administrators on multisite only see names and sizes, see Autoload_Options::can_manage_values().
+		if ( ! Autoload_Actions::can_change_options() ) {
+			return $html;
+		}
+
 		$actions = array(
 			'view' => sprintf(
 				'<button type="button" class="button-link bbpac-view-value" data-option="%1$s">%2$s</button>',
@@ -343,7 +359,7 @@ final class Autoload_List_Table extends \WP_List_Table {
 			),
 		);
 
-		if ( ! $is_protected && Autoload_Actions::can_change_options() ) {
+		if ( ! $is_protected ) {
 			$is_autoloaded = Autoload_Options::is_autoloaded( $item['autoload'] );
 
 			if ( $is_autoloaded || $item['can_enable_autoload'] ) {

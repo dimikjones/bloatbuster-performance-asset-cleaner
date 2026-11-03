@@ -1,0 +1,8 @@
+# Keep LF line endings in the working tree, so the release build ships LF files.
+* text=auto eol=lf
+
+# Binary files.
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary

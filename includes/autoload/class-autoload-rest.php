@@ -73,14 +73,14 @@ final class Autoload_Rest {
 	}
 
 	/**
-	 * Check if the current user can manage options.
+	 * Check if the current user can view option values. On multisite only network administrators can.
 	 *
 	 * @return bool - True if allowed.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function can_manage_options() {
-		return \current_user_can( 'manage_options' );
+		return Autoload_Options::can_manage_values();
 	}
 
 	/**

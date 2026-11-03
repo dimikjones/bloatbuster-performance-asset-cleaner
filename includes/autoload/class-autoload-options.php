@@ -147,6 +147,25 @@ final class Autoload_Options {
 	const AUTOLOAD_VALUES = array( 'yes', 'no', 'on', 'off', 'auto', 'auto-on', 'auto-off' );
 
 	/**
+	 * Check if the current user can view, export, change, delete or restore option values.
+	 *
+	 * On multisite only network administrators can, like the core options.php screen.
+	 * Site administrators are not fully trusted there, option values can hold secrets
+	 * under any name, and restored values are unserialized by WordPress when read.
+	 *
+	 * @return bool - True if the user can manage option values.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function can_manage_values() {
+		if ( \is_multisite() ) {
+			return \is_super_admin();
+		}
+
+		return \current_user_can( 'manage_options' );
+	}
+
+	/**
 	 * Get the autoload column values that WordPress loads on every request.
 	 *
 	 * @return array - Autoload values.

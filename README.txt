@@ -74,6 +74,10 @@ Every option is off by default, so nothing changes until you turn it on.
 * Disable capital_P_dangit
 * Delete plugin data on uninstall
 
+= Source code =
+
+The admin CSS and JavaScript in the assets folder are compiled. Their source is included in assets/source/ and is also available at https://github.com/dimikjones/bloatbuster-performance-asset-cleaner. To build them, run `npm install` and then `npm run build-prod`.
+
 == Installation ==
 
 1. In your WordPress admin, go to Plugins → Add New Plugin and search for "BloatBuster". You can also upload the plugin zip file with Upload Plugin.
@@ -107,7 +111,7 @@ Changing autoload only changes when WordPress loads an option, the value is kept
 
 = Does it work on multisite? =
 
-Yes. Each site has its own settings. In the Autoloaded Options tab, only network administrators can change, delete or restore options, site administrators can browse, view and export them.
+Yes. Each site has its own settings. In the Autoloaded Options tab, only network administrators can view, export, change, delete or restore options. Site administrators can browse option names and sizes, like the core options screen on multisite.
 
 = What is the WP-Cron status for? =
 
