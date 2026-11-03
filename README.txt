@@ -45,6 +45,7 @@ Every option is off by default, so nothing changes until you turn it on.
 * Delete old revisions, keeping the newest ones per post
 * Delete old auto-drafts
 * Delete spam and trashed comments
+* Delete orphaned metadata: post, comment, term and user meta of objects that no longer exist
 * Recent cleanups log: when, what, how many and by whom
 
 = Autoloaded Options =
@@ -112,9 +113,13 @@ Use "Export all options" to download every persistent option for the current sit
 
 Changing autoload only changes when WordPress loads an option, the value is kept, and you can turn it back. Deleting an option can't be undone, so use Export all options or Export selected first. You can restore exported options later with "Restore from backup". Core WordPress options are protected and can't be changed or deleted.
 
+= Is it safe to delete orphaned metadata? =
+
+Only meta rows whose post, comment, term or user no longer exists are deleted. Meta of existing content is never touched, and rows with object ID 0 are kept because some plugins store global data there. At most 1000 rows per type are deleted per run. Deleting can't be undone, so make a database backup first.
+
 = Does it work on multisite? =
 
-Yes. Each site has its own settings. In the Autoloaded Options tab, only network administrators can view, export, change, delete or restore options. Site administrators can browse option names and sizes, like the core options screen on multisite.
+Yes. Each site has its own settings. In the Autoloaded Options tab, only network administrators can view, export, change, delete or restore options. Site administrators can browse option names and sizes, like the core options screen on multisite. User meta is shared by the whole network, so orphaned user meta can only be cleaned on the main site by a network administrator.
 
 = What is the WP-Cron status for? =
 

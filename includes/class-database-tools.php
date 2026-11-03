@@ -46,6 +46,13 @@ final class Database_Tools {
 	const COMMENT_STATUSES = array( 'spam', 'trash' );
 
 	/**
+	 * Maximum number of orphaned meta rows deleted per type per run.
+	 *
+	 * @var int
+	 */
+	const META_DELETE_BATCH = 1000;
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -328,6 +335,29 @@ final class Database_Tools {
 				$args['bloatbuster_remaining'] = $result['remaining'];
 
 				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
+				break;
+
+			case 'delete_orphaned_meta':
+				$raw_types = isset( $_POST['bbpac_orphan_types'] ) ? (array) \wp_unslash( $_POST['bbpac_orphan_types'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each value is sanitized below.
+				$deleted   = 0;
+				$remaining = 0;
+
+				foreach ( array_unique( array_map( 'sanitize_key', $raw_types ) ) as $type ) {
+					// Unknown types and network user meta on a subsite are skipped.
+					if ( ! self::can_clean_meta_type( $type ) ) {
+						continue;
+					}
+
+					$result     = self::delete_orphaned_meta( $type );
+					$deleted   += $result['deleted'];
+					$remaining += $result['remaining'];
+				}
+
+				$args['bloatbuster_notice']    = 'orphaned_meta_deleted';
+				$args['bloatbuster_count']     = $deleted;
+				$args['bloatbuster_remaining'] = $remaining;
+
+				self::log_cleanup( $action, $deleted, $remaining );
 				break;
 		}
 
@@ -798,5 +828,217 @@ final class Database_Tools {
 		}
 
 		return $log;
+	}
+
+	/**
+	 * Get the meta tables and the object tables they belong to.
+	 *
+	 * Table names come from $wpdb, so they include the prefix of the current site.
+	 *
+	 * @return array - Meta types with meta_table, object_table, object_id, meta_object and meta_id column names.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_meta_types() {
+		global $wpdb;
+
+		return array(
+			'post'    => array(
+				'meta_table'   => $wpdb->postmeta,
+				'object_table' => $wpdb->posts,
+				'object_id'    => 'ID',
+				'meta_object'  => 'post_id',
+				'meta_id'      => 'meta_id',
+			),
+			'comment' => array(
+				'meta_table'   => $wpdb->commentmeta,
+				'object_table' => $wpdb->comments,
+				'object_id'    => 'comment_ID',
+				'meta_object'  => 'comment_id',
+				'meta_id'      => 'meta_id',
+			),
+			'term'    => array(
+				'meta_table'   => $wpdb->termmeta,
+				'object_table' => $wpdb->terms,
+				'object_id'    => 'term_id',
+				'meta_object'  => 'term_id',
+				'meta_id'      => 'meta_id',
+			),
+			'user'    => array(
+				'meta_table'   => $wpdb->usermeta,
+				'object_table' => $wpdb->users,
+				'object_id'    => 'ID',
+				'meta_object'  => 'user_id',
+				'meta_id'      => 'umeta_id',
+			),
+		);
+	}
+
+	/**
+	 * Check if the current user can find and delete orphaned meta of a type.
+	 *
+	 * User meta is shared by the whole network on multisite, so there only a network
+	 * admin on the main site can clean it.
+	 *
+	 * @param string $type - Meta type, e.g. post or user.
+	 *
+	 * @return bool - True if the type exists and may be cleaned.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function can_clean_meta_type( $type ) {
+		if ( ! array_key_exists( $type, self::get_meta_types() ) ) {
+			return false;
+		}
+
+		if ( 'user' !== $type || ! \is_multisite() ) {
+			return true;
+		}
+
+		return \is_main_site() && \current_user_can( 'manage_network_options' );
+	}
+
+	/**
+	 * Count meta rows whose object no longer exists.
+	 *
+	 * Rows with object ID 0 are skipped, some plugins store global data there on purpose.
+	 *
+	 * @param string $type - Meta type, e.g. post or user.
+	 *
+	 * @return int - Number of orphaned meta rows.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function count_orphaned_meta( $type ) {
+		global $wpdb;
+
+		$types = self::get_meta_types();
+
+		if ( ! isset( $types[ $type ] ) ) {
+			return 0;
+		}
+
+		$t = $types[ $type ];
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Live count, table and column names come from $wpdb and get_meta_types().
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$t['meta_table']} m LEFT JOIN {$t['object_table']} o ON o.{$t['object_id']} = m.{$t['meta_object']} WHERE o.{$t['object_id']} IS NULL AND m.{$t['meta_object']} > %d",
+				0
+			)
+		);
+		// phpcs:enable
+	}
+
+	/**
+	 * Get the meta keys with the most orphaned rows.
+	 *
+	 * @param string $type  - Meta type, e.g. post or user.
+	 * @param int    $limit - Maximum number of keys.
+	 *
+	 * @return array - Rows with key and total, most rows first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_orphaned_meta_keys( $type, $limit = 5 ) {
+		global $wpdb;
+
+		$types = self::get_meta_types();
+
+		if ( ! isset( $types[ $type ] ) ) {
+			return array();
+		}
+
+		$t = $types[ $type ];
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Live list, table and column names come from $wpdb and get_meta_types().
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT m.meta_key AS meta_key, COUNT(*) AS total FROM {$t['meta_table']} m LEFT JOIN {$t['object_table']} o ON o.{$t['object_id']} = m.{$t['meta_object']} WHERE o.{$t['object_id']} IS NULL AND m.{$t['meta_object']} > %d GROUP BY m.meta_key ORDER BY total DESC LIMIT %d",
+				0,
+				\absint( $limit )
+			)
+		);
+		// phpcs:enable
+
+		$keys = array();
+
+		foreach ( (array) $rows as $row ) {
+			$keys[] = array(
+				'key'   => (string) $row->meta_key,
+				'total' => (int) $row->total,
+			);
+		}
+
+		return $keys;
+	}
+
+	/**
+	 * Delete meta rows whose object no longer exists.
+	 *
+	 * Deletes at most META_DELETE_BATCH rows per run, the rest can be deleted by running it again.
+	 * Direct SQL instead of delete_metadata(): the objects are gone, so per-row hooks are not
+	 * needed and would be slow. The join is checked again in the DELETE, so a row whose object
+	 * was created meanwhile is kept.
+	 *
+	 * @param string $type - Meta type, e.g. post or user.
+	 *
+	 * @return array - Number of deleted and remaining orphaned meta rows.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_orphaned_meta( $type ) {
+		global $wpdb;
+
+		$types = self::get_meta_types();
+
+		if ( ! isset( $types[ $type ] ) ) {
+			return array(
+				'deleted'   => 0,
+				'remaining' => 0,
+			);
+		}
+
+		$t = $types[ $type ];
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Live list, table and column names come from $wpdb and get_meta_types().
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT m.{$t['meta_id']} AS meta_id, m.{$t['meta_object']} AS object_id FROM {$t['meta_table']} m LEFT JOIN {$t['object_table']} o ON o.{$t['object_id']} = m.{$t['meta_object']} WHERE o.{$t['object_id']} IS NULL AND m.{$t['meta_object']} > %d ORDER BY m.{$t['meta_id']} ASC LIMIT %d",
+				0,
+				self::META_DELETE_BATCH
+			)
+		);
+		// phpcs:enable
+
+		$meta_ids   = array();
+		$object_ids = array();
+
+		foreach ( (array) $rows as $row ) {
+			$meta_ids[]   = (int) $row->meta_id;
+			$object_ids[] = (int) $row->object_id;
+		}
+
+		$deleted = 0;
+
+		if ( ! empty( $meta_ids ) ) {
+			$placeholders = implode( ', ', array_fill( 0, count( $meta_ids ), '%d' ) );
+
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Cleanup query, the cache is cleared below. Names come from get_meta_types(), IDs use %d placeholders.
+			$deleted = (int) $wpdb->query(
+				$wpdb->prepare(
+					"DELETE m FROM {$t['meta_table']} m LEFT JOIN {$t['object_table']} o ON o.{$t['object_id']} = m.{$t['meta_object']} WHERE o.{$t['object_id']} IS NULL AND m.{$t['meta_id']} IN ( {$placeholders} )",
+					$meta_ids
+				)
+			);
+			// phpcs:enable
+
+			\wp_cache_delete_multiple( array_unique( $object_ids ), $type . '_meta' );
+		}
+
+		return array(
+			'deleted'   => max( 0, $deleted ),
+			'remaining' => self::count_orphaned_meta( $type ),
+		);
 	}
 }
