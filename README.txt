@@ -39,10 +39,13 @@ Every option is off by default, so nothing changes until you turn it on.
 
 = Database =
 
-* Database statistics: size, largest tables, revisions, auto-drafts, trash and spam counts
+* Database statistics: size and largest tables
+* Cleanup preview: what is stored and what each cleanup would remove now
 * Clean expired transients
 * Delete old revisions, keeping the newest ones per post
 * Delete old auto-drafts
+* Delete spam and trashed comments
+* Recent cleanups log: when, what, how many and by whom
 
 = Autoloaded Options =
 

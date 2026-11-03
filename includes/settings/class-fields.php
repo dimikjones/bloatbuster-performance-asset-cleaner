@@ -207,6 +207,9 @@ final class Fields {
 	public static function render_action_field( $args ) {
 		$has_items = true;
 
+		// Anchor target, so other parts of the page can link to this action.
+		echo '<div id="' . \esc_attr( 'bbpac-action-' . $args['id'] ) . '" class="bbpac-action">';
+
 		if ( ! empty( $args['render_callback'] ) && is_callable( $args['render_callback'] ) ) {
 			$has_items = false !== call_user_func( $args['render_callback'], $args );
 		}
@@ -222,6 +225,7 @@ final class Fields {
 		<p>
 			<button type="submit" name="bloatbuster_action" value="<?php echo \esc_attr( $args['id'] ); ?>" class="button button-secondary"<?php echo $confirm; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attributes escaped above. ?> <?php \disabled( ! $has_items ); ?>><?php echo \esc_html( $args['button'] ); ?></button>
 		</p>
+		</div>
 		<?php
 	}
 }
