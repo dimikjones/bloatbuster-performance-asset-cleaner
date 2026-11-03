@@ -278,77 +278,107 @@ final class Tab_Database extends Settings_Tab {
 	 * Eligible counts use the same methods as the actions, so they match the action results.
 	 * A null count is shown as "-".
 	 *
-	 * @return array - Rows with label, stored, eligible, rule, action, link and link_text.
+	 * @return array - Rows with label, stored, eligible, rule, action and links.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function get_cleanup_preview_rows() {
-		$counts = Database_Tools::get_content_counts();
-		$keep   = self::get_revisions_to_keep();
+		$counts      = Database_Tools::get_content_counts();
+		$keep        = self::get_revisions_to_keep();
+		$trash_links = self::get_trash_links();
 
-		$trash_link = '';
+		$trash_rule = \__( 'Not cleaned here.', 'bloatbuster-performance-asset-cleaner' );
 
-		if ( $counts['trashed_posts'] > 0 ) {
-			$trash_link = \admin_url( 'edit.php?post_status=trash' );
+		if ( ! empty( $trash_links ) ) {
+			$trash_rule = \__( 'Not cleaned here, empty the trash from:', 'bloatbuster-performance-asset-cleaner' );
 		}
 
 		return array(
 			array(
-				'label'     => \__( 'Revisions', 'bloatbuster-performance-asset-cleaner' ),
-				'stored'    => $counts['revisions'],
-				'eligible'  => Database_Tools::count_revisions( $keep ),
+				'label'    => \__( 'Revisions', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['revisions'],
+				'eligible' => Database_Tools::count_revisions( $keep ),
 				/* translators: %d: number of revisions kept per post. */
-				'rule'      => sprintf( \_n( 'Beyond the newest %d per post.', 'Beyond the newest %d per post.', $keep, 'bloatbuster-performance-asset-cleaner' ), $keep ),
-				'action'    => 'delete_revisions',
-				'link'      => '',
-				'link_text' => '',
+				'rule'     => sprintf( \_n( 'Beyond the newest %d per post.', 'Beyond the newest %d per post.', $keep, 'bloatbuster-performance-asset-cleaner' ), $keep ),
+				'action'   => 'delete_revisions',
+				'links'    => array(),
 			),
 			array(
-				'label'     => \__( 'Auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
-				'stored'    => $counts['auto_drafts'],
-				'eligible'  => Database_Tools::count_auto_drafts(),
-				'rule'      => \__( 'Older than one day.', 'bloatbuster-performance-asset-cleaner' ),
-				'action'    => 'delete_auto_drafts',
-				'link'      => '',
-				'link_text' => '',
+				'label'    => \__( 'Auto-drafts', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['auto_drafts'],
+				'eligible' => Database_Tools::count_auto_drafts(),
+				'rule'     => \__( 'Older than one day.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'delete_auto_drafts',
+				'links'    => array(),
 			),
 			array(
-				'label'     => \__( 'Expired transients', 'bloatbuster-performance-asset-cleaner' ),
-				'stored'    => null,
-				'eligible'  => Database_Tools::count_expired_transients(),
-				'rule'      => \__( 'Expired, but still in the database.', 'bloatbuster-performance-asset-cleaner' ),
-				'action'    => 'clean_expired_transients',
-				'link'      => '',
-				'link_text' => '',
+				'label'    => \__( 'Expired transients', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => null,
+				'eligible' => Database_Tools::count_expired_transients(),
+				'rule'     => \__( 'Expired, but still in the database.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'clean_expired_transients',
+				'links'    => array(),
 			),
 			array(
-				'label'     => \__( 'Spam comments', 'bloatbuster-performance-asset-cleaner' ),
-				'stored'    => $counts['spam_comments'],
-				'eligible'  => Database_Tools::count_comments( 'spam' ),
-				'rule'      => \__( 'All spam comments.', 'bloatbuster-performance-asset-cleaner' ),
-				'action'    => 'delete_spam_comments',
-				'link'      => '',
-				'link_text' => '',
+				'label'    => \__( 'Spam comments', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['spam_comments'],
+				'eligible' => Database_Tools::count_comments( 'spam' ),
+				'rule'     => \__( 'All spam comments.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'delete_spam_comments',
+				'links'    => array(),
 			),
 			array(
-				'label'     => \__( 'Trashed comments', 'bloatbuster-performance-asset-cleaner' ),
-				'stored'    => $counts['trashed_comments'],
-				'eligible'  => Database_Tools::count_comments( 'trash' ),
-				'rule'      => \__( 'All comments in the trash.', 'bloatbuster-performance-asset-cleaner' ),
-				'action'    => 'delete_trashed_comments',
-				'link'      => '',
-				'link_text' => '',
+				'label'    => \__( 'Trashed comments', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['trashed_comments'],
+				'eligible' => Database_Tools::count_comments( 'trash' ),
+				'rule'     => \__( 'All comments in the trash.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'delete_trashed_comments',
+				'links'    => array(),
 			),
 			array(
-				'label'     => \__( 'Trashed posts', 'bloatbuster-performance-asset-cleaner' ),
-				'stored'    => $counts['trashed_posts'],
-				'eligible'  => null,
-				'rule'      => \__( 'Not cleaned here, empty the trash in the posts list.', 'bloatbuster-performance-asset-cleaner' ),
-				'action'    => '',
-				'link'      => $trash_link,
-				'link_text' => \__( 'View trash', 'bloatbuster-performance-asset-cleaner' ),
+				'label'    => \__( 'Trashed posts', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => $counts['trashed_posts'],
+				'eligible' => null,
+				'rule'     => $trash_rule,
+				'action'   => '',
+				'links'    => $trash_links,
 			),
 		);
+	}
+
+	/**
+	 * Get a trash link for each post type with trashed posts and a list screen the user can open.
+	 *
+	 * Post types without a list screen are still counted in the preview, they just get no link.
+	 *
+	 * @return array - Links with url and text, most trashed post type first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_trash_links() {
+		$links = array();
+
+		foreach ( Database_Tools::get_trashed_post_type_counts() as $post_type => $count ) {
+			$object = \get_post_type_object( $post_type );
+
+			if ( ! $object || ! $object->show_ui || ! \current_user_can( $object->cap->edit_posts ) ) {
+				continue;
+			}
+
+			$links[] = array(
+				'url'  => \add_query_arg(
+					array(
+						'post_status' => 'trash',
+						'post_type'   => $post_type,
+					),
+					\admin_url( 'edit.php' )
+				),
+				/* translators: 1: post type name, e.g. Pages, 2: number of trashed items. */
+				'text' => sprintf( \__( '%1$s (%2$s)', 'bloatbuster-performance-asset-cleaner' ), $object->labels->name, \number_format_i18n( $count ) ),
+			);
+		}
+
+		return $links;
 	}
 
 	/**
@@ -386,9 +416,9 @@ final class Tab_Database extends Settings_Tab {
 						</td>
 						<td>
 							<?php echo \esc_html( $row['rule'] ); ?>
-							<?php if ( '' !== $row['link'] ) : ?>
-								<a href="<?php echo \esc_url( $row['link'] ); ?>"><?php echo \esc_html( $row['link_text'] ); ?></a>
-							<?php endif; ?>
+							<?php foreach ( $row['links'] as $index => $link ) : ?>
+								<?php echo 0 < $index ? ', ' : ''; ?><a href="<?php echo \esc_url( $link['url'] ); ?>"><?php echo \esc_html( $link['text'] ); ?></a>
+							<?php endforeach; ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>

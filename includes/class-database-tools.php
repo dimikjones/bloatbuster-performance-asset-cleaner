@@ -420,6 +420,33 @@ final class Database_Tools {
 	}
 
 	/**
+	 * Count trashed posts per post type.
+	 *
+	 * @return array - Counts keyed by post type, most trashed first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_trashed_post_type_counts() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_type, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_status = %s GROUP BY post_type ORDER BY total DESC",
+				'trash'
+			)
+		);
+
+		$counts = array();
+
+		foreach ( (array) $rows as $row ) {
+			$counts[ (string) $row->post_type ] = (int) $row->total;
+		}
+
+		return $counts;
+	}
+
+	/**
 	 * Get the posts with the most revisions, above the number to keep.
 	 *
 	 * @param int $keep  - Newest revisions to keep per post.
