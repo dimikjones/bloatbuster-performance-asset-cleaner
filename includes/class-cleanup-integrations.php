@@ -222,9 +222,34 @@ final class Cleanup_Integrations {
 	}
 
 	/**
+	 * Get the Action Scheduler statuses to clean, completed and canceled only.
+	 *
+	 * Uses the same statuses filter as the Action Scheduler queue cleaner, so a site that keeps
+	 * a status there keeps it here too. Other statuses, like failed or pending, are never added.
+	 * An empty list means the cleanup is off.
+	 *
+	 * @return array - Action statuses.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_action_scheduler_statuses() {
+		$defaults = array( \ActionScheduler_Store::STATUS_COMPLETE, \ActionScheduler_Store::STATUS_CANCELED );
+
+		// Action Scheduler filter, same default and fallback as its own cleaner.
+		$statuses = \apply_filters( 'action_scheduler_default_cleaner_statuses', $defaults ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Action Scheduler hook.
+
+		if ( ! is_array( $statuses ) ) {
+			$statuses = $defaults;
+		}
+
+		return array_values( array_intersect( $defaults, $statuses ) );
+	}
+
+	/**
 	 * Get the Action Scheduler query for old completed and canceled actions.
 	 *
 	 * Same rule as the Action Scheduler queue cleaner: last modified before the retention period.
+	 * Callers must check that the status list is not empty, an empty status matches every action.
 	 *
 	 * @param int $per_page - Maximum number of actions, 0 for a count.
 	 *
@@ -238,7 +263,7 @@ final class Cleanup_Integrations {
 		$retention = is_numeric( $retention ) ? max( 0, (int) $retention ) : self::ACTION_SCHEDULER_RETENTION;
 
 		return array(
-			'status'           => array( \ActionScheduler_Store::STATUS_COMPLETE, \ActionScheduler_Store::STATUS_CANCELED ),
+			'status'           => self::get_action_scheduler_statuses(),
 			'modified'         => new \DateTime( '@' . ( time() - $retention ) ),
 			'modified_compare' => '<=',
 			'per_page'         => \absint( $per_page ),
@@ -258,6 +283,11 @@ final class Cleanup_Integrations {
 			return 0;
 		}
 
+		// No statuses to clean, an empty status would count every action.
+		if ( empty( self::get_action_scheduler_statuses() ) ) {
+			return 0;
+		}
+
 		return (int) \ActionScheduler::store()->query_actions( self::get_action_scheduler_query(), 'count' );
 	}
 
@@ -273,7 +303,8 @@ final class Cleanup_Integrations {
 	public static function delete_action_scheduler() {
 		$deleted = 0;
 
-		if ( ! self::is_action_scheduler_available() ) {
+		// No statuses to clean, an empty status would select every action.
+		if ( ! self::is_action_scheduler_available() || empty( self::get_action_scheduler_statuses() ) ) {
 			return array(
 				'deleted'   => 0,
 				'remaining' => 0,
