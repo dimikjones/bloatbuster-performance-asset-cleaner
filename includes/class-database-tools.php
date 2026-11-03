@@ -623,10 +623,54 @@ final class Database_Tools {
 	}
 
 	/**
+	 * Check that a post is still in the trash and old enough, right before it is deleted.
+	 *
+	 * Reads the database, not get_post(), the object cache of this request can be stale when
+	 * another admin restored the post while the batch was running.
+	 *
+	 * @param int $post_id - Post ID.
+	 * @param int $days    - Only posts trashed more than this many days ago, 0 for all trash.
+	 *
+	 * @return bool - True if the post may still be deleted.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_trashed_post_eligible( $post_id, $days ) {
+		global $wpdb;
+
+		$days = min( self::MAX_TRASH_DAYS, \absint( $days ) );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live check, must not be cached.
+		if ( 0 === $days ) {
+			$found = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE ID = %d AND post_status = %s",
+					\absint( $post_id ),
+					'trash'
+				)
+			);
+		} else {
+			$found = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s WHERE p.ID = %d AND p.post_status = %s AND CAST( pm.meta_value AS UNSIGNED ) < %d",
+					'_wp_trash_meta_time',
+					\absint( $post_id ),
+					'trash',
+					self::get_trash_cutoff( $days )
+				)
+			);
+		}
+		// phpcs:enable
+
+		return null !== $found;
+	}
+
+	/**
 	 * Permanently delete trashed posts of all post types.
 	 *
 	 * Deletes at most TRASH_DELETE_BATCH posts per run, the rest can be deleted by running it again.
 	 * Uses wp_delete_post(), so core deletes the meta, terms, comments and attachment files too.
+	 * Each post is checked again just before it is deleted, so an item restored meanwhile is kept.
 	 *
 	 * @param int $days - Only posts trashed more than this many days ago, 0 for all trash.
 	 *
@@ -638,6 +682,11 @@ final class Database_Tools {
 		$deleted = 0;
 
 		foreach ( self::get_trashed_post_ids( $days, self::TRASH_DELETE_BATCH ) as $post_id ) {
+			// Restored or trashed again since the IDs were selected.
+			if ( ! self::is_trashed_post_eligible( $post_id, $days ) ) {
+				continue;
+			}
+
 			if ( \wp_delete_post( $post_id, true ) ) {
 				++$deleted;
 			}
