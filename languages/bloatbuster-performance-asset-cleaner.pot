@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-03T21:18:25+01:00\n"
+"POT-Creation-Date: 2026-11-03T22:50:45+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -35,7 +35,7 @@ msgid "https://www.linkedin.com/in/diwebdeveloper/"
 msgstr ""
 
 #: includes/autoload/class-autoload-actions.php:128
-#: includes/class-database-tools.php:276
+#: includes/class-database-tools.php:290
 msgid "You are not allowed to do this."
 msgstr ""
 
@@ -82,7 +82,7 @@ msgid "Option"
 msgstr ""
 
 #: includes/autoload/class-autoload-list-table.php:131
-#: includes/settings/tabs/class-tab-database.php:269
+#: includes/settings/tabs/class-tab-database.php:302
 msgid "Size"
 msgstr ""
 
@@ -277,6 +277,22 @@ msgstr ""
 #: includes/class-admin-assets.php:84
 #: includes/settings/tabs/class-tab-autoload.php:329
 msgid "Copy"
+msgstr ""
+
+#: includes/class-cleanup-integrations.php:182
+msgid "Action Scheduler"
+msgstr ""
+
+#: includes/class-cleanup-integrations.php:183
+msgid "Completed and canceled actions older than the Action Scheduler retention period, with their logs. Failed actions are kept."
+msgstr ""
+
+#: includes/class-cleanup-integrations.php:190
+msgid "WooCommerce sessions"
+msgstr ""
+
+#: includes/class-cleanup-integrations.php:191
+msgid "Expired customer sessions. Active carts are kept."
 msgstr ""
 
 #: includes/class-cron-status.php:102
@@ -773,8 +789,8 @@ msgstr ""
 
 #. translators: %s: human readable time difference, e.g. 5 minutes.
 #: includes/settings/tabs/class-tab-background.php:235
-#: includes/settings/tabs/class-tab-database.php:785
-#: includes/settings/tabs/class-tab-database.php:840
+#: includes/settings/tabs/class-tab-database.php:987
+#: includes/settings/tabs/class-tab-database.php:1042
 msgid "%s ago"
 msgstr ""
 
@@ -787,8 +803,8 @@ msgstr ""
 #. translators: %d: number of tables not shown in the list.
 #. translators: %d: number of expired transients not shown in the list.
 #: includes/settings/tabs/class-tab-background.php:258
-#: includes/settings/tabs/class-tab-database.php:291
-#: includes/settings/tabs/class-tab-database.php:852
+#: includes/settings/tabs/class-tab-database.php:324
+#: includes/settings/tabs/class-tab-database.php:1054
 msgid "And %d more."
 msgid_plural "And %d more."
 msgstr[0] ""
@@ -902,422 +918,517 @@ msgstr ""
 msgid "Core XML sitemaps are already turned off by another plugin or theme."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:53
+#: includes/settings/tabs/class-tab-database.php:60
 msgid "Database"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:64
+#: includes/settings/tabs/class-tab-database.php:71
 msgid "Clean up data WordPress no longer needs."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:111
+#: includes/settings/tabs/class-tab-database.php:118
 msgid "An object cache is active, so transients are mostly stored there. Only database rows are cleaned."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:118
+#: includes/settings/tabs/class-tab-database.php:125
 msgid "Database statistics"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:119
+#: includes/settings/tabs/class-tab-database.php:126
 msgid "Size of the tables of this site and what each cleanup would remove. Free space is unused space inside a table file, InnoDB keeps a few MB free in larger tables, which is normal. Row counts are estimates for most tables."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:125
+#: includes/settings/tabs/class-tab-database.php:132
 msgid "Clean expired transients"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:126
+#: includes/settings/tabs/class-tab-database.php:133
 msgid "Delete transients that have expired but are still stored in the database."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:128
+#: includes/settings/tabs/class-tab-database.php:135
 msgid "Clean now"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:134
+#: includes/settings/tabs/class-tab-database.php:141
 msgid "Delete old revisions"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:135
+#: includes/settings/tabs/class-tab-database.php:142
 msgid "Delete post revisions and keep only the newest ones of each post. At most 500 are deleted per run."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:136
+#: includes/settings/tabs/class-tab-database.php:143
 msgid "Delete revisions"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:137
+#: includes/settings/tabs/class-tab-database.php:144
 msgid "Delete old revisions?"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:138
+#: includes/settings/tabs/class-tab-database.php:145
 msgid "Revisions beyond the number to keep are deleted from every post. This can not be undone."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:144
-#: includes/settings/tabs/class-tab-database.php:146
+#: includes/settings/tabs/class-tab-database.php:151
+#: includes/settings/tabs/class-tab-database.php:153
 msgid "Delete auto-drafts"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:145
+#: includes/settings/tabs/class-tab-database.php:152
 msgid "Delete auto-drafts older than one day. WordPress creates them when you open a new post and deletes them by itself after 7 days. At most 500 are deleted per run."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:147
+#: includes/settings/tabs/class-tab-database.php:154
 msgid "Delete auto-drafts?"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:148
+#: includes/settings/tabs/class-tab-database.php:155
 msgid "Auto-drafts older than one day are deleted. This can not be undone."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:154
-#: includes/settings/tabs/class-tab-database.php:156
+#: includes/settings/tabs/class-tab-database.php:161
+#: includes/settings/tabs/class-tab-database.php:163
 msgid "Delete spam comments"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:155
+#: includes/settings/tabs/class-tab-database.php:162
 msgid "Permanently delete comments marked as spam. At most 500 are deleted per run."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:157
+#: includes/settings/tabs/class-tab-database.php:164
 msgid "Delete spam comments?"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:158
+#: includes/settings/tabs/class-tab-database.php:165
 msgid "All spam comments are deleted. This can not be undone."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:164
-#: includes/settings/tabs/class-tab-database.php:166
+#: includes/settings/tabs/class-tab-database.php:171
+#: includes/settings/tabs/class-tab-database.php:173
 msgid "Delete trashed comments"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:165
+#: includes/settings/tabs/class-tab-database.php:172
 msgid "Permanently delete comments in the trash. At most 500 are deleted per run."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:167
+#: includes/settings/tabs/class-tab-database.php:174
 msgid "Delete trashed comments?"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:168
+#: includes/settings/tabs/class-tab-database.php:175
 msgid "All comments in the trash are deleted. This can not be undone."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:174
-#: includes/settings/tabs/class-tab-database.php:176
-msgid "Delete orphaned metadata"
+#: includes/settings/tabs/class-tab-database.php:181
+#: includes/settings/tabs/class-tab-database.php:183
+msgid "Delete trashed posts"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:175
-msgid "Delete meta rows of posts, comments, terms and users that no longer exist. Meta of existing objects is never touched. At most 1000 rows per type are deleted per run. Make a database backup first."
-msgstr ""
-
-#: includes/settings/tabs/class-tab-database.php:177
-msgid "Delete orphaned metadata?"
-msgstr ""
-
-#: includes/settings/tabs/class-tab-database.php:178
-msgid "Meta rows of deleted objects are deleted for the selected types. Make sure you have a database backup. This can not be undone."
+#: includes/settings/tabs/class-tab-database.php:182
+msgid "Permanently delete posts, pages and other items in the trash, of all post types. Their meta, terms and comments are deleted too, and trashed media files are removed from the server. At most 100 are deleted per run."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:184
-msgid "Recent cleanups"
+msgid "Delete trashed posts?"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:185
+msgid "Items in the trash are permanently deleted, with their meta, terms, comments and media files. This can not be undone."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:191
+#: includes/settings/tabs/class-tab-database.php:193
+msgid "Delete orphaned metadata"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:192
+msgid "Delete meta rows of posts, comments, terms and users that no longer exist. Meta of existing objects is never touched. At most 1000 rows per type are deleted per run. Make a database backup first."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:194
+msgid "Delete orphaned metadata?"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:195
+msgid "Meta rows of deleted objects are deleted for the selected types. Make sure you have a database backup. This can not be undone."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:201
+msgid "Plugin temporary data"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:202
+msgid "Delete expired data of supported plugins, using each plugin's own rules. Data is never deleted by name patterns."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:203
+msgid "Clean plugin data"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:204
+msgid "Clean plugin data?"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:205
+msgid "Expired data of the selected plugins is deleted. This can not be undone."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:211
+msgid "Recent cleanups"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:212
 msgid "The last cleanups run from this tab."
 msgstr ""
 
 #. translators: %d: number of deleted transients.
-#: includes/settings/tabs/class-tab-database.php:209
+#: includes/settings/tabs/class-tab-database.php:236
 msgid "Deleted %d expired transient."
 msgid_plural "Deleted %d expired transients."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of deleted revisions.
-#: includes/settings/tabs/class-tab-database.php:212
+#: includes/settings/tabs/class-tab-database.php:239
 msgid "Deleted %d revision."
 msgid_plural "Deleted %d revisions."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of deleted auto-drafts.
-#: includes/settings/tabs/class-tab-database.php:215
+#: includes/settings/tabs/class-tab-database.php:242
 msgid "Deleted %d auto-draft."
 msgid_plural "Deleted %d auto-drafts."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of deleted spam comments.
-#: includes/settings/tabs/class-tab-database.php:218
+#: includes/settings/tabs/class-tab-database.php:245
 msgid "Deleted %d spam comment."
 msgid_plural "Deleted %d spam comments."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of deleted trashed comments.
-#: includes/settings/tabs/class-tab-database.php:221
+#: includes/settings/tabs/class-tab-database.php:248
 msgid "Deleted %d trashed comment."
 msgid_plural "Deleted %d trashed comments."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of deleted orphaned meta rows.
-#: includes/settings/tabs/class-tab-database.php:224
+#: includes/settings/tabs/class-tab-database.php:251
 msgid "Deleted %d orphaned meta row."
 msgid_plural "Deleted %d orphaned meta rows."
 msgstr[0] ""
 msgstr[1] ""
 
+#. translators: %d: number of deleted trashed posts.
+#: includes/settings/tabs/class-tab-database.php:254
+msgid "Deleted %d trashed item."
+msgid_plural "Deleted %d trashed items."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of deleted plugin data items.
+#: includes/settings/tabs/class-tab-database.php:257
+msgid "Deleted %d expired plugin item."
+msgid_plural "Deleted %d expired plugin items."
+msgstr[0] ""
+msgstr[1] ""
+
 #. translators: 1: number of revisions left to delete, 2: number of revisions kept per post.
-#: includes/settings/tabs/class-tab-database.php:235
+#: includes/settings/tabs/class-tab-database.php:268
 msgid "%1$d more left, run it again to delete it (keeping %2$d per post)."
 msgid_plural "%1$d more left, run it again to delete them (keeping %2$d per post)."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of items left to delete.
-#: includes/settings/tabs/class-tab-database.php:238
+#: includes/settings/tabs/class-tab-database.php:271
 msgid "%d more left, run it again to delete it."
 msgid_plural "%d more left, run it again to delete them."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: database size, e.g. 12 MB, 2: number of tables.
-#: includes/settings/tabs/class-tab-database.php:259
+#: includes/settings/tabs/class-tab-database.php:292
 msgid "Database size: %1$s in %2$d tables."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:267
-#: includes/settings/tabs/class-tab-database.php:681
+#: includes/settings/tabs/class-tab-database.php:300
+#: includes/settings/tabs/class-tab-database.php:812
 msgid "Table"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:268
+#: includes/settings/tabs/class-tab-database.php:301
 msgid "Rows (approx.)"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:270
+#: includes/settings/tabs/class-tab-database.php:303
 msgid "Free space"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:310
-msgid "Not cleaned here."
+#: includes/settings/tabs/class-tab-database.php:345
+msgid "All items in the trash."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:313
-msgid "Not cleaned here, empty the trash from:"
+#. translators: %d: number of days.
+#: includes/settings/tabs/class-tab-database.php:348
+msgid "Trashed more than %d day ago."
+msgid_plural "Trashed more than %d days ago."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/settings/tabs/class-tab-database.php:352
+msgid "Review:"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:318
-#: includes/settings/tabs/class-tab-database.php:535
+#: includes/settings/tabs/class-tab-database.php:357
+#: includes/settings/tabs/class-tab-database.php:608
 msgid "Revisions"
 msgstr ""
 
 #. translators: %d: number of revisions kept per post.
-#: includes/settings/tabs/class-tab-database.php:322
+#: includes/settings/tabs/class-tab-database.php:361
 msgid "Beyond the newest %d per post."
 msgid_plural "Beyond the newest %d per post."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/tabs/class-tab-database.php:327
+#: includes/settings/tabs/class-tab-database.php:366
 msgid "Auto-drafts"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:330
+#: includes/settings/tabs/class-tab-database.php:369
 msgid "Older than one day."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:335
+#: includes/settings/tabs/class-tab-database.php:374
 msgid "Expired transients"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:338
+#: includes/settings/tabs/class-tab-database.php:377
 msgid "Expired, but still in the database."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:343
+#: includes/settings/tabs/class-tab-database.php:382
 msgid "Spam comments"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:346
+#: includes/settings/tabs/class-tab-database.php:385
 msgid "All spam comments."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:351
+#: includes/settings/tabs/class-tab-database.php:390
 msgid "Trashed comments"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:354
+#: includes/settings/tabs/class-tab-database.php:393
 msgid "All comments in the trash."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:359
+#: includes/settings/tabs/class-tab-database.php:398
 msgid "Orphaned metadata"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:362
+#: includes/settings/tabs/class-tab-database.php:401
 msgid "Meta rows of deleted posts, comments, terms and users."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:367
+#: includes/settings/tabs/class-tab-database.php:406
 msgid "Trashed posts"
 msgstr ""
 
 #. translators: 1: post type name, e.g. Pages, 2: number of trashed items.
-#: includes/settings/tabs/class-tab-database.php:418
+#: includes/settings/tabs/class-tab-database.php:472
 msgid "%1$s (%2$s)"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:438
-#: includes/settings/tabs/class-tab-database.php:764
+#: includes/settings/tabs/class-tab-database.php:492
+#: includes/settings/tabs/class-tab-database.php:966
 msgid "Cleanup"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:439
+#: includes/settings/tabs/class-tab-database.php:493
 msgid "Stored"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:440
+#: includes/settings/tabs/class-tab-database.php:494
 msgid "Eligible now"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:441
+#: includes/settings/tabs/class-tab-database.php:495
 msgid "Rule"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:468
+#: includes/settings/tabs/class-tab-database.php:522
 msgid "Deleting rows does not always shrink the database file size."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:521
+#: includes/settings/tabs/class-tab-database.php:594
 msgid "Keep the newest revisions per post:"
 msgstr ""
 
 #. translators: 1: number of revisions to delete, 2: number of revisions kept per post.
-#: includes/settings/tabs/class-tab-database.php:527
+#: includes/settings/tabs/class-tab-database.php:600
 msgid "%1$d revision to delete when keeping %2$d per post."
 msgid_plural "%1$d revisions to delete when keeping %2$d per post."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/tabs/class-tab-database.php:534
+#: includes/settings/tabs/class-tab-database.php:607
 msgid "Post"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:544
-#: includes/settings/tabs/class-tab-database.php:546
+#: includes/settings/tabs/class-tab-database.php:617
+#: includes/settings/tabs/class-tab-database.php:619
 msgid "(no title)"
 msgstr ""
 
 #. translators: %d: number of auto-drafts.
-#: includes/settings/tabs/class-tab-database.php:574
+#: includes/settings/tabs/class-tab-database.php:647
 msgid "%d auto-draft older than one day."
 msgid_plural "%d auto-drafts older than one day."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of spam comments.
-#: includes/settings/tabs/class-tab-database.php:594
+#: includes/settings/tabs/class-tab-database.php:667
 msgid "%d spam comment."
 msgid_plural "%d spam comments."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of trashed comments.
-#: includes/settings/tabs/class-tab-database.php:614
+#: includes/settings/tabs/class-tab-database.php:687
 msgid "%d comment in the trash."
 msgid_plural "%d comments in the trash."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/tabs/class-tab-database.php:630
-msgid "Post meta"
+#: includes/settings/tabs/class-tab-database.php:707
+msgid "Delete items trashed more than this many days ago (0 for all):"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:631
-msgid "Comment meta"
-msgstr ""
+#. translators: %d: number of trashed items.
+#: includes/settings/tabs/class-tab-database.php:714
+msgid "%d item in the trash."
+msgid_plural "%d items in the trash."
+msgstr[0] ""
+msgstr[1] ""
 
-#: includes/settings/tabs/class-tab-database.php:632
-msgid "Term meta"
-msgstr ""
+#. translators: 1: number of trashed items, 2: number of days.
+#: includes/settings/tabs/class-tab-database.php:717
+msgid "%1$d item trashed more than %2$d days ago."
+msgid_plural "%1$d items trashed more than %2$d days ago."
+msgstr[0] ""
+msgstr[1] ""
 
-#: includes/settings/tabs/class-tab-database.php:633
-msgid "User meta"
-msgstr ""
-
-#: includes/settings/tabs/class-tab-database.php:679
-msgid "Select"
-msgstr ""
-
-#: includes/settings/tabs/class-tab-database.php:680
-#: includes/settings/tabs/class-tab-database.php:828
+#: includes/settings/tabs/class-tab-database.php:725
+#: includes/settings/tabs/class-tab-database.php:811
+#: includes/settings/tabs/class-tab-database.php:1030
 msgid "Type"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:682
-msgid "Orphaned rows"
+#: includes/settings/tabs/class-tab-database.php:726
+#: includes/settings/tabs/class-tab-database.php:902
+msgid "Items"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:683
-msgid "Top keys"
+#: includes/settings/tabs/class-tab-database.php:761
+msgid "Post meta"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:694
-msgid "User meta is shared by the network, clean it on the main site as a network admin."
-msgstr ""
-
-#: includes/settings/tabs/class-tab-database.php:754
-msgid "No cleanups run yet."
+#: includes/settings/tabs/class-tab-database.php:762
+msgid "Comment meta"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:763
+msgid "Term meta"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:764
+msgid "User meta"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:810
+#: includes/settings/tabs/class-tab-database.php:899
+msgid "Select"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:813
+msgid "Orphaned rows"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:814
+msgid "Top keys"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:825
+msgid "User meta is shared by the network, clean it on the main site as a network admin."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:892
+msgid "No supported plugin is active."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:900
+msgid "Plugin data"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:901
+msgid "What is deleted"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:956
+msgid "No cleanups run yet."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-database.php:965
 msgid "When"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:765
+#: includes/settings/tabs/class-tab-database.php:967
 msgid "Removed"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:766
+#: includes/settings/tabs/class-tab-database.php:968
 msgid "Left"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:767
+#: includes/settings/tabs/class-tab-database.php:969
 msgid "By"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:792
+#: includes/settings/tabs/class-tab-database.php:994
 msgid "Unknown user"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:812
+#: includes/settings/tabs/class-tab-database.php:1014
 msgid "No expired transients found."
 msgstr ""
 
 #. translators: %d: number of expired transients.
-#: includes/settings/tabs/class-tab-database.php:821
+#: includes/settings/tabs/class-tab-database.php:1023
 msgid "Expired transients in database: %d"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:827
+#: includes/settings/tabs/class-tab-database.php:1029
 msgid "Name"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:829
+#: includes/settings/tabs/class-tab-database.php:1031
 msgid "Expired"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:836
+#: includes/settings/tabs/class-tab-database.php:1038
 msgid "Network"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-database.php:836
+#: includes/settings/tabs/class-tab-database.php:1038
 msgid "Site"
 msgstr ""
 

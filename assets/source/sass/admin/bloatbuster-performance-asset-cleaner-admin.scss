@@ -362,6 +362,8 @@
   .bbpac-db-preview,
   .bbpac-revisions,
   .bbpac-orphans,
+  .bbpac-trash-types,
+  .bbpac-integrations,
   .bbpac-cleanup-log {
     margin: 8px 0;
 
@@ -373,6 +375,14 @@
 
     td {
       padding: 10px 10px;
+    }
+  }
+
+  // Descriptions and key lists wrap to more lines, keep the checkbox centered on the row.
+  .bbpac-orphans,
+  .bbpac-integrations {
+    .check-column {
+      vertical-align: middle;
     }
   }
 

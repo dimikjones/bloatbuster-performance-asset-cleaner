@@ -35,7 +35,9 @@ Every option is off by default.
 * Delete old revisions, keeping the newest ones per post
 * Delete old auto-drafts
 * Delete spam and trashed comments
+* Delete trashed posts of all post types, trashed more than N days ago (default 7, 0 for all trash, at most 100 per run)
 * Delete orphaned metadata: post, comment, term and user meta of objects that no longer exist (object ID 0 is kept, at most 1000 rows per type per run)
+* Plugin temporary data through each plugin's own rules: old completed and canceled Action Scheduler actions, expired WooCommerce sessions. Other plugins can add their own with `bloatbuster_cleanup_integrations`
 * Recent cleanups log (last 10 runs, filter `bloatbuster_cleanup_log_size`)
 
 ### Autoloaded Options
@@ -158,6 +160,29 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | `bloatbuster_autoload_known_prefixes` | filter | `$known` | Option prefix => plugin file, for owner detection. |
 | `bloatbuster_autoload_large_threshold` | filter | `$threshold` | Size in bytes from which an autoloaded option needs review. Default 10 KB. |
 | `bloatbuster_autoload_per_page` | filter | `$per_page` | Options per page in the Autoloaded Options table. Default 50. |
+| `bloatbuster_cleanup_integrations` | filter | `$integrations` | Add plugin data cleanups to the Database tab. See below. |
+| `bloatbuster_cleanup_log_size` | filter | `$size` | Number of runs kept in the Recent cleanups log. Default 10. |
+
+### Plugin data cleanups
+
+Each entry needs `id`, `label`, `description` and three callables: `is_available` (returns bool), `count` (returns int) and `delete` (deletes one batch and returns `array( 'deleted' => int, 'remaining' => int )`). Only entries whose `is_available` returns true are shown. Use the plugin's own API, never delete by name patterns.
+
+```php
+\add_filter( 'bloatbuster_cleanup_integrations', array( My_Cleanup::class, 'register' ) );
+
+public static function register( $integrations ) {
+	$integrations[] = array(
+		'id'           => 'my_plugin_logs',
+		'label'        => \__( 'My Plugin logs', 'my-plugin' ),
+		'description'  => \__( 'Logs older than 30 days.', 'my-plugin' ),
+		'is_available' => array( My_Cleanup::class, 'is_active' ),
+		'count'        => array( My_Cleanup::class, 'count_old_logs' ),
+		'delete'       => array( My_Cleanup::class, 'delete_old_logs' ),
+	);
+
+	return $integrations;
+}
+```
 
 ### Extending from an addon
 
