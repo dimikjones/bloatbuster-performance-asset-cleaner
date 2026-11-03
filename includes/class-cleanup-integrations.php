@@ -28,6 +28,13 @@ final class Cleanup_Integrations {
 	const ACTION_SCHEDULER_BATCH = 500;
 
 	/**
+	 * Default Action Scheduler retention period in seconds, 31 days, same as ActionScheduler_QueueCleaner.
+	 *
+	 * @var int
+	 */
+	const ACTION_SCHEDULER_RETENTION = 2678400;
+
+	/**
 	 * Maximum number of expired WooCommerce sessions deleted per run.
 	 *
 	 * @var int
@@ -227,8 +234,8 @@ final class Cleanup_Integrations {
 	 */
 	public static function get_action_scheduler_query( $per_page = 0 ) {
 		// Action Scheduler filter, same default and fallback as its own cleaner.
-		$retention = \apply_filters( 'action_scheduler_retention_period', MONTH_IN_SECONDS ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Action Scheduler hook.
-		$retention = is_numeric( $retention ) ? max( 0, (int) $retention ) : MONTH_IN_SECONDS;
+		$retention = \apply_filters( 'action_scheduler_retention_period', self::ACTION_SCHEDULER_RETENTION ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Action Scheduler hook.
+		$retention = is_numeric( $retention ) ? max( 0, (int) $retention ) : self::ACTION_SCHEDULER_RETENTION;
 
 		return array(
 			'status'           => array( \ActionScheduler_Store::STATUS_COMPLETE, \ActionScheduler_Store::STATUS_CANCELED ),
