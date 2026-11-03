@@ -28,6 +28,13 @@ final class Cleanup_Integrations {
 	const ACTION_SCHEDULER_BATCH = 500;
 
 	/**
+	 * Maximum number of expired WooCommerce sessions deleted per run.
+	 *
+	 * @var int
+	 */
+	const WOO_SESSIONS_BATCH = 1000;
+
+	/**
 	 * Registered integrations of this request, keyed by ID.
 	 *
 	 * @var array|null
@@ -343,13 +350,19 @@ final class Cleanup_Integrations {
 	}
 
 	/**
-	 * Delete expired WooCommerce sessions with WooCommerce's own cleanup.
+	 * Delete expired WooCommerce sessions, with the same query and cache clearing as WooCommerce.
+	 *
+	 * Deletes at most WOO_SESSIONS_BATCH sessions per run, the rest can be deleted by running it again.
+	 * WC_Session_Handler::cleanup_sessions() is not used, it deletes the whole backlog in one request
+	 * and can run past the request timeout on large tables.
 	 *
 	 * @return array - Number of deleted and remaining expired sessions.
 	 *
 	 * @since 1.0.0
 	 */
 	public static function delete_woo_sessions() {
+		global $wpdb;
+
 		if ( ! self::is_woo_sessions_available() ) {
 			return array(
 				'deleted'   => 0,
@@ -357,16 +370,23 @@ final class Cleanup_Integrations {
 			);
 		}
 
-		$before = self::count_woo_sessions();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleanup query, the session cache is cleared below.
+		$deleted = (int) $wpdb->query(
+			$wpdb->prepare(
+				'DELETE FROM %i WHERE session_expiry < %d ORDER BY session_expiry LIMIT %d',
+				self::get_woo_sessions_table(),
+				time(),
+				self::WOO_SESSIONS_BATCH
+			)
+		);
 
-		// Deletes all expired sessions in batches and clears the session cache.
-		( new \WC_Session_Handler() )->cleanup_sessions();
-
-		$remaining = self::count_woo_sessions();
+		if ( $deleted > 0 && class_exists( 'WC_Cache_Helper' ) && defined( 'WC_SESSION_CACHE_GROUP' ) ) {
+			\WC_Cache_Helper::invalidate_cache_group( WC_SESSION_CACHE_GROUP );
+		}
 
 		return array(
-			'deleted'   => max( 0, $before - $remaining ),
-			'remaining' => $remaining,
+			'deleted'   => max( 0, $deleted ),
+			'remaining' => self::count_woo_sessions(),
 		);
 	}
 }
