@@ -19,11 +19,14 @@ const PLUGIN_NAME = 'bloatbuster-performance-asset-cleaner';
 const SOURCE_DIR = __dirname;
 const BUILD_DIR = path.join( SOURCE_DIR, 'build', PLUGIN_NAME );
 
-// Files and directories to include (production files only)
+// Files and directories to include (production files, plus the asset source and its build config)
 const INCLUDE_PATTERNS = [
 	'**/*.php',
 	'**/*.css',
 	'assets/*.js',
+	'assets/source/**',
+	'package.json',
+	'webpack.config.js',
 	'**/*.txt',
 	'languages/**',
 ];
@@ -41,16 +44,11 @@ const EXCLUDE_PATTERNS = [
 	'.github/**',
 	'.gitignore',
 
-	// Source files
-	'assets/source/**',
-
 	// Node dependencies
 	'node_modules/**',
 
 	// Development configuration
-	'package.json',
 	'package-lock.json',
-	'webpack.config.js',
 	'build-dist.js',
 	'phpcs.xml',
 
@@ -124,12 +122,12 @@ const buildDistribution = async () => {
 		console.log( '\n📋 Files included in distribution:' );
 		console.log( '- Plugin PHP files (main file, includes/, uninstall.php)' );
 		console.log( '- Compiled admin CSS and JS from assets/ folder' );
+		console.log( '- Asset source (assets/source/) and its build config (package.json, webpack.config.js)' );
 		console.log( '- Translation template (languages/)' );
 		console.log( '- Documentation (README.txt, LICENSE.txt)' );
 
 		console.log( '\n🚫 Files excluded from distribution:' );
 		console.log( '- Git files (.git/, .gitignore)' );
-		console.log( '- Source files (assets/source/)' );
 		console.log( '- Node.js dependencies (node_modules/)' );
 		console.log( '- Development configuration files' );
 		console.log( '- Build script itself (build-dist.js)' );

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-31T22:20:43+01:00\n"
+"POT-Creation-Date: 2026-11-03T17:10:58+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -39,15 +39,15 @@ msgstr ""
 msgid "You are not allowed to do this."
 msgstr ""
 
-#: includes/autoload/class-autoload-actions.php:159
-msgid "Only network administrators can change options on a multisite network."
+#: includes/autoload/class-autoload-actions.php:152
+msgid "Only network administrators can view, export or change option values on a multisite network."
 msgstr ""
 
-#: includes/autoload/class-autoload-actions.php:280
+#: includes/autoload/class-autoload-actions.php:272
 msgid "Export requires a POST request."
 msgstr ""
 
-#: includes/autoload/class-autoload-actions.php:284
+#: includes/autoload/class-autoload-actions.php:276
 msgid "The export request could not be verified."
 msgstr ""
 
@@ -60,7 +60,7 @@ msgid "No persistent options are available to export. Transient values and timeo
 msgstr ""
 
 #: includes/autoload/class-autoload-export.php:591
-#: includes/autoload/class-autoload-options.php:787
+#: includes/autoload/class-autoload-options.php:806
 #: includes/settings/tabs/class-tab-autoload.php:167
 msgid "The database could not be read safely. Try again."
 msgstr ""
@@ -90,96 +90,95 @@ msgstr ""
 msgid "Autoload"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:161
-#: includes/autoload/class-autoload-list-table.php:168
-msgid "Export selected"
-msgstr ""
-
-#: includes/autoload/class-autoload-list-table.php:166
-#: includes/autoload/class-autoload-list-table.php:353
+#: includes/autoload/class-autoload-list-table.php:171
+#: includes/autoload/class-autoload-list-table.php:369
 msgid "Enable autoload"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:167
-#: includes/autoload/class-autoload-list-table.php:353
+#: includes/autoload/class-autoload-list-table.php:172
+#: includes/autoload/class-autoload-list-table.php:369
 #: includes/class-admin-assets.php:68
 msgid "Disable autoload"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:169
-#: includes/autoload/class-autoload-list-table.php:361
+#: includes/autoload/class-autoload-list-table.php:173
+msgid "Export selected"
+msgstr ""
+
+#: includes/autoload/class-autoload-list-table.php:174
+#: includes/autoload/class-autoload-list-table.php:377
 #: includes/class-admin-assets.php:67
 msgid "Delete"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:188
+#: includes/autoload/class-autoload-list-table.php:199
 msgid "Select bulk action"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:190
+#: includes/autoload/class-autoload-list-table.php:201
 msgid "Bulk actions"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:196
+#: includes/autoload/class-autoload-list-table.php:207
 msgid "Apply"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:209
+#: includes/autoload/class-autoload-list-table.php:220
 msgid "All"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:210
+#: includes/autoload/class-autoload-list-table.php:221
 msgid "Autoloaded"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:211
+#: includes/autoload/class-autoload-list-table.php:222
 msgid "Not autoloaded"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:212
-#: includes/settings/tabs/class-tab-autoload.php:278
+#: includes/autoload/class-autoload-list-table.php:223
+#: includes/settings/tabs/class-tab-autoload.php:282
 msgid "Needs review"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:295
+#: includes/autoload/class-autoload-list-table.php:306
 msgid "No options found."
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:335
+#: includes/autoload/class-autoload-list-table.php:346
 msgid "Protected"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:342
+#: includes/autoload/class-autoload-list-table.php:358
 msgid "View value"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:402
+#: includes/autoload/class-autoload-list-table.php:418
 msgid "Auto (on)"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:402
+#: includes/autoload/class-autoload-list-table.php:418
 msgid "On"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:404
+#: includes/autoload/class-autoload-list-table.php:420
 msgid "Auto (off)"
 msgstr ""
 
-#: includes/autoload/class-autoload-list-table.php:404
+#: includes/autoload/class-autoload-list-table.php:420
 msgid "Off"
 msgstr ""
 
-#: includes/autoload/class-autoload-options.php:842
+#: includes/autoload/class-autoload-options.php:861
 #: includes/settings/tabs/class-tab-autoload.php:164
 msgid "This is not a BloatBuster options export file."
 msgstr ""
 
-#: includes/autoload/class-autoload-options.php:848
+#: includes/autoload/class-autoload-options.php:867
 #: includes/settings/tabs/class-tab-autoload.php:165
 msgid "This backup format is not supported."
 msgstr ""
 
-#: includes/autoload/class-autoload-options.php:958
+#: includes/autoload/class-autoload-options.php:977
 #: includes/settings/tabs/class-tab-autoload.php:166
 msgid "The backup contains conflicting duplicate option rows."
 msgstr ""
@@ -276,7 +275,7 @@ msgid "Copied"
 msgstr ""
 
 #: includes/class-admin-assets.php:84
-#: includes/settings/tabs/class-tab-autoload.php:325
+#: includes/settings/tabs/class-tab-autoload.php:329
 msgid "Copy"
 msgstr ""
 
@@ -284,11 +283,11 @@ msgstr ""
 msgid "Once"
 msgstr ""
 
-#: includes/class-options-dispatch.php:564
+#: includes/class-options-dispatch.php:548
 msgid "Comments are disabled, new replies can not be added."
 msgstr ""
 
-#: includes/class-options-dispatch.php:750
+#: includes/class-options-dispatch.php:734
 msgid "XML-RPC is disabled on this site."
 msgstr ""
 
@@ -297,19 +296,19 @@ msgstr ""
 msgid "Bust bloat (Settings)"
 msgstr ""
 
-#: includes/class-plugin-options.php:386
+#: includes/class-plugin-options.php:391
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:404
+#: includes/class-plugin-options.php:409
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
-#: includes/class-plugin-options.php:468
+#: includes/class-plugin-options.php:473
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-plugin-options.php:511
+#: includes/class-plugin-options.php:516
 msgid "BloatBuster"
 msgstr ""
 
@@ -547,86 +546,86 @@ msgid "The options could not be restored."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-autoload.php:193
-msgid "Only network administrators can change options on a multisite network. You can browse, view and export them."
+msgid "Only network administrators can view, export or change option values on a multisite network. You can browse option names and sizes."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-autoload.php:197
 msgid "Transients are hidden by default. Summary cards always include all autoloaded options, including transients. Autoload cannot be enabled for ordinary transients with timeout rows because this would bypass expiration checks. A timeout cannot be deleted while its value exists; select both rows to delete them together."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:202
+#: includes/settings/tabs/class-tab-autoload.php:203
 msgid "Export all options"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:204
+#: includes/settings/tabs/class-tab-autoload.php:205
 msgid "Export all options includes every persistent option for this site, including protected options, regardless of table filters or selection. Export selected includes only selected persistent options. Both exclude transient values and timeout rows."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:205
+#: includes/settings/tabs/class-tab-autoload.php:206
 msgid "Both exports contain actual sensitive values, including secrets masked in the table. Store backups securely. Files larger than the 10 MB import limit cannot be exported; select fewer options instead."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:218
+#: includes/settings/tabs/class-tab-autoload.php:220
 msgid "Include transients"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:221
+#: includes/settings/tabs/class-tab-autoload.php:223
 msgid "Search options"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:223
+#: includes/settings/tabs/class-tab-autoload.php:225
 msgid "Apply filters"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:233
+#: includes/settings/tabs/class-tab-autoload.php:235
 msgid "Restore from backup"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:234
+#: includes/settings/tabs/class-tab-autoload.php:236
 msgid "Upload a file created with Export all options or Export selected. Missing persistent options are created again; existing options only get their autoload state restored. Protected options, transient values and timeout rows are skipped, including transient entries in older backups."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:239
+#: includes/settings/tabs/class-tab-autoload.php:241
 msgid "Restore options"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:263
+#: includes/settings/tabs/class-tab-autoload.php:267
 msgid "Total autoloaded size"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:267
+#: includes/settings/tabs/class-tab-autoload.php:271
 msgid "Autoloaded options"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:271
+#: includes/settings/tabs/class-tab-autoload.php:275
 msgid "Largest option"
 msgstr ""
 
 #. translators: %s: size, e.g. 10 KB.
-#: includes/settings/tabs/class-tab-autoload.php:283
+#: includes/settings/tabs/class-tab-autoload.php:287
 msgid "Autoloaded and %s or larger"
 msgstr ""
 
 #. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/settings/tabs/class-tab-autoload.php:292
+#: includes/settings/tabs/class-tab-autoload.php:296
 msgid "Too large: above the recommended limit of %s."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:294
+#: includes/settings/tabs/class-tab-autoload.php:298
 #: includes/settings/tabs/class-tab-background.php:177
 msgid "Check Site Health"
 msgstr ""
 
 #. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/settings/tabs/class-tab-autoload.php:300
+#: includes/settings/tabs/class-tab-autoload.php:304
 msgid "Good: below the recommended limit of %s."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:324
+#: includes/settings/tabs/class-tab-autoload.php:328
 msgid "Reveal value"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-autoload.php:326
+#: includes/settings/tabs/class-tab-autoload.php:330
 msgid "Close"
 msgstr ""
 

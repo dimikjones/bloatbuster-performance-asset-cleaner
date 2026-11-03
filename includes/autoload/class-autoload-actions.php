@@ -130,25 +130,18 @@ final class Autoload_Actions {
 	}
 
 	/**
-	 * Check if the current user can change, delete or restore options.
+	 * Check if the current user can view, export, change, delete or restore option values.
 	 *
-	 * On multisite only network administrators can. Site administrators are not fully
-	 * trusted there, and restored values are unserialized by WordPress when read.
-	 *
-	 * @return bool - True if the user can change options.
+	 * @return bool - True if the user can manage option values, see Autoload_Options::can_manage_values().
 	 *
 	 * @since 1.0.0
 	 */
 	public static function can_change_options() {
-		if ( \is_multisite() ) {
-			return \is_super_admin();
-		}
-
-		return \current_user_can( 'manage_options' );
+		return Autoload_Options::can_manage_values();
 	}
 
 	/**
-	 * Stop the request if the user can't change options.
+	 * Stop the request if the user can't view, export or change option values.
 	 *
 	 * @return void
 	 *
@@ -156,7 +149,7 @@ final class Autoload_Actions {
 	 */
 	public static function check_change_permission() {
 		if ( ! self::can_change_options() ) {
-			\wp_die( \esc_html__( 'Only network administrators can change options on a multisite network.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 403 ) );
+			\wp_die( \esc_html__( 'Only network administrators can view, export or change option values on a multisite network.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 403 ) );
 		}
 	}
 
@@ -186,10 +179,8 @@ final class Autoload_Actions {
 			self::redirect( array() );
 		}
 
-		// Export only reads options, the other actions change them.
-		if ( 'export' !== $action ) {
-			self::check_change_permission();
-		}
+		// Export reads raw values, so it needs the same permission as the actions that change them.
+		self::check_change_permission();
 
 		$filtered = Autoload_Options::filter_names( $raw_names, 'export' === $action );
 
@@ -275,6 +266,7 @@ final class Autoload_Actions {
 	 */
 	public static function check_export_all_request() {
 		self::check_permission();
+		self::check_change_permission();
 
 		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
 			\wp_die( \esc_html__( 'Export requires a POST request.', 'bloatbuster-performance-asset-cleaner' ), '', array( 'response' => 405 ) );

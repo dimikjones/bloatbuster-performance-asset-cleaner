@@ -190,11 +190,12 @@ final class Tab_Autoload extends Settings_Tab {
 		?>
 		<?php if ( ! Autoload_Actions::can_change_options() ) : ?>
 			<div class="notice notice-info inline">
-				<p><?php \esc_html_e( 'Only network administrators can change options on a multisite network. You can browse, view and export them.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+				<p><?php \esc_html_e( 'Only network administrators can view, export or change option values on a multisite network. You can browse option names and sizes.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 			</div>
 		<?php endif; ?>
 		<div class="bbpac-autoload-manager">
 			<p class="description"><?php \esc_html_e( 'Transients are hidden by default. Summary cards always include all autoloaded options, including transients. Autoload cannot be enabled for ordinary transients with timeout rows because this would bypass expiration checks. A timeout cannot be deleted while its value exists; select both rows to delete them together.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			<?php if ( Autoload_Actions::can_change_options() ) : ?>
 			<div class="bbpac-autoload-export">
 				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="<?php echo \esc_attr( Autoload_Actions::EXPORT_ALL_ACTION ); ?>">
@@ -204,6 +205,7 @@ final class Tab_Autoload extends Settings_Tab {
 				<p class="description"><?php \esc_html_e( 'Export all options includes every persistent option for this site, including protected options, regardless of table filters or selection. Export selected includes only selected persistent options. Both exclude transient values and timeout rows.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 				<p class="description"><?php \esc_html_e( 'Both exports contain actual sensitive values, including secrets masked in the table. Store backups securely. Files larger than the 10 MB import limit cannot be exported; select fewer options instead.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
 			</div>
+			<?php endif; ?>
 			<?php $table->views(); ?>
 			<form method="get" action="<?php echo \esc_url( \admin_url( 'admin.php' ) ); ?>" class="bbpac-autoload-search">
 				<input type="hidden" name="page" value="<?php echo \esc_attr( BLOATBUSTER_OPTION ); ?>">
@@ -242,7 +244,9 @@ final class Tab_Autoload extends Settings_Tab {
 			<?php endif; ?>
 		</div>
 		<?php
-		self::render_value_dialog();
+		if ( Autoload_Actions::can_change_options() ) {
+			self::render_value_dialog();
+		}
 	}
 
 	/**
