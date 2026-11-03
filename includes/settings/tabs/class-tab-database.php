@@ -25,6 +25,13 @@ final class Tab_Database extends Settings_Tab {
 	const DEFAULT_REVISIONS_TO_KEEP = 5;
 
 	/**
+	 * Orphaned meta counts of this request, the preview and the action field both use them.
+	 *
+	 * @var array|null
+	 */
+	private static $orphaned_meta_counts = null;
+
+	/**
 	 * Get the tab slug.
 	 *
 	 * @return string - Tab slug.
@@ -162,6 +169,16 @@ final class Tab_Database extends Settings_Tab {
 				'render_callback' => array( __CLASS__, 'render_trashed_comments' ),
 			),
 			array(
+				'type'            => 'action',
+				'id'              => 'delete_orphaned_meta',
+				'label'           => \__( 'Delete orphaned metadata', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Delete meta rows of posts, comments, terms and users that no longer exist. Meta of existing objects is never touched. At most 1000 rows per type are deleted per run. Make a database backup first.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Delete orphaned metadata', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete orphaned metadata?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Meta rows of deleted objects are deleted for the selected types. Make sure you have a database backup. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_orphaned_meta' ),
+			),
+			array(
 				'type'            => 'report',
 				'id'              => 'cleanup_log',
 				'label'           => \__( 'Recent cleanups', 'bloatbuster-performance-asset-cleaner' ),
@@ -202,6 +219,9 @@ final class Tab_Database extends Settings_Tab {
 		} elseif ( 'trashed_comments_deleted' === $notice ) {
 			/* translators: %d: number of deleted trashed comments. */
 			$message = sprintf( \_n( 'Deleted %d trashed comment.', 'Deleted %d trashed comments.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+		} elseif ( 'orphaned_meta_deleted' === $notice ) {
+			/* translators: %d: number of deleted orphaned meta rows. */
+			$message = sprintf( \_n( 'Deleted %d orphaned meta row.', 'Deleted %d orphaned meta rows.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		}
 
 		if ( '' === $message ) {
@@ -333,6 +353,14 @@ final class Tab_Database extends Settings_Tab {
 				'eligible' => Database_Tools::count_comments( 'trash' ),
 				'rule'     => \__( 'All comments in the trash.', 'bloatbuster-performance-asset-cleaner' ),
 				'action'   => 'delete_trashed_comments',
+				'links'    => array(),
+			),
+			array(
+				'label'    => \__( 'Orphaned metadata', 'bloatbuster-performance-asset-cleaner' ),
+				'stored'   => null,
+				'eligible' => array_sum( self::get_orphaned_meta_counts() ),
+				'rule'     => \__( 'Meta rows of deleted posts, comments, terms and users.', 'bloatbuster-performance-asset-cleaner' ),
+				'action'   => 'delete_orphaned_meta',
 				'links'    => array(),
 			),
 			array(
@@ -588,6 +616,109 @@ final class Tab_Database extends Settings_Tab {
 		</p>
 		<?php
 		return $count > 0;
+	}
+
+	/**
+	 * Get the meta type labels shown in the orphaned metadata table.
+	 *
+	 * @return array - Labels keyed by meta type.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_meta_type_labels() {
+		return array(
+			'post'    => \__( 'Post meta', 'bloatbuster-performance-asset-cleaner' ),
+			'comment' => \__( 'Comment meta', 'bloatbuster-performance-asset-cleaner' ),
+			'term'    => \__( 'Term meta', 'bloatbuster-performance-asset-cleaner' ),
+			'user'    => \__( 'User meta', 'bloatbuster-performance-asset-cleaner' ),
+		);
+	}
+
+	/**
+	 * Get the orphaned meta counts of the types the current user may clean.
+	 *
+	 * Counted once per request, the preview and the action field both need them.
+	 *
+	 * @return array - Counts keyed by meta type.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_orphaned_meta_counts() {
+		if ( null !== self::$orphaned_meta_counts ) {
+			return self::$orphaned_meta_counts;
+		}
+
+		$counts = array();
+
+		foreach ( array_keys( Database_Tools::get_meta_types() ) as $type ) {
+			if ( Database_Tools::can_clean_meta_type( $type ) ) {
+				$counts[ $type ] = Database_Tools::count_orphaned_meta( $type );
+			}
+		}
+
+		self::$orphaned_meta_counts = $counts;
+
+		return $counts;
+	}
+
+	/**
+	 * Render the orphaned meta rows per type, with a checkbox to select the types to clean.
+	 *
+	 * @return bool - True if there are orphaned meta rows to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_orphaned_meta() {
+		$types  = Database_Tools::get_meta_types();
+		$labels = self::get_meta_type_labels();
+		$counts = self::get_orphaned_meta_counts();
+		?>
+		<table class="widefat striped bbpac-orphans">
+			<thead>
+				<tr>
+					<td class="check-column"><span class="screen-reader-text"><?php \esc_html_e( 'Select', 'bloatbuster-performance-asset-cleaner' ); ?></span></td>
+					<th><?php \esc_html_e( 'Type', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Table', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Orphaned rows', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Top keys', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $types as $type => $tables ) : ?>
+					<?php $input_id = 'bbpac-orphan-' . $type; ?>
+					<tr>
+						<?php if ( ! isset( $counts[ $type ] ) ) : ?>
+							<td class="check-column"></td>
+							<td><?php echo \esc_html( $labels[ $type ] ); ?></td>
+							<td><code><?php echo \esc_html( $tables['meta_table'] ); ?></code></td>
+							<td colspan="2"><?php \esc_html_e( 'User meta is shared by the network, clean it on the main site as a network admin.', 'bloatbuster-performance-asset-cleaner' ); ?></td>
+						<?php else : ?>
+							<?php $keys = $counts[ $type ] > 0 ? Database_Tools::get_orphaned_meta_keys( $type ) : array(); ?>
+							<td class="check-column">
+								<input type="checkbox" id="<?php echo \esc_attr( $input_id ); ?>" name="bbpac_orphan_types[]" value="<?php echo \esc_attr( $type ); ?>" <?php \checked( $counts[ $type ] > 0 ); ?> <?php \disabled( 0 === $counts[ $type ] ); ?>>
+							</td>
+							<td><label for="<?php echo \esc_attr( $input_id ); ?>"><?php echo \esc_html( $labels[ $type ] ); ?></label></td>
+							<td><code><?php echo \esc_html( $tables['meta_table'] ); ?></code></td>
+							<td><?php echo \esc_html( \number_format_i18n( $counts[ $type ] ) ); ?></td>
+							<td>
+								<?php
+								if ( empty( $keys ) ) {
+									echo '-';
+								}
+
+								foreach ( $keys as $index => $key ) {
+									echo 0 < $index ? ', ' : '';
+									echo '<code>' . \esc_html( $key['key'] ) . '</code> (' . \esc_html( \number_format_i18n( $key['total'] ) ) . ')';
+								}
+								?>
+							</td>
+						<?php endif; ?>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+		return array_sum( $counts ) > 0;
 	}
 
 	/**

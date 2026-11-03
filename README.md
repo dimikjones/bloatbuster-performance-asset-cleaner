@@ -29,10 +29,14 @@ Every option is off by default.
 
 ### Database
 
-* Database statistics: size, largest tables with free space, revisions, auto-drafts, trash and spam counts
+* Database statistics: size and largest tables with free space
+* Cleanup preview: stored and eligible counts for each cleanup
 * Clean expired transients, including timeouts left without a value
 * Delete old revisions, keeping the newest ones per post
 * Delete old auto-drafts
+* Delete spam and trashed comments
+* Delete orphaned metadata: post, comment, term and user meta of objects that no longer exist (object ID 0 is kept, at most 1000 rows per type per run)
+* Recent cleanups log (last 10 runs, filter `bloatbuster_cleanup_log_size`)
 
 ### Autoloaded Options
 
@@ -70,8 +74,9 @@ Use "Export all options" to download every persistent option for the current sit
 
 * Settings are per site. Each site has its own settings page, configured by that site's administrator. There are no network-wide settings yet.
 * Network activation works, every site starts with all options off.
-* In the Autoloaded Options tab, only network administrators can change autoload, delete or restore options. Site administrators can browse, view and export them.
+* In the Autoloaded Options tab, only network administrators can view values, export, change autoload, delete or restore options. Site administrators can browse option names and sizes.
 * Network transients (stored in the sitemeta table) are listed and cleaned only on the main site.
+* Orphaned user meta is shared by the network, so it is listed and cleaned only on the main site by a network administrator.
 * Database statistics on the main site only count the main site's tables.
 * Uninstall removes the plugin data on every site that opted in.
 
