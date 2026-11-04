@@ -45,7 +45,9 @@ Every option is off by default, so nothing changes until you turn it on.
 * Delete old revisions, keeping the newest ones per post
 * Delete old auto-drafts
 * Delete spam and trashed comments
+* Delete trashed posts of all post types, trashed more than 7 days ago by default, or all of them
 * Delete orphaned metadata: post, comment, term and user meta of objects that no longer exist
+* Plugin temporary data: old completed and canceled Action Scheduler actions, expired WooCommerce sessions
 * Recent cleanups log: when, what, how many and by whom
 
 = Autoloaded Options =
@@ -116,6 +118,10 @@ Changing autoload only changes when WordPress loads an option, the value is kept
 = Is it safe to delete orphaned metadata? =
 
 Only meta rows whose post, comment, term or user no longer exists are deleted. Meta of existing content is never touched, and rows with object ID 0 are kept because some plugins store global data there. At most 1000 rows per type are deleted per run. Deleting can't be undone, so make a database backup first.
+
+= Why doesn't BloatBuster delete plugin transients by name? =
+
+A name that looks temporary can still be needed by an active plugin, so guessing by name can break a site. Plugin data is only cleaned for supported plugins, with that plugin's own rules: Action Scheduler keeps failed actions and anything newer than its retention period, and WooCommerce keeps active carts. Expired transients of any plugin are still cleaned by "Clean expired transients".
 
 = Does it work on multisite? =
 

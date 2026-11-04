@@ -32,6 +32,13 @@ final class Tab_Database extends Settings_Tab {
 	private static $orphaned_meta_counts = null;
 
 	/**
+	 * Plugin data counts of this request, keyed by integration ID, the preview and the action field both use them.
+	 *
+	 * @var array|null
+	 */
+	private static $integration_counts = null;
+
+	/**
 	 * Get the tab slug.
 	 *
 	 * @return string - Tab slug.
@@ -170,6 +177,16 @@ final class Tab_Database extends Settings_Tab {
 			),
 			array(
 				'type'            => 'action',
+				'id'              => 'delete_trashed_posts',
+				'label'           => \__( 'Delete trashed posts', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Permanently delete posts, pages and other items in the trash, of all post types. Their meta, terms and comments are deleted too, and trashed media files are removed from the server. At most 100 are deleted per run.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Delete trashed posts', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Delete trashed posts?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Items in the trash are permanently deleted, with their meta, terms, comments and media files. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_trashed_posts' ),
+			),
+			array(
+				'type'            => 'action',
 				'id'              => 'delete_orphaned_meta',
 				'label'           => \__( 'Delete orphaned metadata', 'bloatbuster-performance-asset-cleaner' ),
 				'description'     => \__( 'Delete meta rows of posts, comments, terms and users that no longer exist. Meta of existing objects is never touched. At most 1000 rows per type are deleted per run. Make a database backup first.', 'bloatbuster-performance-asset-cleaner' ),
@@ -177,6 +194,16 @@ final class Tab_Database extends Settings_Tab {
 				'confirm_title'   => \__( 'Delete orphaned metadata?', 'bloatbuster-performance-asset-cleaner' ),
 				'confirm'         => \__( 'Meta rows of deleted objects are deleted for the selected types. Make sure you have a database backup. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_orphaned_meta' ),
+			),
+			array(
+				'type'            => 'action',
+				'id'              => 'clean_plugin_data',
+				'label'           => \__( 'Plugin temporary data', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Delete expired data of supported plugins, using each plugin\'s own rules. Data is never deleted by name patterns.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Clean plugin data', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Clean plugin data?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Expired data of the selected plugins is deleted. This can not be undone.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_plugin_data' ),
 			),
 			array(
 				'type'            => 'report',
@@ -222,6 +249,12 @@ final class Tab_Database extends Settings_Tab {
 		} elseif ( 'orphaned_meta_deleted' === $notice ) {
 			/* translators: %d: number of deleted orphaned meta rows. */
 			$message = sprintf( \_n( 'Deleted %d orphaned meta row.', 'Deleted %d orphaned meta rows.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+		} elseif ( 'trashed_posts_deleted' === $notice ) {
+			/* translators: %d: number of deleted trashed posts. */
+			$message = sprintf( \_n( 'Deleted %d trashed item.', 'Deleted %d trashed items.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+		} elseif ( 'plugin_data_cleaned' === $notice ) {
+			/* translators: %d: number of deleted plugin data items. */
+			$message = sprintf( \_n( 'Deleted %d expired plugin item.', 'Deleted %d expired plugin items.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		}
 
 		if ( '' === $message ) {
@@ -305,15 +338,21 @@ final class Tab_Database extends Settings_Tab {
 	public static function get_cleanup_preview_rows() {
 		$counts      = Database_Tools::get_content_counts();
 		$keep        = self::get_revisions_to_keep();
+		$trash_days  = self::get_trash_days();
 		$trash_links = self::get_trash_links();
 
-		$trash_rule = \__( 'Not cleaned here.', 'bloatbuster-performance-asset-cleaner' );
-
-		if ( ! empty( $trash_links ) ) {
-			$trash_rule = \__( 'Not cleaned here, empty the trash from:', 'bloatbuster-performance-asset-cleaner' );
+		if ( 0 === $trash_days ) {
+			$trash_rule = \__( 'All items in the trash.', 'bloatbuster-performance-asset-cleaner' );
+		} else {
+			/* translators: %d: number of days. */
+			$trash_rule = sprintf( \_n( 'Trashed more than %d day ago.', 'Trashed more than %d days ago.', $trash_days, 'bloatbuster-performance-asset-cleaner' ), $trash_days );
 		}
 
-		return array(
+		if ( ! empty( $trash_links ) ) {
+			$trash_rule .= ' ' . \__( 'Review:', 'bloatbuster-performance-asset-cleaner' );
+		}
+
+		$rows = array(
 			array(
 				'label'    => \__( 'Revisions', 'bloatbuster-performance-asset-cleaner' ),
 				'stored'   => $counts['revisions'],
@@ -366,12 +405,27 @@ final class Tab_Database extends Settings_Tab {
 			array(
 				'label'    => \__( 'Trashed posts', 'bloatbuster-performance-asset-cleaner' ),
 				'stored'   => $counts['trashed_posts'],
-				'eligible' => null,
+				'eligible' => Database_Tools::count_trashed_posts( $trash_days ),
 				'rule'     => $trash_rule,
-				'action'   => '',
+				'action'   => 'delete_trashed_posts',
 				'links'    => $trash_links,
 			),
 		);
+
+		$integration_counts = self::get_integration_counts();
+
+		foreach ( Cleanup_Integrations::get_available_integrations() as $id => $integration ) {
+			$rows[] = array(
+				'label'    => $integration['label'],
+				'stored'   => null,
+				'eligible' => $integration_counts[ $id ] ?? 0,
+				'rule'     => $integration['description'],
+				'action'   => 'clean_plugin_data',
+				'links'    => array(),
+			);
+		}
+
+		return $rows;
 	}
 
 	/**
@@ -506,6 +560,26 @@ final class Tab_Database extends Settings_Tab {
 	}
 
 	/**
+	 * Get the trash age in days for the form, 0 for all trash.
+	 *
+	 * After a batch run, uses the value of that run so the next run deletes by the same age,
+	 * otherwise DEFAULT_TRASH_DAYS.
+	 *
+	 * @return int - Days, 0 to MAX_TRASH_DAYS.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_trash_days() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flag set by the action redirect.
+		if ( isset( $_GET['bloatbuster_trash_days'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flag set by the action redirect.
+			return min( Database_Tools::MAX_TRASH_DAYS, \absint( $_GET['bloatbuster_trash_days'] ) );
+		}
+
+		return Database_Tools::DEFAULT_TRASH_DAYS;
+	}
+
+	/**
 	 * Render the revisions count, the number to keep and the posts with most revisions.
 	 *
 	 * @return bool - True if there are revisions to delete.
@@ -619,6 +693,64 @@ final class Tab_Database extends Settings_Tab {
 	}
 
 	/**
+	 * Render the trash age input and the trashed posts per post type.
+	 *
+	 * @return bool - True if there are trashed posts to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_trashed_posts() {
+		$days   = self::get_trash_days();
+		$counts = Database_Tools::get_trashed_post_type_counts( $days );
+		$count  = array_sum( $counts );
+		?>
+		<p>
+			<label for="bbpac-trash-days"><?php \esc_html_e( 'Delete items trashed more than this many days ago (0 for all):', 'bloatbuster-performance-asset-cleaner' ); ?></label>
+			<input type="number" id="bbpac-trash-days" name="bbpac_trash_days" value="<?php echo \esc_attr( $days ); ?>" min="0" max="<?php echo \esc_attr( Database_Tools::MAX_TRASH_DAYS ); ?>" step="1" class="small-text" required>
+		</p>
+		<p>
+			<?php
+			if ( 0 === $days ) {
+				/* translators: %d: number of trashed items. */
+				echo \esc_html( sprintf( \_n( '%d item in the trash.', '%d items in the trash.', $count, 'bloatbuster-performance-asset-cleaner' ), $count ) );
+			} else {
+				/* translators: 1: number of trashed items, 2: number of days. */
+				echo \esc_html( sprintf( \_n( '%1$d item trashed more than %2$d days ago.', '%1$d items trashed more than %2$d days ago.', $count, 'bloatbuster-performance-asset-cleaner' ), $count, $days ) );
+			}
+			?>
+		</p>
+		<?php if ( ! empty( $counts ) ) : ?>
+			<table class="widefat striped bbpac-trash-types">
+				<thead>
+					<tr>
+						<th><?php \esc_html_e( 'Type', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th><?php \esc_html_e( 'Items', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $counts as $post_type => $total ) : ?>
+						<?php $object = \get_post_type_object( $post_type ); ?>
+						<tr>
+							<td>
+								<?php if ( $object ) : ?>
+									<?php echo \esc_html( $object->labels->name ); ?>
+								<?php else : ?>
+									<code><?php echo \esc_html( $post_type ); ?></code>
+								<?php endif; ?>
+							</td>
+							<td><?php echo \esc_html( \number_format_i18n( $total ) ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<?php
+		endif;
+
+		// Enabled when anything is in the trash, the age can be changed in the form.
+		return Database_Tools::count_trashed_posts() > 0;
+	}
+
+	/**
 	 * Get the meta type labels shown in the orphaned metadata table.
 	 *
 	 * @return array - Labels keyed by meta type.
@@ -713,6 +845,77 @@ final class Tab_Database extends Settings_Tab {
 								?>
 							</td>
 						<?php endif; ?>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+		return array_sum( $counts ) > 0;
+	}
+
+	/**
+	 * Get the item counts of the available plugin data integrations.
+	 *
+	 * Counted once per request, the preview and the action field both need them.
+	 *
+	 * @return array - Counts keyed by integration ID.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_integration_counts() {
+		if ( null !== self::$integration_counts ) {
+			return self::$integration_counts;
+		}
+
+		$counts = array();
+
+		foreach ( Cleanup_Integrations::get_available_integrations() as $id => $integration ) {
+			$counts[ $id ] = Cleanup_Integrations::run_count( $integration );
+		}
+
+		self::$integration_counts = $counts;
+
+		return $counts;
+	}
+
+	/**
+	 * Render the available plugin data integrations, with a checkbox to select the ones to clean.
+	 *
+	 * @return bool - True if there is plugin data to delete.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_plugin_data() {
+		$integrations = Cleanup_Integrations::get_available_integrations();
+		$counts       = self::get_integration_counts();
+
+		if ( empty( $integrations ) ) {
+			echo '<p>' . \esc_html__( 'No supported plugin is active.', 'bloatbuster-performance-asset-cleaner' ) . '</p>';
+			return false;
+		}
+		?>
+		<table class="widefat striped bbpac-integrations">
+			<thead>
+				<tr>
+					<td class="check-column"><span class="screen-reader-text"><?php \esc_html_e( 'Select', 'bloatbuster-performance-asset-cleaner' ); ?></span></td>
+					<th><?php \esc_html_e( 'Plugin data', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'What is deleted', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Items', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $integrations as $id => $integration ) : ?>
+					<?php
+					$input_id = 'bbpac-integration-' . $id;
+					$count    = $counts[ $id ] ?? 0;
+					?>
+					<tr>
+						<td class="check-column">
+							<input type="checkbox" id="<?php echo \esc_attr( $input_id ); ?>" name="bbpac_integrations[]" value="<?php echo \esc_attr( $id ); ?>" <?php \checked( $count > 0 ); ?> <?php \disabled( 0 === $count ); ?>>
+						</td>
+						<td><label for="<?php echo \esc_attr( $input_id ); ?>"><?php echo \esc_html( $integration['label'] ); ?></label></td>
+						<td><?php echo \esc_html( $integration['description'] ); ?></td>
+						<td><?php echo \esc_html( \number_format_i18n( $count ) ); ?></td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>

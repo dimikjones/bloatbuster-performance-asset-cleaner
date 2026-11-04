@@ -53,6 +53,27 @@ final class Database_Tools {
 	const META_DELETE_BATCH = 1000;
 
 	/**
+	 * Maximum number of trashed posts deleted per run, each delete also removes meta, terms and comments.
+	 *
+	 * @var int
+	 */
+	const TRASH_DELETE_BATCH = 100;
+
+	/**
+	 * Maximum age filter for trashed posts, in days.
+	 *
+	 * @var int
+	 */
+	const MAX_TRASH_DAYS = 365;
+
+	/**
+	 * Default age filter for trashed posts, in days, so items trashed by mistake recently are kept.
+	 *
+	 * @var int
+	 */
+	const DEFAULT_TRASH_DAYS = 7;
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -359,6 +380,46 @@ final class Database_Tools {
 
 				self::log_cleanup( $action, $deleted, $remaining );
 				break;
+
+			case 'delete_trashed_posts':
+				$raw_days = isset( $_POST['bbpac_trash_days'] ) ? \sanitize_text_field( \wp_unslash( $_POST['bbpac_trash_days'] ) ) : '';
+				// An empty or non-numeric value must never become 0, that would delete all trash.
+				$days   = ( '' !== $raw_days && is_numeric( $raw_days ) ) ? min( self::MAX_TRASH_DAYS, \absint( $raw_days ) ) : self::DEFAULT_TRASH_DAYS;
+				$result = self::delete_trashed_posts( $days );
+
+				$args['bloatbuster_notice']    = 'trashed_posts_deleted';
+				$args['bloatbuster_count']     = $result['deleted'];
+				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				// Fill the form with the same value, so the next batch deletes by the same age.
+				$args['bloatbuster_trash_days'] = $days;
+
+				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
+				break;
+
+			case 'clean_plugin_data':
+				$raw_ids   = isset( $_POST['bbpac_integrations'] ) ? (array) \wp_unslash( $_POST['bbpac_integrations'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each value is sanitized below.
+				$available = Cleanup_Integrations::get_available_integrations();
+				$deleted   = 0;
+				$remaining = 0;
+
+				foreach ( array_unique( array_map( 'sanitize_key', $raw_ids ) ) as $id ) {
+					// Unknown ids and integrations of inactive plugins are skipped.
+					if ( ! isset( $available[ $id ] ) ) {
+						continue;
+					}
+
+					$result     = Cleanup_Integrations::run_delete( $available[ $id ] );
+					$deleted   += $result['deleted'];
+					$remaining += $result['remaining'];
+				}
+
+				$args['bloatbuster_notice']    = 'plugin_data_cleaned';
+				$args['bloatbuster_count']     = $deleted;
+				$args['bloatbuster_remaining'] = $remaining;
+
+				self::log_cleanup( $action, $deleted, $remaining );
+				break;
 		}
 
 		\wp_safe_redirect( \add_query_arg( $args, \admin_url( 'admin.php?page=' . BLOATBUSTER_OPTION ) ) );
@@ -452,20 +513,39 @@ final class Database_Tools {
 	/**
 	 * Count trashed posts per post type.
 	 *
+	 * With an age, only posts with a trash time older than that are counted. The trash time is
+	 * stored by wp_trash_post(), posts without it have no known age and are skipped.
+	 *
+	 * @param int $days - Only posts trashed more than this many days ago, 0 for all trash.
+	 *
 	 * @return array - Counts keyed by post type, most trashed first.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_trashed_post_type_counts() {
+	public static function get_trashed_post_type_counts( $days = 0 ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT post_type, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_status = %s GROUP BY post_type ORDER BY total DESC",
-				'trash'
-			)
-		);
+		$days = min( self::MAX_TRASH_DAYS, \absint( $days ) );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live counts.
+		if ( 0 === $days ) {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT post_type, COUNT(*) AS total FROM {$wpdb->posts} WHERE post_status = %s GROUP BY post_type ORDER BY total DESC",
+					'trash'
+				)
+			);
+		} else {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT p.post_type, COUNT(*) AS total FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s WHERE p.post_status = %s AND CAST( pm.meta_value AS UNSIGNED ) < %d GROUP BY p.post_type ORDER BY total DESC",
+					'_wp_trash_meta_time',
+					'trash',
+					self::get_trash_cutoff( $days )
+				)
+			);
+		}
+		// phpcs:enable
 
 		$counts = array();
 
@@ -474,6 +554,148 @@ final class Database_Tools {
 		}
 
 		return $counts;
+	}
+
+	/**
+	 * Get the timestamp before which trashed posts are old enough to delete.
+	 *
+	 * @param int $days - Number of days.
+	 *
+	 * @return int - Unix timestamp.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_trash_cutoff( $days ) {
+		return time() - \absint( $days ) * DAY_IN_SECONDS;
+	}
+
+	/**
+	 * Count trashed posts of all post types.
+	 *
+	 * @param int $days - Only posts trashed more than this many days ago, 0 for all trash.
+	 *
+	 * @return int - Number of trashed posts.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function count_trashed_posts( $days = 0 ) {
+		return array_sum( self::get_trashed_post_type_counts( $days ) );
+	}
+
+	/**
+	 * Get the IDs of trashed posts, lowest ID first.
+	 *
+	 * @param int $days  - Only posts trashed more than this many days ago, 0 for all trash.
+	 * @param int $limit - Maximum number of IDs.
+	 *
+	 * @return array - Post IDs.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_trashed_post_ids( $days, $limit ) {
+		global $wpdb;
+
+		$days = min( self::MAX_TRASH_DAYS, \absint( $days ) );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live list.
+		if ( 0 === $days ) {
+			$ids = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE post_status = %s ORDER BY ID ASC LIMIT %d",
+					'trash',
+					\absint( $limit )
+				)
+			);
+		} else {
+			$ids = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s WHERE p.post_status = %s AND CAST( pm.meta_value AS UNSIGNED ) < %d ORDER BY p.ID ASC LIMIT %d",
+					'_wp_trash_meta_time',
+					'trash',
+					self::get_trash_cutoff( $days ),
+					\absint( $limit )
+				)
+			);
+		}
+		// phpcs:enable
+
+		return array_map( 'intval', (array) $ids );
+	}
+
+	/**
+	 * Check that a post is still in the trash and old enough, right before it is deleted.
+	 *
+	 * Reads the database, not get_post(), the object cache of this request can be stale when
+	 * another admin restored the post while the batch was running.
+	 *
+	 * @param int $post_id - Post ID.
+	 * @param int $days    - Only posts trashed more than this many days ago, 0 for all trash.
+	 *
+	 * @return bool - True if the post may still be deleted.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_trashed_post_eligible( $post_id, $days ) {
+		global $wpdb;
+
+		$days = min( self::MAX_TRASH_DAYS, \absint( $days ) );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live check, must not be cached.
+		if ( 0 === $days ) {
+			$found = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE ID = %d AND post_status = %s",
+					\absint( $post_id ),
+					'trash'
+				)
+			);
+		} else {
+			$found = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s WHERE p.ID = %d AND p.post_status = %s AND CAST( pm.meta_value AS UNSIGNED ) < %d",
+					'_wp_trash_meta_time',
+					\absint( $post_id ),
+					'trash',
+					self::get_trash_cutoff( $days )
+				)
+			);
+		}
+		// phpcs:enable
+
+		return null !== $found;
+	}
+
+	/**
+	 * Permanently delete trashed posts of all post types.
+	 *
+	 * Deletes at most TRASH_DELETE_BATCH posts per run, the rest can be deleted by running it again.
+	 * Uses wp_delete_post(), so core deletes the meta, terms, comments and attachment files too.
+	 * Each post is checked again just before it is deleted, so an item restored meanwhile is kept.
+	 *
+	 * @param int $days - Only posts trashed more than this many days ago, 0 for all trash.
+	 *
+	 * @return array - Number of deleted and remaining trashed posts.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_trashed_posts( $days = 0 ) {
+		$deleted = 0;
+
+		foreach ( self::get_trashed_post_ids( $days, self::TRASH_DELETE_BATCH ) as $post_id ) {
+			// Restored or trashed again since the IDs were selected.
+			if ( ! self::is_trashed_post_eligible( $post_id, $days ) ) {
+				continue;
+			}
+
+			if ( \wp_delete_post( $post_id, true ) ) {
+				++$deleted;
+			}
+		}
+
+		return array(
+			'deleted'   => $deleted,
+			'remaining' => self::count_trashed_posts( $days ),
+		);
 	}
 
 	/**
