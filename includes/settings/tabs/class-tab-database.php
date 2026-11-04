@@ -217,7 +217,7 @@ final class Tab_Database extends Settings_Tab {
 				'id'              => 'optimize_tables',
 				'label'           => \__( 'Optimize tables', 'bloatbuster-performance-asset-cleaner' ),
 				'description'     => \__( 'InnoDB tables are rebuilt, which can lock them and needs free disk space about the size of the table. Run it during low traffic. Speed gains are not guaranteed.', 'bloatbuster-performance-asset-cleaner' ),
-				'note'            => \__( 'Free space is unused space inside a table file. InnoDB normally reserves a few MB in larger tables. Shared tablespace free space is unknown and cannot be selected. Row counts are estimates. At most 5 tables are optimized per run.', 'bloatbuster-performance-asset-cleaner' ),
+				'note'            => \__( 'Free space is unused space inside a table file. InnoDB normally reserves a few MB in larger tables. Shared or unverified InnoDB tablespace free space is unknown and cannot be selected. Row counts are estimates. At most 5 tables are optimized per run.', 'bloatbuster-performance-asset-cleaner' ),
 				'button'          => \__( 'Optimize selected tables', 'bloatbuster-performance-asset-cleaner' ),
 				'confirm_title'   => \__( 'Optimize the selected tables?', 'bloatbuster-performance-asset-cleaner' ),
 				'confirm'         => \__( 'Optimizing can lock tables and needs temporary free disk space about the size of each table. Make sure you have a database backup and run this during low traffic. Speed gains are not guaranteed.', 'bloatbuster-performance-asset-cleaner' ),

@@ -458,8 +458,7 @@ final class Database_Tools {
 	 * Get the size, rows and free space of the tables with this site's prefix.
 	 *
 	 * Free space is not added up: InnoDB keeps some free space reserved in larger
-	 * tables, and without innodb_file_per_table every InnoDB table reports the free
-	 * space of the same shared file, so it is shown as unknown for those tables.
+	 * tables. Shared or unverified InnoDB tablespaces have unknown free space.
 	 *
 	 * @return array - Tables sorted by size, largest first, and totals.
 	 *
@@ -486,18 +485,16 @@ final class Database_Tools {
 		);
 		// phpcs:enable
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Server setting, read once.
-		$file_per_table = (bool) $wpdb->get_var( 'SELECT @@innodb_file_per_table' );
-
-		$global_tables = $wpdb->tables( 'global' );
-		$tables        = array();
-		$totals        = array(
+		$file_per_table = self::get_file_per_table_names( (array) $rows );
+		$global_tables  = $wpdb->tables( 'global' );
+		$tables         = array();
+		$totals         = array(
 			'count' => 0,
 			'size'  => 0,
 		);
 
 		foreach ( (array) $rows as $row ) {
-			$is_shared = 'innodb' === strtolower( (string) $row->engine ) && ! $file_per_table;
+			$is_unverified = 'innodb' === strtolower( (string) $row->engine ) && ! isset( $file_per_table[ $wpdb->dbname . '/' . $row->name ] );
 
 			$tables[] = array(
 				'name'       => (string) $row->name,
@@ -505,7 +502,7 @@ final class Database_Tools {
 				'is_global'  => in_array( $row->name, $global_tables, true ),
 				'rows'       => (int) $row->row_count,
 				'size'       => (int) $row->size,
-				'free_space' => $is_shared ? null : (int) $row->free_space,
+				'free_space' => $is_unverified ? null : (int) $row->free_space,
 			);
 
 			++$totals['count'];
@@ -516,6 +513,65 @@ final class Database_Tools {
 			'tables' => $tables,
 			'totals' => $totals,
 		);
+	}
+
+	/**
+	 * Identify site InnoDB tables whose actual tablespace is file-per-table.
+	 *
+	 * The current innodb_file_per_table setting does not describe existing tables.
+	 * Missing metadata, including denied PROCESS access, leaves storage unverified.
+	 *
+	 * @param array $rows - Site table statistics returned by information_schema.
+	 *
+	 * @return array - Verified database/table names as keys, each mapped to true.
+	 *
+	 * @since 1.0.0
+	 */
+	private static function get_file_per_table_names( $rows ) {
+		global $wpdb;
+
+		$names = array();
+
+		foreach ( $rows as $row ) {
+			// Dictionary names use @ escapes and # partition markers; raw names containing them are ambiguous.
+			if ( 1 === preg_match( '/[@#]/', $wpdb->dbname . $row->name ) ) {
+				continue;
+			}
+
+			if ( 'innodb' === strtolower( (string) $row->engine ) ) {
+				$names[] = $wpdb->dbname . '/' . $row->name;
+			}
+		}
+
+		if ( empty( $names ) ) {
+			return array();
+		}
+
+		$is_mariadb      = false !== stripos( $wpdb->db_server_info(), 'mariadb' );
+		$metadata_table  = ! $is_mariadb && version_compare( $wpdb->db_version(), '8.0', '>=' ) ? 'INNODB_TABLES' : 'INNODB_SYS_TABLES';
+		$placeholders    = implode( ', ', array_fill( 0, count( $names ), '%s' ) );
+		$previous_errors = $wpdb->suppress_errors( true );
+
+		try {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Metadata table is a fixed server-specific name; table names use placeholders.
+			$verified = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT NAME FROM information_schema.{$metadata_table} WHERE NAME IN ({$placeholders}) AND SPACE_TYPE = 'Single' AND SPACE > 0",
+					$names
+				)
+			);
+			// phpcs:enable
+
+			if ( '' !== $wpdb->last_error ) {
+				return array();
+			}
+
+			return array_fill_keys( (array) $verified, true );
+		} catch ( \Throwable $error ) {
+			return array();
+		} finally {
+			$wpdb->suppress_errors( $previous_errors );
+		}
 	}
 
 	/**
