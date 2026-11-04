@@ -600,7 +600,7 @@ final class Database_Tools {
 	 *
 	 * @param array $names - Selected table names, checked against live statistics.
 	 *
-	 * @return array - Counts, measured reclaimed bytes and per-table results.
+	 * @return array - Counts, estimated reclaimed bytes and per-table results.
 	 *
 	 * @since 1.0.0
 	 */
@@ -707,7 +707,26 @@ final class Database_Tools {
 				$result['tables'][ $name ]['after'] = $table;
 
 				if ( $result['tables'][ $name ]['success'] ) {
-					$result['reclaimed'] += max( 0, $result['tables'][ $name ]['before']['size'] - $table['size'] );
+					$before = $result['tables'][ $name ]['before'];
+
+					if ( strtolower( $before['engine'] ) !== strtolower( $table['engine'] ) ) {
+						continue;
+					}
+
+					$before_size = $before['size'];
+					$after_size  = $table['size'];
+
+					if ( 'innodb' === strtolower( $table['engine'] ) ) {
+						if ( null === $before['free_space'] || null === $table['free_space'] ) {
+							continue;
+						}
+
+						// Verified standalone InnoDB allocation also includes completely free extents.
+						$before_size += $before['free_space'];
+						$after_size  += $table['free_space'];
+					}
+
+					$result['reclaimed'] += max( 0, $before_size - $after_size );
 				}
 			}
 		}

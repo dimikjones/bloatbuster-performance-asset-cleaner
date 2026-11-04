@@ -261,15 +261,15 @@ final class Tab_Database extends Settings_Tab {
 			$failed    = $result['failed'];
 			$remaining = $result['remaining'];
 
-			/* translators: 1: number of optimized tables, 2: measured reclaimed size, e.g. 12 MB. */
-			$message = sprintf( \_n( 'Optimized %1$d table, %2$s reclaimed.', 'Optimized %1$d tables, %2$s reclaimed.', $count, 'bloatbuster-performance-asset-cleaner' ), $count, \size_format( $result['reclaimed'], 1 ) );
+			/* translators: 1: number of optimized tables, 2: estimated reclaimed size, e.g. 12 MB. */
+			$message = sprintf( \_n( 'Optimized %1$d table; estimated space reclaimed: %2$s.', 'Optimized %1$d tables; estimated space reclaimed: %2$s.', $count, 'bloatbuster-performance-asset-cleaner' ), $count, \size_format( $result['reclaimed'], 1 ) );
 
 			if ( 0 < $failed ) {
 				/* translators: %d: number of tables that could not be optimized. */
 				$message .= ' ' . sprintf( \_n( '%d table failed. See the results below.', '%d tables failed. See the results below.', $failed, 'bloatbuster-performance-asset-cleaner' ), $failed );
 			}
 
-			$message .= ' ' . \__( 'Sizes can update later; reclaimed space is based on the reported table sizes.', 'bloatbuster-performance-asset-cleaner' );
+			$message .= ' ' . \__( 'Sizes are estimates and can update later.', 'bloatbuster-performance-asset-cleaner' );
 		} elseif ( 'transients_cleaned' === $notice ) {
 			/* translators: %d: number of deleted transients. */
 			$message = sprintf( \_n( 'Deleted %d expired transient.', 'Deleted %d expired transients.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );

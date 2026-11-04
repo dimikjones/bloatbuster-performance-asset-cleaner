@@ -126,7 +126,7 @@ A name that looks temporary can still be needed by an active plugin, so guessing
 
 = Does optimizing tables make my site faster? =
 
-Speed gains are not guaranteed. Optimization can reclaim unused space after large deletions. Only InnoDB, MyISAM and Aria tables reporting free space can be selected; shared or unverified InnoDB tablespace free space is unknown and cannot be selected. Verifying InnoDB storage requires access to its database metadata (PROCESS privilege). InnoDB tables are rebuilt, which can lock them and needs temporary free disk space about the size of the table. Make a database backup and run during low traffic. At most 5 selected tables run at a time; select any remaining tables and run again. Results show once, and reported sizes may update later.
+Speed gains are not guaranteed. Optimization can reclaim unused space after large deletions. Only InnoDB, MyISAM and Aria tables reporting free space can be selected; shared or unverified InnoDB tablespace free space is unknown and cannot be selected. Verifying InnoDB storage requires access to its database metadata (PROCESS privilege). InnoDB tables are rebuilt, which can lock them and needs temporary free disk space about the size of the table. Make a database backup and run during low traffic. At most 5 selected tables run at a time; select any remaining tables and run again. Results show once. Estimated reclaimed space includes unused InnoDB storage and may differ from actual disk usage; reported sizes may update later.
 
 = Does it work on multisite? =
 
