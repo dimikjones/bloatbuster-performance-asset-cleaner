@@ -39,6 +39,13 @@ final class Tab_Database extends Settings_Tab {
 	private static $integration_counts = null;
 
 	/**
+	 * Saved optimization result, shared by the notice and table during this request.
+	 *
+	 * @var array|null
+	 */
+	private static $optimization_result = null;
+
+	/**
 	 * Get the tab slug.
 	 *
 	 * @return string - Tab slug.
@@ -123,7 +130,7 @@ final class Tab_Database extends Settings_Tab {
 				'type'            => 'report',
 				'id'              => 'database_stats',
 				'label'           => \__( 'Database statistics', 'bloatbuster-performance-asset-cleaner' ),
-				'description'     => \__( 'Size of the tables of this site and what each cleanup would remove. Free space is unused space inside a table file, InnoDB keeps a few MB free in larger tables, which is normal. Row counts are estimates for most tables.', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'Size of the tables of this site and what each cleanup would remove.', 'bloatbuster-performance-asset-cleaner' ),
 				'render_callback' => array( __CLASS__, 'render_database_stats' ),
 			),
 			array(
@@ -206,6 +213,17 @@ final class Tab_Database extends Settings_Tab {
 				'render_callback' => array( __CLASS__, 'render_plugin_data' ),
 			),
 			array(
+				'type'            => 'action',
+				'id'              => 'optimize_tables',
+				'label'           => \__( 'Optimize tables', 'bloatbuster-performance-asset-cleaner' ),
+				'description'     => \__( 'InnoDB tables are rebuilt, which can lock them and needs free disk space about the size of the table. Run it during low traffic. Speed gains are not guaranteed.', 'bloatbuster-performance-asset-cleaner' ),
+				'note'            => \__( 'Free space is unused space inside a table file. InnoDB normally reserves a few MB in larger tables. Shared tablespace free space is unknown and cannot be selected. Row counts are estimates. At most 5 tables are optimized per run.', 'bloatbuster-performance-asset-cleaner' ),
+				'button'          => \__( 'Optimize selected tables', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm_title'   => \__( 'Optimize the selected tables?', 'bloatbuster-performance-asset-cleaner' ),
+				'confirm'         => \__( 'Optimizing can lock tables and needs temporary free disk space about the size of each table. Make sure you have a database backup and run this during low traffic. Speed gains are not guaranteed.', 'bloatbuster-performance-asset-cleaner' ),
+				'render_callback' => array( __CLASS__, 'render_optimize_tables' ),
+			),
+			array(
 				'type'            => 'report',
 				'id'              => 'cleanup_log',
 				'label'           => \__( 'Recent cleanups', 'bloatbuster-performance-asset-cleaner' ),
@@ -230,8 +248,29 @@ final class Tab_Database extends Settings_Tab {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		$message = '';
+		$failed  = 0;
 
-		if ( 'transients_cleaned' === $notice ) {
+		if ( 'tables_optimized' === $notice ) {
+			$result = self::get_optimization_result();
+
+			if ( empty( $result ) ) {
+				return;
+			}
+
+			$count     = $result['optimized'];
+			$failed    = $result['failed'];
+			$remaining = $result['remaining'];
+
+			/* translators: 1: number of optimized tables, 2: measured reclaimed size, e.g. 12 MB. */
+			$message = sprintf( \_n( 'Optimized %1$d table, %2$s reclaimed.', 'Optimized %1$d tables, %2$s reclaimed.', $count, 'bloatbuster-performance-asset-cleaner' ), $count, \size_format( $result['reclaimed'], 1 ) );
+
+			if ( 0 < $failed ) {
+				/* translators: %d: number of tables that could not be optimized. */
+				$message .= ' ' . sprintf( \_n( '%d table failed. See the results below.', '%d tables failed. See the results below.', $failed, 'bloatbuster-performance-asset-cleaner' ), $failed );
+			}
+
+			$message .= ' ' . \__( 'Sizes can update later; reclaimed space is based on the reported table sizes.', 'bloatbuster-performance-asset-cleaner' );
+		} elseif ( 'transients_cleaned' === $notice ) {
 			/* translators: %d: number of deleted transients. */
 			$message = sprintf( \_n( 'Deleted %d expired transient.', 'Deleted %d expired transients.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		} elseif ( 'revisions_deleted' === $notice ) {
@@ -261,7 +300,10 @@ final class Tab_Database extends Settings_Tab {
 			return;
 		}
 
-		if ( $remaining > 0 && 'revisions_deleted' === $notice ) {
+		if ( 0 < $remaining && 'tables_optimized' === $notice ) {
+			/* translators: %d: number of selected tables left to optimize. */
+			$message .= ' ' . sprintf( \_n( '%d selected table remains. Select it and run again.', '%d selected tables remain. Select them and run again.', $remaining, 'bloatbuster-performance-asset-cleaner' ), $remaining );
+		} elseif ( $remaining > 0 && 'revisions_deleted' === $notice ) {
 			$keep = self::get_revisions_to_keep();
 
 			/* translators: 1: number of revisions left to delete, 2: number of revisions kept per post. */
@@ -271,18 +313,17 @@ final class Tab_Database extends Settings_Tab {
 			$message .= ' ' . sprintf( \_n( '%d more left, run it again to delete it.', '%d more left, run it again to delete them.', $remaining, 'bloatbuster-performance-asset-cleaner' ), $remaining );
 		}
 
-		\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), 'updated' );
+		\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), 0 < $failed ? 'warning' : 'updated' );
 	}
 
 	/**
-	 * Render the database size, content counts and largest tables.
+	 * Render the database size and cleanup preview.
 	 *
 	 * @return void
 	 *
 	 * @since 1.0.0
 	 */
 	public static function render_database_stats() {
-		$limit  = 15;
 		$stats  = Database_Tools::get_table_stats();
 		$totals = $stats['totals'];
 		?>
@@ -293,36 +334,88 @@ final class Tab_Database extends Settings_Tab {
 			?>
 		</p>
 		<?php self::render_cleanup_preview(); ?>
-		<?php if ( ! empty( $stats['tables'] ) ) : ?>
-			<table class="widefat striped bbpac-db-tables">
-				<thead>
-					<tr>
-						<th><?php \esc_html_e( 'Table', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-						<th><?php \esc_html_e( 'Rows (approx.)', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-						<th><?php \esc_html_e( 'Size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-						<th><?php \esc_html_e( 'Free space', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php foreach ( array_slice( $stats['tables'], 0, $limit ) as $table ) : ?>
-						<tr>
-							<td><code><?php echo \esc_html( $table['name'] ); ?></code></td>
-							<td><?php echo \esc_html( \number_format_i18n( $table['rows'] ) ); ?></td>
-							<td><?php echo \esc_html( \size_format( $table['size'], 1 ) ); ?></td>
-							<td><?php echo \esc_html( $table['free_space'] > 0 ? \size_format( $table['free_space'], 1 ) : '-' ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-			<?php
-		endif;
+		<?php
+	}
 
-		if ( $totals['count'] > $limit ) {
-			$more = $totals['count'] - $limit;
-
-			/* translators: %d: number of tables not shown in the list. */
-			echo '<p>' . \esc_html( sprintf( \_n( 'And %d more.', 'And %d more.', $more, 'bloatbuster-performance-asset-cleaner' ), $more ) ) . '</p>';
+	/**
+	 * Read the saved optimization result once for the notice and table.
+	 *
+	 * @return array - Saved result, or an empty array.
+	 *
+	 * @since 1.0.0
+	 */
+	private static function get_optimization_result() {
+		if ( null === self::$optimization_result ) {
+			$result                    = \get_user_option( 'bloatbuster_optimize_result' );
+			self::$optimization_result = is_array( $result ) ? $result : array();
 		}
+
+		return self::$optimization_result;
+	}
+
+	/**
+	 * Render all site tables with eligible selections and one-time optimization results.
+	 *
+	 * @return bool - Whether any table is eligible for optimization.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_optimize_tables() {
+		$stats        = Database_Tools::get_table_stats();
+		$result       = self::get_optimization_result();
+		$has_results  = ! empty( $result['tables'] );
+		$has_eligible = false;
+
+		foreach ( $stats['tables'] as $table ) {
+			if ( Database_Tools::can_optimize_table( $table ) ) {
+				$has_eligible = true;
+				break;
+			}
+		}
+
+		\delete_user_option( \get_current_user_id(), 'bloatbuster_optimize_result' );
+		?>
+		<table class="widefat striped bbpac-db-tables" id="bbpac-optimize-tables">
+			<thead>
+				<tr>
+					<th scope="col" class="check-column">
+						<input type="checkbox" id="bbpac-optimize-select-all" aria-label="<?php \esc_attr_e( 'Select all eligible tables', 'bloatbuster-performance-asset-cleaner' ); ?>" <?php \disabled( ! $has_eligible ); ?>>
+					</th>
+					<th scope="col"><?php \esc_html_e( 'Table', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th scope="col"><?php \esc_html_e( 'Engine', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th scope="col"><?php \esc_html_e( 'Rows (approx.)', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th scope="col"><?php \esc_html_e( 'Size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th scope="col"><?php \esc_html_e( 'Free space', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<?php if ( $has_results ) : ?>
+						<th scope="col"><?php \esc_html_e( 'Result', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<?php endif; ?>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $stats['tables'] as $index => $table ) : ?>
+					<?php
+					$eligible     = Database_Tools::can_optimize_table( $table );
+					$table_result = $result['tables'][ $table['name'] ] ?? null;
+					?>
+					<tr>
+						<th scope="row" class="check-column">
+							<input type="checkbox" id="bbpac-optimize-<?php echo \esc_attr( $index ); ?>" name="bbpac_optimize_tables[]" value="<?php echo \esc_attr( $table['name'] ); ?>" <?php \disabled( ! $eligible ); ?>>
+						</th>
+						<td><label for="bbpac-optimize-<?php echo \esc_attr( $index ); ?>"><code><?php echo \esc_html( $table['name'] ); ?></code></label></td>
+						<td><?php echo \esc_html( $table['engine'] ); ?></td>
+						<td><?php echo \esc_html( \number_format_i18n( $table['rows'] ) ); ?></td>
+						<td><?php echo \esc_html( \size_format( $table['size'], 1 ) ); ?></td>
+						<td><?php echo \esc_html( null === $table['free_space'] ? '—' : \size_format( $table['free_space'], 1 ) ); ?></td>
+						<?php if ( $has_results ) : ?>
+							<td><?php echo \esc_html( null === $table_result ? '—' : ( $table_result['success'] ? \__( 'OK', 'bloatbuster-performance-asset-cleaner' ) : $table_result['error'] ) ); ?></td>
+						<?php endif; ?>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+
+		return $has_eligible;
 	}
 
 	/**
@@ -965,7 +1058,7 @@ final class Tab_Database extends Settings_Tab {
 				<tr>
 					<th><?php \esc_html_e( 'When', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 					<th><?php \esc_html_e( 'Cleanup', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-					<th><?php \esc_html_e( 'Removed', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+					<th><?php \esc_html_e( 'Processed', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 					<th><?php \esc_html_e( 'Left', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 					<th><?php \esc_html_e( 'By', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 				</tr>

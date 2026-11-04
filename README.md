@@ -29,7 +29,8 @@ Every option is off by default.
 
 ### Database
 
-* Database statistics: size and largest tables with free space
+* Database statistics: size and cleanup preview, with a full table list under Optimize tables
+* Manually optimize selected tables with free space, at most 5 per run, with per-table results
 * Cleanup preview: stored and eligible counts for each cleanup
 * Clean expired transients, including timeouts left without a value
 * Delete old revisions, keeping the newest ones per post
@@ -80,7 +81,14 @@ Use "Export all options" to download every persistent option for the current sit
 * Network transients (stored in the sitemeta table) are listed and cleaned only on the main site.
 * Orphaned user meta is shared by the network, so it is listed and cleaned only on the main site by a network administrator.
 * Database statistics on the main site only count the main site's tables.
+* Optimizing global tables on multisite requires a network administrator. Subsites only list their own tables.
 * Uninstall removes the plugin data on every site that opted in.
+
+## Frequently Asked Questions
+
+### Does optimizing tables make my site faster?
+
+Speed gains are not guaranteed. Optimization can reclaim unused space after large deletions. Only InnoDB, MyISAM and Aria tables reporting free space can be selected; shared InnoDB tablespace free space is unknown and cannot be selected. InnoDB tables are rebuilt, which can lock them and needs temporary free disk space about the size of the table. Make a database backup and run during low traffic. At most 5 selected tables run at a time; select any remaining tables and run again. Results show once, and reported sizes may update later.
 
 ## WP-CLI
 

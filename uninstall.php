@@ -27,6 +27,11 @@ function bloatbuster_uninstall_data() {
 
 	\delete_option( 'bloatbuster_performance_asset_cleaner_options' );
 	\delete_option( 'bloatbuster_cleanup_log' );
+
+	global $wpdb;
+
+	// User options are stored as user meta with the current site's prefix.
+	\delete_metadata( 'user', 0, $wpdb->get_blog_prefix() . 'bloatbuster_optimize_result', '', true );
 }
 
 if ( \is_multisite() ) {

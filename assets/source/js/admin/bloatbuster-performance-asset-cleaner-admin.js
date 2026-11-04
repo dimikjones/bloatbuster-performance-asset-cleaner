@@ -32,6 +32,39 @@ document.addEventListener( 'DOMContentLoaded', () => {
 } );
 
 /**
+ * Select eligible database tables and keep the header checkbox in sync.
+ */
+document.addEventListener( 'DOMContentLoaded', () => {
+	const table = document.getElementById( 'bbpac-optimize-tables' );
+
+	if ( ! table ) {
+		return;
+	}
+
+	const selectAll = table.querySelector( '#bbpac-optimize-select-all' );
+	const checkboxes = Array.from( table.querySelectorAll( 'input[name="bbpac_optimize_tables[]"]:not(:disabled)' ) );
+	const button = table.closest( '.bbpac-action' ).querySelector( 'button[value="optimize_tables"]' );
+	const updateSelection = () => {
+		const selected = checkboxes.filter( ( checkbox ) => checkbox.checked ).length;
+
+		selectAll.checked = 0 < checkboxes.length && selected === checkboxes.length;
+		selectAll.indeterminate = 0 < selected && selected < checkboxes.length;
+		button.disabled = 0 === selected;
+	};
+
+	selectAll.disabled = 0 === checkboxes.length;
+	selectAll.addEventListener( 'change', () => {
+		checkboxes.forEach( ( checkbox ) => {
+			checkbox.checked = selectAll.checked;
+		} );
+		updateSelection();
+	} );
+
+	checkboxes.forEach( ( checkbox ) => checkbox.addEventListener( 'change', updateSelection ) );
+	updateSelection();
+} );
+
+/**
  * Autoloaded Options tab: confirmations and the value dialog.
  *
  * Option names and values are only written with textContent.

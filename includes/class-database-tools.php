@@ -32,6 +32,13 @@ final class Database_Tools {
 	const DELETE_BATCH = 500;
 
 	/**
+	 * Maximum number of tables optimized per run.
+	 *
+	 * @var int
+	 */
+	const OPTIMIZE_BATCH = 5;
+
+	/**
 	 * Option that stores the recent cleanup runs, not autoloaded.
 	 *
 	 * @var string
@@ -397,6 +404,27 @@ final class Database_Tools {
 				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
 				break;
 
+			case 'optimize_tables':
+				$raw_names = isset( $_POST['bbpac_optimize_tables'] ) ? (array) $_POST['bbpac_optimize_tables'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Each string is unslashed and sanitized below.
+				$names     = array();
+
+				foreach ( $raw_names as $name ) {
+					if ( is_string( $name ) ) {
+						$names[] = \sanitize_text_field( \wp_unslash( $name ) );
+					}
+				}
+
+				$result = self::optimize_tables( $names );
+				\update_user_option( \get_current_user_id(), 'bloatbuster_optimize_result', $result );
+
+				$args['bloatbuster_notice']    = 'tables_optimized';
+				$args['bloatbuster_count']     = $result['optimized'];
+				$args['bloatbuster_failed']    = $result['failed'];
+				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				self::log_cleanup( $action, $result['optimized'], $result['remaining'] );
+				break;
+
 			case 'clean_plugin_data':
 				$raw_ids   = isset( $_POST['bbpac_integrations'] ) ? (array) \wp_unslash( $_POST['bbpac_integrations'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each value is sanitized below.
 				$available = Cleanup_Integrations::get_available_integrations();
@@ -461,8 +489,9 @@ final class Database_Tools {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Server setting, read once.
 		$file_per_table = (bool) $wpdb->get_var( 'SELECT @@innodb_file_per_table' );
 
-		$tables = array();
-		$totals = array(
+		$global_tables = $wpdb->tables( 'global' );
+		$tables        = array();
+		$totals        = array(
 			'count' => 0,
 			'size'  => 0,
 		);
@@ -472,6 +501,8 @@ final class Database_Tools {
 
 			$tables[] = array(
 				'name'       => (string) $row->name,
+				'engine'     => (string) $row->engine,
+				'is_global'  => in_array( $row->name, $global_tables, true ),
 				'rows'       => (int) $row->row_count,
 				'size'       => (int) $row->size,
 				'free_space' => $is_shared ? null : (int) $row->free_space,
@@ -485,6 +516,147 @@ final class Database_Tools {
 			'tables' => $tables,
 			'totals' => $totals,
 		);
+	}
+
+	/**
+	 * Check whether the current user can optimize a table from the site statistics.
+	 *
+	 * @param array $table - Table returned by get_table_stats().
+	 *
+	 * @return bool - Whether the table has reclaimable space and an allowed engine.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function can_optimize_table( $table ) {
+		if ( null === $table['free_space'] || 0 >= $table['free_space'] ) {
+			return false;
+		}
+
+		if ( ! in_array( strtolower( $table['engine'] ), array( 'innodb', 'myisam', 'aria' ), true ) ) {
+			return false;
+		}
+
+		return ! \is_multisite() || ! $table['is_global'] || \current_user_can( 'manage_network_options' );
+	}
+
+	/**
+	 * Optimize up to five selected, eligible tables belonging to this site.
+	 *
+	 * @param array $names - Selected table names, checked against live statistics.
+	 *
+	 * @return array - Counts, measured reclaimed bytes and per-table results.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function optimize_tables( $names ) {
+		global $wpdb;
+
+		$previous_errors = $wpdb->suppress_errors( true );
+
+		try {
+			// MySQL 8 caches these statistics. Older MySQL and MariaDB may reject this setting.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Session setting for fresh before/after measurements.
+			$wpdb->query( 'SET SESSION information_schema_stats_expiry = 0' );
+		} catch ( \Throwable $error ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Unsupported session settings are intentionally ignored.
+			// An unsupported session setting must not prevent optimization.
+		} finally {
+			$wpdb->suppress_errors( $previous_errors );
+		}
+
+		$stats    = self::get_table_stats();
+		$eligible = array();
+		$result   = array(
+			'optimized' => 0,
+			'failed'    => 0,
+			'remaining' => 0,
+			'reclaimed' => 0,
+			'tables'    => array(),
+		);
+
+		foreach ( $stats['tables'] as $table ) {
+			if ( self::can_optimize_table( $table ) ) {
+				$eligible[ $table['name'] ] = $table;
+			}
+		}
+
+		$selected = array();
+
+		foreach ( $names as $name ) {
+			if ( is_string( $name ) && isset( $eligible[ $name ] ) ) {
+				$selected[ $name ] = $eligible[ $name ];
+			}
+		}
+
+		$result['remaining'] = max( 0, count( $selected ) - self::OPTIMIZE_BATCH );
+
+		foreach ( array_slice( $selected, 0, self::OPTIMIZE_BATCH, true ) as $name => $table ) {
+			$identifier      = '`' . str_replace( '`', '``', $name ) . '`';
+			$previous_errors = $wpdb->suppress_errors( true );
+			$ok              = false;
+			$errors          = array();
+
+			try {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier comes only from live site statistics and is backtick-escaped.
+				$rows = $wpdb->get_results( "OPTIMIZE TABLE {$identifier}", ARRAY_A );
+
+				if ( '' !== $wpdb->last_error ) {
+					$errors[] = $wpdb->last_error;
+				}
+
+				foreach ( (array) $rows as $row ) {
+					$type = strtolower( $row['Msg_type'] );
+
+					if ( 'status' === $type && 'ok' === strtolower( trim( $row['Msg_text'] ) ) ) {
+						$ok = true;
+					} elseif ( 'error' === $type || 'status' === $type ) {
+						$errors[] = $row['Msg_text'];
+					}
+				}
+			} catch ( \Throwable $error ) {
+				$errors[] = $error->getMessage();
+			} finally {
+				$wpdb->suppress_errors( $previous_errors );
+			}
+
+			$success = $ok && empty( $errors );
+
+			if ( $success ) {
+				++$result['optimized'];
+			} else {
+				++$result['failed'];
+
+				if ( empty( $errors ) ) {
+					$errors[] = \__( 'The database did not confirm that optimization completed.', 'bloatbuster-performance-asset-cleaner' );
+				}
+			}
+
+			$result['tables'][ $name ] = array(
+				'success' => $success,
+				'error'   => implode( ' ', array_unique( $errors ) ),
+				'before'  => $table,
+				'after'   => null,
+			);
+		}
+
+		if ( ! empty( $result['tables'] ) ) {
+			$after = self::get_table_stats();
+
+			foreach ( $after['tables'] as $table ) {
+				$name = $table['name'];
+
+				if ( ! isset( $result['tables'][ $name ] ) ) {
+					continue;
+				}
+
+				$result['tables'][ $name ]['after'] = $table;
+
+				if ( $result['tables'][ $name ]['success'] ) {
+					$result['reclaimed'] += max( 0, $result['tables'][ $name ]['before']['size'] - $table['size'] );
+				}
+			}
+		}
+
+		return $result;
 	}
 
 	/**
