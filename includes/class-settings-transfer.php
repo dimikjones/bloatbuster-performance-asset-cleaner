@@ -270,6 +270,7 @@ final class Settings_Transfer {
 
 		$pending         = self::parse_settings( $data['settings'] );
 		$pending['time'] = time();
+		$pending['id']   = \wp_generate_uuid4();
 
 		\update_user_option( \get_current_user_id(), self::PENDING_OPTION, $pending );
 
@@ -379,7 +380,7 @@ final class Settings_Transfer {
 		$user_id = \get_current_user_id();
 		$pending = \get_user_option( self::PENDING_OPTION, $user_id );
 
-		if ( ! is_array( $pending ) || ! isset( $pending['settings'], $pending['time'] ) || ! is_array( $pending['settings'] ) ) {
+		if ( ! is_array( $pending ) || ! isset( $pending['settings'], $pending['time'], $pending['id'] ) || ! is_array( $pending['settings'] ) || ! is_string( $pending['id'] ) ) {
 			return null;
 		}
 
@@ -511,10 +512,16 @@ final class Settings_Transfer {
 
 		\check_admin_referer( self::APPLY_ACTION );
 
-		$pending = self::get_pending();
+		$import_id = isset( $_POST['bbpac_import_id'] ) && is_string( $_POST['bbpac_import_id'] ) ? \sanitize_key( \wp_unslash( $_POST['bbpac_import_id'] ) ) : '';
+		$pending   = self::get_pending();
 
 		if ( null === $pending ) {
 			self::redirect_import_error( 'expired' );
+		}
+
+		// A newer upload replaced the import shown in this preview.
+		if ( ! self::is_current_import( $pending, $import_id ) ) {
+			self::redirect_import_error( 'changed' );
 		}
 
 		$count  = count( self::get_changes( $pending ) );
@@ -558,9 +565,33 @@ final class Settings_Transfer {
 
 		\check_admin_referer( self::CANCEL_ACTION );
 
-		\delete_user_option( \get_current_user_id(), self::PENDING_OPTION );
+		$import_id = isset( $_POST['bbpac_import_id'] ) && is_string( $_POST['bbpac_import_id'] ) ? \sanitize_key( \wp_unslash( $_POST['bbpac_import_id'] ) ) : '';
+		$pending   = self::get_pending();
+
+		// Cancel from an old preview must not discard a newer upload.
+		if ( null !== $pending && self::is_current_import( $pending, $import_id ) ) {
+			\delete_user_option( \get_current_user_id(), self::PENDING_OPTION );
+		}
 
 		self::redirect( array() );
+	}
+
+	/**
+	 * Check if a submitted import ID matches the pending import.
+	 *
+	 * @param array  $pending   - Pending import.
+	 * @param string $import_id - Import ID sent by the preview form.
+	 *
+	 * @return bool - True if the IDs match.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_current_import( $pending, $import_id ) {
+		if ( '' === $import_id ) {
+			return false;
+		}
+
+		return hash_equals( $pending['id'], $import_id );
 	}
 
 	/**
@@ -648,6 +679,7 @@ final class Settings_Transfer {
 			'invalid_file' => \__( 'This is not a BloatBuster settings export file.', 'bloatbuster-performance-asset-cleaner' ),
 			'format'       => \__( 'This settings file was made by a newer version of BloatBuster. Update the plugin and try again.', 'bloatbuster-performance-asset-cleaner' ),
 			'expired'      => \__( 'The import expired or was already applied. Upload the file again.', 'bloatbuster-performance-asset-cleaner' ),
+			'changed'      => \__( 'A newer file was uploaded after this preview. Check its preview before applying.', 'bloatbuster-performance-asset-cleaner' ),
 		);
 
 		if ( isset( $messages[ $code ] ) ) {
@@ -717,12 +749,14 @@ final class Settings_Transfer {
 				<?php if ( ! empty( $changes ) ) : ?>
 					<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="<?php echo \esc_attr( self::APPLY_ACTION ); ?>">
+						<input type="hidden" name="bbpac_import_id" value="<?php echo \esc_attr( $pending['id'] ); ?>">
 						<?php \wp_nonce_field( self::APPLY_ACTION ); ?>
 						<button type="submit" class="button button-primary" data-bbpac-confirm="<?php \esc_attr_e( 'The settings listed above will be replaced. Export your current settings first if you may need them again.', 'bloatbuster-performance-asset-cleaner' ); ?>" data-bbpac-confirm-title="<?php \esc_attr_e( 'Apply imported settings?', 'bloatbuster-performance-asset-cleaner' ); ?>" data-bbpac-confirm-label="<?php \esc_attr_e( 'Apply settings', 'bloatbuster-performance-asset-cleaner' ); ?>"><?php \esc_html_e( 'Apply settings', 'bloatbuster-performance-asset-cleaner' ); ?></button>
 					</form>
 				<?php endif; ?>
 				<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="<?php echo \esc_attr( self::CANCEL_ACTION ); ?>">
+					<input type="hidden" name="bbpac_import_id" value="<?php echo \esc_attr( $pending['id'] ); ?>">
 					<?php \wp_nonce_field( self::CANCEL_ACTION ); ?>
 					<?php \submit_button( \__( 'Cancel', 'bloatbuster-performance-asset-cleaner' ), 'secondary', 'bbpac_import_cancel', false ); ?>
 				</form>
