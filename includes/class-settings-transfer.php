@@ -571,7 +571,7 @@ final class Settings_Transfer {
 			}
 		}
 
-		\update_option( BLOATBUSTER_OPTION, $stored );
+		Plugin_Options::save_sanitized_options( $stored );
 		\delete_user_option( \get_current_user_id(), self::PENDING_OPTION );
 
 		self::redirect(
@@ -641,7 +641,7 @@ final class Settings_Transfer {
 			unset( $stored[ $id ] );
 		}
 
-		\update_option( BLOATBUSTER_OPTION, $stored );
+		Plugin_Options::save_sanitized_options( $stored );
 		\delete_user_option( \get_current_user_id(), self::PENDING_OPTION );
 
 		self::redirect( array( 'bloatbuster_notice' => 'settings_reset' ) );

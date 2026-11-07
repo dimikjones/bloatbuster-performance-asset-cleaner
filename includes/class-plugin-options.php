@@ -36,6 +36,13 @@ final class Plugin_Options {
 	private static $fields = null;
 
 	/**
+	 * True while save_sanitized_options() saves, so sanitize_options() keeps the values as they are.
+	 *
+	 * @var bool
+	 */
+	private static $skip_sanitize = false;
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -333,6 +340,11 @@ final class Plugin_Options {
 			return array();
 		}
 
+		// Already sanitized by the caller, see save_sanitized_options().
+		if ( self::$skip_sanitize ) {
+			return $input;
+		}
+
 		$tabs      = self::get_tabs();
 		$tab       = isset( $input['_tab'] ) ? \sanitize_key( $input['_tab'] ) : '';
 		$is_tab    = isset( $tabs[ $tab ] );
@@ -372,6 +384,31 @@ final class Plugin_Options {
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Save options that are already sanitized, without running sanitize_options() again.
+	 *
+	 * Used by settings import and reset: changed values are sanitized field
+	 * by field, the other values are kept exactly as stored, including
+	 * excluded fields, locked fields and keys of fields that no longer exist.
+	 *
+	 * @param array $options - Sanitized options.
+	 *
+	 * @return bool - True if the option was updated.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function save_sanitized_options( $options ) {
+		self::$skip_sanitize = true;
+
+		try {
+			$result = \update_option( BLOATBUSTER_OPTION, $options );
+		} finally {
+			self::$skip_sanitize = false;
+		}
+
+		return $result;
 	}
 
 	/**
