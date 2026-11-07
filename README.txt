@@ -80,6 +80,7 @@ Every option is off by default, so nothing changes until you turn it on.
 * Control speculative loading mode and eagerness
 * Disable capital_P_dangit
 * Delete plugin data on uninstall
+* Import, export and reset settings, to copy a setup to another site
 
 = Source code =
 
@@ -135,6 +136,10 @@ Yes. Each site has its own settings. In the Autoloaded Options tab, only network
 = What is the WP-Cron status for? =
 
 WP-Cron runs scheduled tasks like publishing scheduled posts and update checks. The status shows overdue tasks, which means WP-Cron is not running. On busy sites you can run WP-Cron from a server cron job instead of on page visits, the status links to a guide.
+
+= Can I copy my settings to another site? =
+
+Yes. In the Advanced tab, click Export settings on the first site and upload the file with Import on the other site. You see a list of the settings that will change before you apply them. The file holds only BloatBuster settings, no site data. "Delete plugin data on uninstall" is not exported or imported. Settings not available on the other site, like block theme limits, are skipped.
 
 = Does it replace a caching plugin? =
 

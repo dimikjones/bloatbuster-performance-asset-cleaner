@@ -72,6 +72,7 @@ Use "Export all options" to download every persistent option for the current sit
 * Control speculative loading mode and eagerness
 * Disable capital_P_dangit
 * Delete plugin data on uninstall
+* Import, export and reset settings, to copy a setup to another site
 
 ## Multisite
 
@@ -85,6 +86,10 @@ Use "Export all options" to download every persistent option for the current sit
 * Uninstall removes the plugin data on every site that opted in.
 
 ## Frequently Asked Questions
+
+### Can I copy my settings to another site?
+
+Yes. In the Advanced tab, click **Export settings** on the first site and upload the file with **Import** on the other site. A preview lists the settings that will change before you apply them. The file holds only BloatBuster settings, no site data. "Delete plugin data on uninstall" is not exported or imported. Settings not available on the other site, like block theme limits, are skipped.
 
 ### Does optimizing tables make my site faster?
 
@@ -163,6 +168,7 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | `bloatbuster_settings_page_notices` | action | `$current_tab` | Add notices with `add_settings_error( 'messages', ... )`. |
 | `bloatbuster_before_tab_content` | action | `$current_tab` | Print content before the tab form. |
 | `bloatbuster_after_tab_content` | action | `$current_tab` | Print content after the tab form. |
+| `bloatbuster_settings_transfer_excluded` | filter | `$excluded` | Field IDs left out of settings export, import and reset. Default `delete_data_on_uninstall`. |
 | `bloatbuster_autoload_protected_options` | filter | `$protected` | Option names that can't have autoload changed or be deleted. |
 | `bloatbuster_autoload_sensitive_patterns` | filter | `$patterns` | Name parts that mask an option value in the value viewer. |
 | `bloatbuster_autoload_known_prefixes` | filter | `$known` | Option prefix => plugin file, for owner detection. |

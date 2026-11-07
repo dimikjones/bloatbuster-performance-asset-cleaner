@@ -344,12 +344,21 @@ final class Plugin_Options {
 		}
 
 		foreach ( self::get_fields() as $field ) {
-			if ( $is_tab && $field['tab'] !== $tab ) {
+			if ( $is_tab && $tab !== $field['tab'] ) {
 				continue;
 			}
 
-			// Locked fields are not submitted, keep their stored value. Actions store nothing.
-			if ( ! empty( $field['locked'] ) || ! Fields::is_saved_field( $field ) ) {
+			// Actions store nothing.
+			if ( ! Fields::is_saved_field( $field ) ) {
+				continue;
+			}
+
+			/**
+			 * Locked fields are not submitted by a tab form, keep their stored value.
+			 * Without a tab, e.g. update_option() from settings import, the input is
+			 * the full option and already holds the value to keep.
+			 */
+			if ( $is_tab && ! empty( $field['locked'] ) ) {
 				continue;
 			}
 

@@ -32,6 +32,7 @@ function bloatbuster_uninstall_data() {
 
 	// User options are stored as user meta with the current site's prefix.
 	\delete_metadata( 'user', 0, $wpdb->get_blog_prefix() . 'bloatbuster_optimize_result', '', true );
+	\delete_metadata( 'user', 0, $wpdb->get_blog_prefix() . 'bloatbuster_settings_import', '', true );
 }
 
 if ( \is_multisite() ) {

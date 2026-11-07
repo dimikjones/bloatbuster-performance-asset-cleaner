@@ -117,6 +117,40 @@ final class Tab_Advanced extends Settings_Tab {
 	}
 
 	/**
+	 * Add the result notices of the settings import, export and reset.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function add_notices() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only flags set by the action redirect.
+		$notice = isset( $_GET['bloatbuster_notice'] ) ? \sanitize_key( \wp_unslash( $_GET['bloatbuster_notice'] ) ) : '';
+		$count  = isset( $_GET['bloatbuster_count'] ) ? \absint( $_GET['bloatbuster_count'] ) : 0;
+		$error  = isset( $_GET['bloatbuster_error'] ) ? \sanitize_key( \wp_unslash( $_GET['bloatbuster_error'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$message = '';
+		$type    = 'updated';
+
+		if ( 'settings_imported' === $notice ) {
+			/* translators: %d: number of changed settings. */
+			$message = sprintf( \_n( 'Settings imported, %d setting changed.', 'Settings imported, %d settings changed.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
+		} elseif ( 'settings_reset' === $notice ) {
+			$message = \__( 'All settings were reset to their defaults.', 'bloatbuster-performance-asset-cleaner' );
+		} elseif ( 'settings_import_error' === $notice ) {
+			$message = Settings_Transfer::get_import_error_message( $error );
+			$type    = 'error';
+		}
+
+		if ( '' === $message ) {
+			return;
+		}
+
+		\add_settings_error( 'messages', 'bloatbuster_notice', \esc_html( $message ), $type );
+	}
+
+	/**
 	 * Get the message explaining why the speculative loading fields are locked.
 	 *
 	 * @param string $reason - Lock reason, 'plugin', 'core' or empty.

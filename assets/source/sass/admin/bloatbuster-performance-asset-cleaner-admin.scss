@@ -534,7 +534,8 @@
     }
   }
 
-  .bbpac-autoload-import {
+  .bbpac-autoload-import,
+  .bbpac-settings-transfer {
     margin-top: 30px;
     padding: 16px 20px;
     background: #fff;
@@ -550,6 +551,37 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 10px;
+    }
+  }
+
+  .bbpac-settings-transfer {
+    h4 {
+      margin: 20px 0 8px;
+    }
+
+    .description + form {
+      margin-top: 8px;
+    }
+  }
+
+  .bbpac-settings-import-preview {
+    margin: 20px 0;
+    border-color: var(--bbpac-main-color);
+
+    .bbpac-import-preview-table {
+      margin: 10px 0;
+    }
+
+    .bbpac-import-notes {
+      list-style: disc;
+      padding-left: 20px;
+    }
+
+    .bbpac-settings-transfer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
     }
   }
 }

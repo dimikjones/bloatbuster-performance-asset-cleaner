@@ -58,9 +58,11 @@ if ( \is_admin() ) {
 	require_once BLOATBUSTER_DIR . '/includes/class-cron-status.php';
 	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-owners.php';
 	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-actions.php';
+	require_once BLOATBUSTER_DIR . '/includes/class-settings-transfer.php';
 
 	Plugin_Options::hooks();
 	Admin_Assets::hooks();
 	Database_Tools::hooks();
 	Autoload_Actions::hooks();
+	Settings_Transfer::hooks();
 }
