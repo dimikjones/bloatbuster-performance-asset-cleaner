@@ -550,7 +550,7 @@ final class Settings_Transfer {
 
 		// A newer upload replaced the import shown in this preview.
 		if ( ! self::is_current_import( $pending, $import_id ) ) {
-			self::redirect_import_error( 'changed' );
+			self::redirect_import_error( 'changed', true );
 		}
 
 		$count  = count( self::get_changes( $pending ) );
@@ -573,7 +573,7 @@ final class Settings_Transfer {
 
 		// Keep the pending import on failure, so Apply can be tried again.
 		if ( ! Plugin_Options::save_sanitized_options( $stored ) ) {
-			self::redirect_import_error( 'save' );
+			self::redirect_import_error( 'save', true );
 		}
 
 		\delete_user_option( \get_current_user_id(), self::PENDING_OPTION );
@@ -668,19 +668,24 @@ final class Settings_Transfer {
 	/**
 	 * Redirect back with an import error notice.
 	 *
-	 * @param string $code - Error code.
+	 * @param string $code         - Error code.
+	 * @param bool   $show_preview - True to show the preview of the pending import again, e.g. to retry Apply.
 	 *
 	 * @return void
 	 *
 	 * @since 1.0.0
 	 */
-	public static function redirect_import_error( $code ) {
-		self::redirect(
-			array(
-				'bloatbuster_notice' => 'settings_import_error',
-				'bloatbuster_error'  => $code,
-			)
+	public static function redirect_import_error( $code, $show_preview = false ) {
+		$args = array(
+			'bloatbuster_notice' => 'settings_import_error',
+			'bloatbuster_error'  => $code,
 		);
+
+		if ( $show_preview ) {
+			$args[ self::PREVIEW_ARG ] = 1;
+		}
+
+		self::redirect( $args );
 	}
 
 	/**
