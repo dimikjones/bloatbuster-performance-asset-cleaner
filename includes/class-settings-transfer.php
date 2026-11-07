@@ -285,11 +285,12 @@ final class Settings_Transfer {
 	 * Sanitize the settings of an import file.
 	 *
 	 * Unknown and excluded keys are dropped, locked fields are skipped and
-	 * values changed by sanitizing are listed as adjusted.
+	 * values changed by sanitizing are listed as adjusted. Skipped lists
+	 * every field locked now, locked only those also in the file.
 	 *
 	 * @param array $raw - Settings from the import file.
 	 *
-	 * @return array - Pending import with settings, ignored, ignored_count, locked and adjusted.
+	 * @return array - Pending import with settings, ignored, ignored_count, locked, skipped and adjusted.
 	 *
 	 * @since 1.0.0
 	 */
@@ -299,6 +300,7 @@ final class Settings_Transfer {
 		$ignored       = array();
 		$ignored_count = 0;
 		$locked        = array();
+		$skipped       = array();
 		$adjusted      = array();
 
 		foreach ( array_keys( $raw ) as $key ) {
@@ -315,6 +317,8 @@ final class Settings_Transfer {
 
 		foreach ( $fields as $id => $field ) {
 			if ( ! empty( $field['locked'] ) ) {
+				$skipped[] = $id;
+
 				if ( array_key_exists( $id, $raw ) ) {
 					$locked[] = $id;
 				}
@@ -338,8 +342,32 @@ final class Settings_Transfer {
 			'ignored'       => $ignored,
 			'ignored_count' => $ignored_count,
 			'locked'        => $locked,
+			'skipped'       => $skipped,
 			'adjusted'      => $adjusted,
 		);
+	}
+
+	/**
+	 * Check if a field is left out of an import, because it is locked now or was locked at upload.
+	 *
+	 * A field unlocked after the upload is not in the pending settings, applying
+	 * it would remove its stored value without showing it in the preview.
+	 *
+	 * @param array $field   - Field data.
+	 * @param array $pending - Pending import.
+	 *
+	 * @return bool - True if the field keeps its stored value.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_skipped_field( $field, $pending ) {
+		if ( ! empty( $field['locked'] ) ) {
+			return true;
+		}
+
+		$skipped = isset( $pending['skipped'] ) ? (array) $pending['skipped'] : array();
+
+		return in_array( $field['id'], $skipped, true );
 	}
 
 	/**
@@ -409,7 +437,7 @@ final class Settings_Transfer {
 		$changes = array();
 
 		foreach ( self::get_importable_fields() as $id => $field ) {
-			if ( ! empty( $field['locked'] ) ) {
+			if ( self::is_skipped_field( $field, $pending ) ) {
 				continue;
 			}
 
@@ -529,7 +557,7 @@ final class Settings_Transfer {
 		$stored = self::get_stored_options();
 
 		foreach ( self::get_importable_fields() as $id => $field ) {
-			if ( ! empty( $field['locked'] ) ) {
+			if ( self::is_skipped_field( $field, $pending ) ) {
 				continue;
 			}
 
