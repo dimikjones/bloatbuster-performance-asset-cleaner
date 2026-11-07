@@ -108,7 +108,6 @@ final class Settings_Transfer {
 		\add_action( 'admin_post_' . self::APPLY_ACTION, array( __CLASS__, 'handle_apply' ) );
 		\add_action( 'admin_post_' . self::CANCEL_ACTION, array( __CLASS__, 'handle_cancel' ) );
 		\add_action( 'admin_post_' . self::RESET_ACTION, array( __CLASS__, 'handle_reset' ) );
-		\add_action( 'bloatbuster_before_tab_content', array( __CLASS__, 'render_preview' ) );
 		\add_action( 'bloatbuster_after_tab_content', array( __CLASS__, 'render_section' ) );
 	}
 
@@ -732,7 +731,7 @@ final class Settings_Transfer {
 	}
 
 	/**
-	 * Render the import preview above the Advanced tab form.
+	 * Render the import preview above the Import / Export settings section.
 	 *
 	 * @param string $tab - Current tab slug.
 	 *
@@ -897,6 +896,8 @@ final class Settings_Transfer {
 		if ( Tab_Advanced::get_slug() !== $tab || ! \current_user_can( 'manage_options' ) ) {
 			return;
 		}
+
+		self::render_preview( $tab );
 		?>
 		<div class="bbpac-settings-transfer">
 			<h3><?php \esc_html_e( 'Import / Export settings', 'bloatbuster-performance-asset-cleaner' ); ?></h3>
