@@ -36,6 +36,13 @@ final class Plugin_Options {
 	private static $fields = null;
 
 	/**
+	 * True while save_sanitized_options() saves, so sanitize_options() keeps the values as they are.
+	 *
+	 * @var bool
+	 */
+	private static $skip_sanitize = false;
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -333,6 +340,11 @@ final class Plugin_Options {
 			return array();
 		}
 
+		// Already sanitized by the caller, see save_sanitized_options().
+		if ( self::$skip_sanitize ) {
+			return $input;
+		}
+
 		$tabs      = self::get_tabs();
 		$tab       = isset( $input['_tab'] ) ? \sanitize_key( $input['_tab'] ) : '';
 		$is_tab    = isset( $tabs[ $tab ] );
@@ -344,12 +356,21 @@ final class Plugin_Options {
 		}
 
 		foreach ( self::get_fields() as $field ) {
-			if ( $is_tab && $field['tab'] !== $tab ) {
+			if ( $is_tab && $tab !== $field['tab'] ) {
 				continue;
 			}
 
-			// Locked fields are not submitted, keep their stored value. Actions store nothing.
-			if ( ! empty( $field['locked'] ) || ! Fields::is_saved_field( $field ) ) {
+			// Actions store nothing.
+			if ( ! Fields::is_saved_field( $field ) ) {
+				continue;
+			}
+
+			/**
+			 * Locked fields are not submitted by a tab form, keep their stored value.
+			 * Without a tab, e.g. update_option() from settings import, the input is
+			 * the full option and already holds the value to keep.
+			 */
+			if ( $is_tab && ! empty( $field['locked'] ) ) {
 				continue;
 			}
 
@@ -363,6 +384,36 @@ final class Plugin_Options {
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Save options that are already sanitized, without running sanitize_options() again.
+	 *
+	 * Used by settings import and reset: changed values are sanitized field
+	 * by field, the other values are kept exactly as stored, including
+	 * excluded fields, locked fields and keys of fields that no longer exist.
+	 *
+	 * @param array $options - Sanitized options.
+	 *
+	 * @return bool - True if the option holds the given values after saving, also when they were unchanged.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function save_sanitized_options( $options ) {
+		self::$skip_sanitize = true;
+
+		try {
+			$updated = \update_option( BLOATBUSTER_OPTION, $options );
+		} finally {
+			self::$skip_sanitize = false;
+		}
+
+		if ( $updated ) {
+			return true;
+		}
+
+		// update_option() also returns false when the value is unchanged, compare like core does.
+		return \maybe_serialize( \get_option( BLOATBUSTER_OPTION ) ) === \maybe_serialize( $options );
 	}
 
 	/**
