@@ -32,6 +32,13 @@ final class Database_Tools {
 	const DELETE_BATCH = 500;
 
 	/**
+	 * Maximum number of tables optimized per run.
+	 *
+	 * @var int
+	 */
+	const OPTIMIZE_BATCH = 5;
+
+	/**
 	 * Option that stores the recent cleanup runs, not autoloaded.
 	 *
 	 * @var string
@@ -397,6 +404,27 @@ final class Database_Tools {
 				self::log_cleanup( $action, $result['deleted'], $result['remaining'] );
 				break;
 
+			case 'optimize_tables':
+				$raw_names = isset( $_POST['bbpac_optimize_tables'] ) ? (array) $_POST['bbpac_optimize_tables'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Each string is unslashed and sanitized below.
+				$names     = array();
+
+				foreach ( $raw_names as $name ) {
+					if ( is_string( $name ) ) {
+						$names[] = \sanitize_text_field( \wp_unslash( $name ) );
+					}
+				}
+
+				$result = self::optimize_tables( $names );
+				\update_user_option( \get_current_user_id(), 'bloatbuster_optimize_result', $result );
+
+				$args['bloatbuster_notice']    = 'tables_optimized';
+				$args['bloatbuster_count']     = $result['optimized'];
+				$args['bloatbuster_failed']    = $result['failed'];
+				$args['bloatbuster_remaining'] = $result['remaining'];
+
+				self::log_cleanup( $action, $result['optimized'], $result['remaining'] );
+				break;
+
 			case 'clean_plugin_data':
 				$raw_ids   = isset( $_POST['bbpac_integrations'] ) ? (array) \wp_unslash( $_POST['bbpac_integrations'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each value is sanitized below.
 				$available = Cleanup_Integrations::get_available_integrations();
@@ -430,8 +458,7 @@ final class Database_Tools {
 	 * Get the size, rows and free space of the tables with this site's prefix.
 	 *
 	 * Free space is not added up: InnoDB keeps some free space reserved in larger
-	 * tables, and without innodb_file_per_table every InnoDB table reports the free
-	 * space of the same shared file, so it is shown as unknown for those tables.
+	 * tables. Shared or unverified InnoDB tablespaces have unknown free space.
 	 *
 	 * @return array - Tables sorted by size, largest first, and totals.
 	 *
@@ -458,23 +485,24 @@ final class Database_Tools {
 		);
 		// phpcs:enable
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Server setting, read once.
-		$file_per_table = (bool) $wpdb->get_var( 'SELECT @@innodb_file_per_table' );
-
-		$tables = array();
-		$totals = array(
+		$file_per_table = self::get_file_per_table_names( (array) $rows );
+		$global_tables  = $wpdb->tables( 'global' );
+		$tables         = array();
+		$totals         = array(
 			'count' => 0,
 			'size'  => 0,
 		);
 
 		foreach ( (array) $rows as $row ) {
-			$is_shared = 'innodb' === strtolower( (string) $row->engine ) && ! $file_per_table;
+			$is_unverified = 'innodb' === strtolower( (string) $row->engine ) && ! isset( $file_per_table[ $wpdb->dbname . '/' . $row->name ] );
 
 			$tables[] = array(
 				'name'       => (string) $row->name,
+				'engine'     => (string) $row->engine,
+				'is_global'  => in_array( $row->name, $global_tables, true ),
 				'rows'       => (int) $row->row_count,
 				'size'       => (int) $row->size,
-				'free_space' => $is_shared ? null : (int) $row->free_space,
+				'free_space' => $is_unverified ? null : (int) $row->free_space,
 			);
 
 			++$totals['count'];
@@ -485,6 +513,225 @@ final class Database_Tools {
 			'tables' => $tables,
 			'totals' => $totals,
 		);
+	}
+
+	/**
+	 * Identify site InnoDB tables whose actual tablespace is file-per-table.
+	 *
+	 * The current innodb_file_per_table setting does not describe existing tables.
+	 * Missing metadata, including denied PROCESS access, leaves storage unverified.
+	 *
+	 * @param array $rows - Site table statistics returned by information_schema.
+	 *
+	 * @return array - Verified database/table names as keys, each mapped to true.
+	 *
+	 * @since 1.0.0
+	 */
+	private static function get_file_per_table_names( $rows ) {
+		global $wpdb;
+
+		$names = array();
+
+		foreach ( $rows as $row ) {
+			// Dictionary names use @ escapes and # partition markers; raw names containing them are ambiguous.
+			if ( 1 === preg_match( '/[@#]/', $wpdb->dbname . $row->name ) ) {
+				continue;
+			}
+
+			if ( 'innodb' === strtolower( (string) $row->engine ) ) {
+				$names[] = $wpdb->dbname . '/' . $row->name;
+			}
+		}
+
+		if ( empty( $names ) ) {
+			return array();
+		}
+
+		$is_mariadb      = false !== stripos( $wpdb->db_server_info(), 'mariadb' );
+		$metadata_table  = ! $is_mariadb && version_compare( $wpdb->db_version(), '8.0', '>=' ) ? 'INNODB_TABLES' : 'INNODB_SYS_TABLES';
+		$placeholders    = implode( ', ', array_fill( 0, count( $names ), '%s' ) );
+		$previous_errors = $wpdb->suppress_errors( true );
+
+		try {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Metadata table is a fixed server-specific name; table names use placeholders.
+			$verified = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT NAME FROM information_schema.{$metadata_table} WHERE NAME IN ({$placeholders}) AND SPACE_TYPE = 'Single' AND SPACE > 0",
+					$names
+				)
+			);
+			// phpcs:enable
+
+			if ( '' !== $wpdb->last_error ) {
+				return array();
+			}
+
+			return array_fill_keys( (array) $verified, true );
+		} catch ( \Throwable $error ) {
+			return array();
+		} finally {
+			$wpdb->suppress_errors( $previous_errors );
+		}
+	}
+
+	/**
+	 * Check whether the current user can optimize a table from the site statistics.
+	 *
+	 * @param array $table - Table returned by get_table_stats().
+	 *
+	 * @return bool - Whether the table has reclaimable space and an allowed engine.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function can_optimize_table( $table ) {
+		if ( null === $table['free_space'] || 0 >= $table['free_space'] ) {
+			return false;
+		}
+
+		if ( ! in_array( strtolower( $table['engine'] ), array( 'innodb', 'myisam', 'aria' ), true ) ) {
+			return false;
+		}
+
+		return ! \is_multisite() || ! $table['is_global'] || \current_user_can( 'manage_network_options' );
+	}
+
+	/**
+	 * Optimize up to five selected, eligible tables belonging to this site.
+	 *
+	 * @param array $names - Selected table names, checked against live statistics.
+	 *
+	 * @return array - Counts, estimated reclaimed bytes and per-table results.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function optimize_tables( $names ) {
+		global $wpdb;
+
+		$previous_errors = $wpdb->suppress_errors( true );
+
+		try {
+			// MySQL 8 caches these statistics. Older MySQL and MariaDB may reject this setting.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Session setting for fresh before/after measurements.
+			$wpdb->query( 'SET SESSION information_schema_stats_expiry = 0' );
+		} catch ( \Throwable $error ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Unsupported session settings are intentionally ignored.
+			// An unsupported session setting must not prevent optimization.
+		} finally {
+			$wpdb->suppress_errors( $previous_errors );
+		}
+
+		$stats    = self::get_table_stats();
+		$eligible = array();
+		$result   = array(
+			'optimized' => 0,
+			'failed'    => 0,
+			'remaining' => 0,
+			'reclaimed' => 0,
+			'tables'    => array(),
+		);
+
+		foreach ( $stats['tables'] as $table ) {
+			if ( self::can_optimize_table( $table ) ) {
+				$eligible[ $table['name'] ] = $table;
+			}
+		}
+
+		$selected = array();
+
+		foreach ( $names as $name ) {
+			if ( is_string( $name ) && isset( $eligible[ $name ] ) ) {
+				$selected[ $name ] = $eligible[ $name ];
+			}
+		}
+
+		$result['remaining'] = max( 0, count( $selected ) - self::OPTIMIZE_BATCH );
+
+		foreach ( array_slice( $selected, 0, self::OPTIMIZE_BATCH, true ) as $name => $table ) {
+			$identifier      = '`' . str_replace( '`', '``', $name ) . '`';
+			$previous_errors = $wpdb->suppress_errors( true );
+			$ok              = false;
+			$errors          = array();
+
+			try {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier comes only from live site statistics and is backtick-escaped.
+				$rows = $wpdb->get_results( "OPTIMIZE TABLE {$identifier}", ARRAY_A );
+
+				if ( '' !== $wpdb->last_error ) {
+					$errors[] = $wpdb->last_error;
+				}
+
+				foreach ( (array) $rows as $row ) {
+					$type = strtolower( $row['Msg_type'] );
+
+					if ( 'status' === $type && 'ok' === strtolower( trim( $row['Msg_text'] ) ) ) {
+						$ok = true;
+					} elseif ( 'error' === $type || 'status' === $type ) {
+						$errors[] = $row['Msg_text'];
+					}
+				}
+			} catch ( \Throwable $error ) {
+				$errors[] = $error->getMessage();
+			} finally {
+				$wpdb->suppress_errors( $previous_errors );
+			}
+
+			$success = $ok && empty( $errors );
+
+			if ( $success ) {
+				++$result['optimized'];
+			} else {
+				++$result['failed'];
+
+				if ( empty( $errors ) ) {
+					$errors[] = \__( 'The database did not confirm that optimization completed.', 'bloatbuster-performance-asset-cleaner' );
+				}
+			}
+
+			$result['tables'][ $name ] = array(
+				'success' => $success,
+				'error'   => implode( ' ', array_unique( $errors ) ),
+				'before'  => $table,
+				'after'   => null,
+			);
+		}
+
+		if ( ! empty( $result['tables'] ) ) {
+			$after = self::get_table_stats();
+
+			foreach ( $after['tables'] as $table ) {
+				$name = $table['name'];
+
+				if ( ! isset( $result['tables'][ $name ] ) ) {
+					continue;
+				}
+
+				$result['tables'][ $name ]['after'] = $table;
+
+				if ( $result['tables'][ $name ]['success'] ) {
+					$before = $result['tables'][ $name ]['before'];
+
+					if ( strtolower( $before['engine'] ) !== strtolower( $table['engine'] ) ) {
+						continue;
+					}
+
+					$before_size = $before['size'];
+					$after_size  = $table['size'];
+
+					if ( 'innodb' === strtolower( $table['engine'] ) ) {
+						if ( null === $before['free_space'] || null === $table['free_space'] ) {
+							continue;
+						}
+
+						// Verified standalone InnoDB allocation also includes completely free extents.
+						$before_size += $before['free_space'];
+						$after_size  += $table['free_space'];
+					}
+
+					$result['reclaimed'] += max( 0, $before_size - $after_size );
+				}
+			}
+		}
+
+		return $result;
 	}
 
 	/**

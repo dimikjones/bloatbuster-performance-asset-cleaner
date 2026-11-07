@@ -39,7 +39,8 @@ Every option is off by default, so nothing changes until you turn it on.
 
 = Database =
 
-* Database statistics: size and largest tables
+* Database statistics: size and cleanup preview, with a full table list under Optimize tables
+* Manually optimize selected tables with free space, at most 5 per run, with per-table results
 * Cleanup preview: what is stored and what each cleanup would remove now
 * Clean expired transients
 * Delete old revisions, keeping the newest ones per post
@@ -123,9 +124,13 @@ Only meta rows whose post, comment, term or user no longer exists are deleted. M
 
 A name that looks temporary can still be needed by an active plugin, so guessing by name can break a site. Plugin data is only cleaned for supported plugins, with that plugin's own rules: Action Scheduler keeps failed actions and anything newer than its retention period, and WooCommerce keeps active carts. Expired transients of any plugin are still cleaned by "Clean expired transients".
 
+= Does optimizing tables make my site faster? =
+
+Speed gains are not guaranteed. Optimization can reclaim unused space after large deletions. Only InnoDB, MyISAM and Aria tables reporting free space can be selected; shared or unverified InnoDB tablespace free space is unknown and cannot be selected. Verifying InnoDB storage requires access to its database metadata (PROCESS privilege). InnoDB tables are rebuilt, which can lock them and needs temporary free disk space about the size of the table. Make a database backup and run during low traffic. At most 5 selected tables run at a time; select any remaining tables and run again. Results show once. Estimated reclaimed space includes unused InnoDB storage and may differ from actual disk usage; reported sizes may update later.
+
 = Does it work on multisite? =
 
-Yes. Each site has its own settings. In the Autoloaded Options tab, only network administrators can view, export, change, delete or restore options. Site administrators can browse option names and sizes, like the core options screen on multisite. User meta is shared by the whole network, so orphaned user meta can only be cleaned on the main site by a network administrator.
+Yes. Each site has its own settings. In the Autoloaded Options tab, only network administrators can view, export, change, delete or restore options. Site administrators can browse option names and sizes, like the core options screen on multisite. User meta is shared by the whole network, so orphaned user meta can only be cleaned on the main site by a network administrator. Optimizing global tables also requires a network administrator; subsites only list their own tables.
 
 = What is the WP-Cron status for? =
 
