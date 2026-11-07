@@ -872,7 +872,8 @@ final class Settings_Transfer {
 			<form method="post" action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 				<input type="hidden" name="action" value="<?php echo \esc_attr( self::IMPORT_ACTION ); ?>">
 				<?php \wp_nonce_field( self::IMPORT_ACTION ); ?>
-				<input type="file" name="bbpac_settings_import" accept=".json,application/json" required>
+				<label class="screen-reader-text" for="bbpac-settings-import"><?php \esc_html_e( 'Settings file to import', 'bloatbuster-performance-asset-cleaner' ); ?></label>
+				<input type="file" id="bbpac-settings-import" name="bbpac_settings_import" accept=".json,application/json" required>
 				<?php \submit_button( \__( 'Upload and preview', 'bloatbuster-performance-asset-cleaner' ), 'secondary', 'bbpac_settings_import_submit', false ); ?>
 			</form>
 

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T19:52:01+01:00\n"
+"POT-Creation-Date: 2026-11-07T19:57:05+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -458,27 +458,31 @@ msgstr ""
 msgid "Upload a file made with Export settings. You will see the changes before they are applied."
 msgstr ""
 
-#: includes/class-settings-transfer.php:876
+#: includes/class-settings-transfer.php:875
+msgid "Settings file to import"
+msgstr ""
+
+#: includes/class-settings-transfer.php:877
 msgid "Upload and preview"
 msgstr ""
 
-#: includes/class-settings-transfer.php:879
+#: includes/class-settings-transfer.php:880
 msgid "Reset"
 msgstr ""
 
-#: includes/class-settings-transfer.php:880
+#: includes/class-settings-transfer.php:881
 msgid "Turn all settings off and set them to their defaults."
 msgstr ""
 
-#: includes/class-settings-transfer.php:884
+#: includes/class-settings-transfer.php:885
 msgid "All settings on every tab are turned off or set to their default. This can not be undone. Export your settings first if you may need them again."
 msgstr ""
 
-#: includes/class-settings-transfer.php:884
+#: includes/class-settings-transfer.php:885
 msgid "Reset all settings?"
 msgstr ""
 
-#: includes/class-settings-transfer.php:884
+#: includes/class-settings-transfer.php:885
 msgid "Reset settings"
 msgstr ""
 
