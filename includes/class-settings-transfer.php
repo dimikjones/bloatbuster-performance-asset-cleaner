@@ -571,7 +571,11 @@ final class Settings_Transfer {
 			}
 		}
 
-		Plugin_Options::save_sanitized_options( $stored );
+		// Keep the pending import on failure, so Apply can be tried again.
+		if ( ! Plugin_Options::save_sanitized_options( $stored ) ) {
+			self::redirect_import_error( 'save' );
+		}
+
 		\delete_user_option( \get_current_user_id(), self::PENDING_OPTION );
 
 		self::redirect(
@@ -641,7 +645,10 @@ final class Settings_Transfer {
 			unset( $stored[ $id ] );
 		}
 
-		Plugin_Options::save_sanitized_options( $stored );
+		if ( ! Plugin_Options::save_sanitized_options( $stored ) ) {
+			self::redirect( array( 'bloatbuster_notice' => 'settings_reset_error' ) );
+		}
+
 		\delete_user_option( \get_current_user_id(), self::PENDING_OPTION );
 
 		self::redirect( array( 'bloatbuster_notice' => 'settings_reset' ) );
@@ -708,6 +715,7 @@ final class Settings_Transfer {
 			'invalid_file' => \__( 'This is not a BloatBuster settings export file.', 'bloatbuster-performance-asset-cleaner' ),
 			'format'       => \__( 'This settings file was made by a newer version of BloatBuster. Update the plugin and try again.', 'bloatbuster-performance-asset-cleaner' ),
 			'expired'      => \__( 'The import expired or was already applied. Upload the file again.', 'bloatbuster-performance-asset-cleaner' ),
+			'save'         => \__( 'The settings could not be saved. Try again.', 'bloatbuster-performance-asset-cleaner' ),
 			'changed'      => \__( 'A newer file was uploaded after this preview. Check its preview before applying.', 'bloatbuster-performance-asset-cleaner' ),
 		);
 

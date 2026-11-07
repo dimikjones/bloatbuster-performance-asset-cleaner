@@ -138,6 +138,9 @@ final class Tab_Advanced extends Settings_Tab {
 			$message = sprintf( \_n( 'Settings imported, %d setting changed.', 'Settings imported, %d settings changed.', $count, 'bloatbuster-performance-asset-cleaner' ), $count );
 		} elseif ( 'settings_reset' === $notice ) {
 			$message = \__( 'All settings were reset to their defaults.', 'bloatbuster-performance-asset-cleaner' );
+		} elseif ( 'settings_reset_error' === $notice ) {
+			$message = \__( 'The settings could not be reset. Try again.', 'bloatbuster-performance-asset-cleaner' );
+			$type    = 'error';
 		} elseif ( 'settings_import_error' === $notice ) {
 			$message = Settings_Transfer::get_import_error_message( $error );
 			$type    = 'error';

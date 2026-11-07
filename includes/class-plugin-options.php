@@ -395,7 +395,7 @@ final class Plugin_Options {
 	 *
 	 * @param array $options - Sanitized options.
 	 *
-	 * @return bool - True if the option was updated.
+	 * @return bool - True if the option holds the given values after saving, also when they were unchanged.
 	 *
 	 * @since 1.0.0
 	 */
@@ -403,12 +403,17 @@ final class Plugin_Options {
 		self::$skip_sanitize = true;
 
 		try {
-			$result = \update_option( BLOATBUSTER_OPTION, $options );
+			$updated = \update_option( BLOATBUSTER_OPTION, $options );
 		} finally {
 			self::$skip_sanitize = false;
 		}
 
-		return $result;
+		if ( $updated ) {
+			return true;
+		}
+
+		// update_option() also returns false when the value is unchanged, compare like core does.
+		return \maybe_serialize( \get_option( BLOATBUSTER_OPTION ) ) === \maybe_serialize( $options );
 	}
 
 	/**
