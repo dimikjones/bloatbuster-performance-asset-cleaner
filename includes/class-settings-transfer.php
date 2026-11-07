@@ -272,7 +272,8 @@ final class Settings_Transfer {
 		$pending['time'] = time();
 		$pending['id']   = \wp_generate_uuid4();
 
-		\update_user_option( \get_current_user_id(), self::PENDING_OPTION, $pending );
+		// User meta functions unslash the value, slash it so backslashes in values are kept.
+		\update_user_option( \get_current_user_id(), self::PENDING_OPTION, \wp_slash( $pending ) );
 
 		$url = \add_query_arg( self::PREVIEW_ARG, 1, self::get_tab_url() );
 
