@@ -330,6 +330,11 @@ final class Environment_Checks {
 
 		$status = opcache_get_status( false );
 
+		// The API restriction is checked above, so false means OPcache did not start.
+		if ( false === $status ) {
+			return array( 'opcache_enabled' => false );
+		}
+
 		if ( ! is_array( $status ) ) {
 			return null;
 		}
