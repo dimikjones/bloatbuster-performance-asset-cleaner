@@ -640,14 +640,17 @@ final class Environment_Checks {
 
 		$check['value'] = $path;
 
-		if ( ! self::is_public_path( $path ) ) {
+		// PHP resolves a relative log path against the folder of each request, so it can't be checked as one path.
+		if ( ! self::is_absolute_path( $path ) ) {
+			$check['message'] = \__( 'The log path is relative, so PHP writes it in the folder of each request, like the WordPress root or wp-admin. Anyone who knows the URL may download it.', 'bloatbuster-performance-asset-cleaner' );
+		} elseif ( self::is_public_path( $path ) ) {
+			$check['message'] = \__( 'The log file is inside a public folder, anyone who knows the URL may download it.', 'bloatbuster-performance-asset-cleaner' );
+		} else {
 			$check['status']  = 'info';
 			$check['message'] = \__( 'The log file is outside the WordPress folders and the web root. Make sure the web server does not serve it.', 'bloatbuster-performance-asset-cleaner' );
 
 			return $check;
 		}
-
-		$check['message'] = \__( 'The log file is inside a public folder, anyone who knows the URL may download it.', 'bloatbuster-performance-asset-cleaner' );
 
 		if ( self::is_production() ) {
 			$check['status']   = 'recommended';
@@ -657,6 +660,24 @@ final class Environment_Checks {
 		}
 
 		return $check;
+	}
+
+	/**
+	 * Check if a file path is absolute, including Windows paths with forward slashes.
+	 *
+	 * @param string $path - File path.
+	 *
+	 * @return bool - True for absolute paths.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_absolute_path( $path ) {
+		// Core path_is_absolute() misses Windows paths like C:/logs/debug.log.
+		if ( preg_match( '#^[a-zA-Z]:[\\\\/]#', $path ) ) {
+			return true;
+		}
+
+		return \path_is_absolute( $path );
 	}
 
 	/**
