@@ -642,7 +642,7 @@ final class Environment_Checks {
 
 		if ( ! self::is_public_path( $path ) ) {
 			$check['status']  = 'info';
-			$check['message'] = \__( 'Errors are logged to a file outside the WordPress folders.', 'bloatbuster-performance-asset-cleaner' );
+			$check['message'] = \__( 'The log file is outside the WordPress folders and the web root. Make sure the web server does not serve it.', 'bloatbuster-performance-asset-cleaner' );
 
 			return $check;
 		}
@@ -660,7 +660,7 @@ final class Environment_Checks {
 	}
 
 	/**
-	 * Check if a file path is inside the WordPress or wp-content folder.
+	 * Check if a file path is inside the WordPress folder, the wp-content folder or the web root.
 	 *
 	 * @param string $path - File path.
 	 *
@@ -669,10 +669,21 @@ final class Environment_Checks {
 	 * @since 1.0.0
 	 */
 	public static function is_public_path( $path ) {
-		$path = \wp_normalize_path( $path );
+		$path    = \wp_normalize_path( $path );
+		$folders = array( ABSPATH, WP_CONTENT_DIR );
 
-		foreach ( array( ABSPATH, WP_CONTENT_DIR ) as $folder ) {
+		// WordPress may be installed in a subfolder of the web root, e.g. /var/www/html/wordpress/.
+		if ( ! empty( $_SERVER['DOCUMENT_ROOT'] ) && is_string( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$folders[] = \sanitize_text_field( \wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) );
+		}
+
+		foreach ( $folders as $folder ) {
 			$folder = \trailingslashit( \wp_normalize_path( $folder ) );
+
+			// A root folder would match every path.
+			if ( '/' === $folder ) {
+				continue;
+			}
 
 			if ( 0 === stripos( $path, $folder ) ) {
 				return true;
