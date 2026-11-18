@@ -158,7 +158,7 @@ final class Tab_Environment extends Settings_Tab {
 							<?php if ( '' !== (string) $check['value'] ) : ?>
 								<span class="bbpac-env-check-value"><?php echo \esc_html( $check['value'] ); ?></span>
 							<?php endif; ?>
-							<span class="screen-reader-text"><?php echo \esc_html( self::get_status_label( $check['status'] ) ); ?></span>
+							<span class="bbpac-badge bbpac-env-check-status"><?php echo \esc_html( self::get_status_label( $check['status'] ) ); ?></span>
 						</p>
 						<?php if ( '' !== (string) $check['message'] || ! empty( $check['link'] ) ) : ?>
 							<p class="description">

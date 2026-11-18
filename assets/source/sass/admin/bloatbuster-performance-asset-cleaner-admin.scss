@@ -11,7 +11,9 @@
   --bbpac-border-color: #dedede;
   --bbpac-border-active: #c1c1c1;
   --bbpac-warning-color: #dba617;
-  --bbpac-info-color: #72aee6;
+  --bbpac-status-good-color: #008a20;
+  --bbpac-status-warning-color: #996800;
+  --bbpac-status-info-color: #2271b1;
 }
 
 .toplevel_page_bloatbuster_performance_asset_cleaner_options {
@@ -496,15 +498,15 @@
     }
 
     &.bbpac-env-good .dashicons {
-      color: var(--bbpac-active-color);
+      color: var(--bbpac-status-good-color);
     }
 
     &.bbpac-env-recommended .dashicons {
-      color: var(--bbpac-warning-color);
+      color: var(--bbpac-status-warning-color);
     }
 
     &.bbpac-env-info .dashicons {
-      color: var(--bbpac-info-color);
+      color: var(--bbpac-status-info-color);
     }
 
     p {
@@ -518,6 +520,11 @@
 
   .bbpac-env-check-body {
     min-width: 0;
+  }
+
+  .bbpac-env-check-status {
+    margin-left: 6px;
+    vertical-align: middle;
   }
 
   .bbpac-env-check-value {
