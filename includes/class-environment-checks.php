@@ -599,8 +599,14 @@ final class Environment_Checks {
 		$check['message'] = \__( 'PHP errors are printed on the page (WP_DEBUG_DISPLAY or the PHP display_errors setting). This can break page layout and show file paths to visitors.', 'bloatbuster-performance-asset-cleaner' );
 
 		if ( self::is_production() ) {
-			$check['status']   = 'recommended';
-			$check['message'] .= ' ' . \__( 'Set WP_DEBUG_DISPLAY to false on a production site.', 'bloatbuster-performance-asset-cleaner' );
+			$check['status'] = 'recommended';
+
+			// WordPress only applies WP_DEBUG_DISPLAY when WP_DEBUG is on, otherwise display_errors comes from PHP.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ) {
+				$check['message'] .= ' ' . \__( 'Set WP_DEBUG_DISPLAY to false on a production site.', 'bloatbuster-performance-asset-cleaner' );
+			} else {
+				$check['message'] .= ' ' . \__( 'Turn off display_errors in the PHP or hosting settings on a production site.', 'bloatbuster-performance-asset-cleaner' );
+			}
 		} else {
 			$check['status'] = 'info';
 		}
