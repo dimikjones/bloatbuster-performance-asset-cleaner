@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-07T21:50:00+01:00\n"
+"POT-Creation-Date: 2026-11-18T22:58:38+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -36,7 +36,7 @@ msgstr ""
 
 #: includes/autoload/class-autoload-actions.php:128
 #: includes/class-database-tools.php:304
-#: includes/class-settings-transfer.php:185
+#: includes/class-settings-transfer.php:184
 msgid "You are not allowed to do this."
 msgstr ""
 
@@ -158,7 +158,8 @@ msgid "Auto (on)"
 msgstr ""
 
 #: includes/autoload/class-autoload-list-table.php:418
-#: includes/class-settings-transfer.php:478
+#: includes/class-environment-checks.php:251
+#: includes/class-settings-transfer.php:477
 msgid "On"
 msgstr ""
 
@@ -167,7 +168,11 @@ msgid "Auto (off)"
 msgstr ""
 
 #: includes/autoload/class-autoload-list-table.php:420
-#: includes/class-settings-transfer.php:475
+#: includes/class-environment-checks.php:266
+#: includes/class-environment-checks.php:282
+#: includes/class-environment-checks.php:541
+#: includes/class-environment-checks.php:611
+#: includes/class-settings-transfer.php:474
 msgid "Off"
 msgstr ""
 
@@ -306,6 +311,269 @@ msgstr ""
 msgid "The database did not confirm that optimization completed."
 msgstr ""
 
+#: includes/class-environment-checks.php:163
+msgid "PHP version"
+msgstr ""
+
+#: includes/class-environment-checks.php:168
+msgid "Learn more about updating PHP"
+msgstr ""
+
+#: includes/class-environment-checks.php:177
+msgid "Could not get the recommended PHP version from WordPress.org."
+msgstr ""
+
+#. translators: %s: recommended PHP version, e.g. 8.3.
+#: includes/class-environment-checks.php:185
+msgid "This PHP version no longer gets security updates. Ask your host to update to PHP %s or newer."
+msgstr ""
+
+#. translators: %s: recommended PHP version, e.g. 8.3.
+#: includes/class-environment-checks.php:189
+msgid "Newer PHP versions are faster. WordPress recommends PHP %s or newer."
+msgstr ""
+
+#: includes/class-environment-checks.php:191
+msgid "You run a recommended PHP version."
+msgstr ""
+
+#: includes/class-environment-checks.php:210
+msgid "Unlimited"
+msgstr ""
+
+#: includes/class-environment-checks.php:217
+msgid "PHP memory limit"
+msgstr ""
+
+#. translators: 1: WP_MEMORY_LIMIT value, e.g. 40M, 2: WP_MAX_MEMORY_LIMIT value, e.g. 256M.
+#: includes/class-environment-checks.php:224
+msgid "WP_MEMORY_LIMIT is %1$s, WP_MAX_MEMORY_LIMIT (admin) is %2$s."
+msgstr ""
+
+#. translators: %s: recommended memory size, e.g. 128 MB.
+#: includes/class-environment-checks.php:232
+msgid "Below %s. Larger sites and page builders can run out of memory."
+msgstr ""
+
+#: includes/class-environment-checks.php:234
+msgid "Enough memory for most sites. The admin limit may be raised by WordPress."
+msgstr ""
+
+#: includes/class-environment-checks.php:250
+msgid "OPcache"
+msgstr ""
+
+#: includes/class-environment-checks.php:258
+msgid "Not installed"
+msgstr ""
+
+#: includes/class-environment-checks.php:260
+msgid "OPcache keeps compiled PHP code in memory, so PHP does not read and compile files on every request. Ask your host to turn it on."
+msgstr ""
+
+#: includes/class-environment-checks.php:268
+msgid "OPcache is installed but turned off (opcache.enable). Turning it on is one of the biggest speed gains for PHP."
+msgstr ""
+
+#: includes/class-environment-checks.php:276
+msgid "OPcache is on. Memory and hit rate are not available, the server restricts the OPcache status."
+msgstr ""
+
+#: includes/class-environment-checks.php:284
+msgid "OPcache is turned on in the settings but is not running. Ask your host to check the OPcache setup."
+msgstr ""
+
+#. translators: 1: used memory, e.g. 64 MB, 2: free memory, e.g. 64 MB, 3: hit rate percentage, e.g. 99.5.
+#: includes/class-environment-checks.php:295
+msgid "Memory: %1$s used, %2$s free. Hit rate: %3$s%%."
+msgstr ""
+
+#: includes/class-environment-checks.php:303
+msgid "The OPcache memory is full, new files are not cached. Ask your host to raise opcache.memory_consumption."
+msgstr ""
+
+#: includes/class-environment-checks.php:350
+msgid "Persistent object cache"
+msgstr ""
+
+#: includes/class-environment-checks.php:351
+#: includes/class-environment-checks.php:381
+msgid "Not detected"
+msgstr ""
+
+#: includes/class-environment-checks.php:356
+msgid "Not detected. A persistent object cache, like Redis or Memcached, can help database-heavy sites."
+msgstr ""
+
+#: includes/class-environment-checks.php:364
+msgid "Active"
+msgstr ""
+
+#: includes/class-environment-checks.php:365
+msgid "Database query results are kept in memory between requests."
+msgstr ""
+
+#: includes/class-environment-checks.php:380
+msgid "Page cache"
+msgstr ""
+
+#: includes/class-environment-checks.php:393
+msgid "A page cache plugin is active. Check its settings to make sure page caching is turned on."
+msgstr ""
+
+#: includes/class-environment-checks.php:397
+msgid "WP_CACHE is on and an advanced-cache.php drop-in is loaded."
+msgstr ""
+
+#: includes/class-environment-checks.php:399
+msgid "Not loaded"
+msgstr ""
+
+#: includes/class-environment-checks.php:401
+msgid "An advanced-cache.php drop-in exists, but WP_CACHE is off, so it is not loaded. Turn WP_CACHE on in wp-config.php or remove the leftover file."
+msgstr ""
+
+#: includes/class-environment-checks.php:403
+msgid "Not detected, a server or host cache may still be active."
+msgstr ""
+
+#: includes/class-environment-checks.php:461
+msgid "Server cron job (DISABLE_WP_CRON)"
+msgstr ""
+
+#: includes/class-environment-checks.php:463
+msgid "Runs on page visits"
+msgstr ""
+
+#: includes/class-environment-checks.php:472
+msgid "WP-Cron"
+msgstr ""
+
+#: includes/class-environment-checks.php:477
+msgid "View scheduled events"
+msgstr ""
+
+#. translators: %d: number of overdue events.
+#: includes/class-environment-checks.php:484
+msgid "%d scheduled event is overdue, WP-Cron may not be running."
+msgid_plural "%d scheduled events are overdue, WP-Cron may not be running."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-environment-checks.php:486
+msgid "Scheduled events run on time."
+msgstr ""
+
+#: includes/class-environment-checks.php:515
+msgid "Database server"
+msgstr ""
+
+#: includes/class-environment-checks.php:518
+msgid "Site Health checks this version against the WordPress requirements."
+msgstr ""
+
+#: includes/class-environment-checks.php:540
+msgid "Debug mode"
+msgstr ""
+
+#: includes/class-environment-checks.php:546
+msgid "WP_DEBUG, SAVEQUERIES and SCRIPT_DEBUG are off."
+msgstr ""
+
+#: includes/class-environment-checks.php:551
+msgid "WP_DEBUG reports every PHP notice, SAVEQUERIES keeps every database query in memory and SCRIPT_DEBUG loads unminified files. Each adds work to every request."
+msgstr ""
+
+#: includes/class-environment-checks.php:555
+msgid "Turn them off in wp-config.php on a production site."
+msgstr ""
+
+#: includes/class-environment-checks.php:558
+msgid "Fine on a development or staging site."
+msgstr ""
+
+#: includes/class-environment-checks.php:577
+msgid "Errors on screen"
+msgstr ""
+
+#: includes/class-environment-checks.php:578
+msgid "Shown"
+msgstr ""
+
+#: includes/class-environment-checks.php:578
+msgid "Hidden"
+msgstr ""
+
+#: includes/class-environment-checks.php:583
+msgid "PHP errors are not shown to visitors."
+msgstr ""
+
+#: includes/class-environment-checks.php:588
+msgid "PHP errors are printed on the page (WP_DEBUG_DISPLAY or the PHP display_errors setting). This can break page layout and show file paths to visitors."
+msgstr ""
+
+#: includes/class-environment-checks.php:592
+msgid "Set WP_DEBUG_DISPLAY to false on a production site."
+msgstr ""
+
+#: includes/class-environment-checks.php:610
+msgid "Debug log"
+msgstr ""
+
+#: includes/class-environment-checks.php:619
+msgid "WordPress does not write a debug log."
+msgstr ""
+
+#: includes/class-environment-checks.php:634
+msgid "Errors are logged to a file outside the WordPress folders."
+msgstr ""
+
+#: includes/class-environment-checks.php:639
+msgid "The log file is inside a public folder, anyone who knows the URL may download it."
+msgstr ""
+
+#: includes/class-environment-checks.php:643
+msgid "Turn WP_DEBUG_LOG off or set it to a path outside the web root."
+msgstr ""
+
+#: includes/class-environment-checks.php:687
+#: includes/settings/tabs/class-tab-autoload.php:271
+msgid "Autoloaded options"
+msgstr ""
+
+#: includes/class-environment-checks.php:692
+msgid "Review autoloaded options"
+msgstr ""
+
+#. translators: %s: recommended size limit, e.g. 781 KB.
+#: includes/class-environment-checks.php:699
+msgid "Above the recommended limit of %s. Autoloaded options are loaded on every request."
+msgstr ""
+
+#. translators: %s: recommended size limit, e.g. 781 KB.
+#: includes/class-environment-checks.php:702
+msgid "Below the recommended limit of %s."
+msgstr ""
+
+#: includes/class-environment-checks.php:720
+msgid "Database size"
+msgstr ""
+
+#: includes/class-environment-checks.php:725
+msgid "Open database tools"
+msgstr ""
+
+#: includes/class-environment-checks.php:731
+msgid "Table sizes are not available."
+msgstr ""
+
+#. translators: 1: number of tables, 2: comma separated list of table names with sizes.
+#: includes/class-environment-checks.php:744
+msgid "%1$d table. Largest: %2$s."
+msgid_plural "%1$d tables. Largest: %2$s."
+msgstr[0] ""
+msgstr[1] ""
+
 #: includes/class-options-dispatch.php:548
 msgid "Comments are disabled, new replies can not be added."
 msgstr ""
@@ -319,174 +587,174 @@ msgstr ""
 msgid "Bust bloat (Settings)"
 msgstr ""
 
-#: includes/class-plugin-options.php:442
+#: includes/class-plugin-options.php:443
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:460
+#: includes/class-plugin-options.php:461
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
-#: includes/class-plugin-options.php:524
-#: includes/class-settings-transfer.php:798
+#: includes/class-plugin-options.php:525
+#: includes/class-settings-transfer.php:802
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-plugin-options.php:567
+#: includes/class-plugin-options.php:568
 msgid "BloatBuster"
 msgstr ""
 
-#: includes/class-settings-transfer.php:511
+#: includes/class-settings-transfer.php:510
 msgid "None"
 msgstr ""
 
-#: includes/class-settings-transfer.php:711
+#: includes/class-settings-transfer.php:715
 #: includes/settings/tabs/class-tab-autoload.php:160
 msgid "The file could not be uploaded."
 msgstr ""
 
 #. translators: %s: maximum file size, e.g. 1 MB.
 #. translators: %s: maximum file size, e.g. 10 MB.
-#: includes/class-settings-transfer.php:713
+#: includes/class-settings-transfer.php:717
 #: includes/settings/tabs/class-tab-autoload.php:162
 msgid "The file is empty or larger than %s."
 msgstr ""
 
-#: includes/class-settings-transfer.php:714
+#: includes/class-settings-transfer.php:718
 #: includes/settings/tabs/class-tab-autoload.php:163
 msgid "The file is not valid JSON."
 msgstr ""
 
-#: includes/class-settings-transfer.php:715
+#: includes/class-settings-transfer.php:719
 msgid "This is not a BloatBuster settings export file."
 msgstr ""
 
-#: includes/class-settings-transfer.php:716
+#: includes/class-settings-transfer.php:720
 msgid "This settings file was made by a newer version of BloatBuster. Update the plugin and try again."
 msgstr ""
 
-#: includes/class-settings-transfer.php:717
+#: includes/class-settings-transfer.php:721
 msgid "The import expired or was already applied. Upload the file again."
 msgstr ""
 
-#: includes/class-settings-transfer.php:718
+#: includes/class-settings-transfer.php:722
 msgid "The settings could not be saved. Try again."
 msgstr ""
 
-#: includes/class-settings-transfer.php:719
+#: includes/class-settings-transfer.php:723
 msgid "A newer file was uploaded after this preview. Check its preview before applying."
 msgstr ""
 
-#: includes/class-settings-transfer.php:726
+#: includes/class-settings-transfer.php:730
 msgid "The settings could not be imported."
 msgstr ""
 
-#: includes/class-settings-transfer.php:758
+#: includes/class-settings-transfer.php:762
 msgid "Import preview"
 msgstr ""
 
-#: includes/class-settings-transfer.php:760
+#: includes/class-settings-transfer.php:764
 msgid "The file matches the current settings. Nothing would change."
 msgstr ""
 
-#: includes/class-settings-transfer.php:762
+#: includes/class-settings-transfer.php:766
 msgid "These settings will change. Settings missing from the file are turned off or set to their default."
 msgstr ""
 
-#: includes/class-settings-transfer.php:766
+#: includes/class-settings-transfer.php:770
 msgid "Tab"
 msgstr ""
 
-#: includes/class-settings-transfer.php:767
+#: includes/class-settings-transfer.php:771
 msgid "Setting"
 msgstr ""
 
-#: includes/class-settings-transfer.php:768
+#: includes/class-settings-transfer.php:772
 msgid "Current"
 msgstr ""
 
-#: includes/class-settings-transfer.php:769
+#: includes/class-settings-transfer.php:773
 msgid "New"
 msgstr ""
 
-#: includes/class-settings-transfer.php:791
+#: includes/class-settings-transfer.php:795
 msgid "The settings listed above will be replaced. Export your current settings first if you may need them again."
 msgstr ""
 
-#: includes/class-settings-transfer.php:791
+#: includes/class-settings-transfer.php:795
 msgid "Apply imported settings?"
 msgstr ""
 
-#: includes/class-settings-transfer.php:791
+#: includes/class-settings-transfer.php:795
 msgid "Apply settings"
 msgstr ""
 
 #. translators: 1: number of keys, 2: list of key names.
-#: includes/class-settings-transfer.php:828
+#: includes/class-settings-transfer.php:832
 msgid "%1$d unknown or site-specific key was ignored: %2$s."
 msgid_plural "%1$d unknown or site-specific keys were ignored: %2$s."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: list of setting names.
-#: includes/class-settings-transfer.php:835
+#: includes/class-settings-transfer.php:839
 msgid "Not available on this site, kept as they are: %s."
 msgstr ""
 
 #. translators: %s: list of setting names.
-#: includes/class-settings-transfer.php:842
+#: includes/class-settings-transfer.php:846
 msgid "Invalid values were changed to a valid value or the default: %s."
 msgstr ""
 
-#: includes/class-settings-transfer.php:897
+#: includes/class-settings-transfer.php:903
 msgid "Import / Export settings"
 msgstr ""
 
-#: includes/class-settings-transfer.php:898
+#: includes/class-settings-transfer.php:904
 msgid "Copy your BloatBuster settings to another site. The file holds only the settings of all tabs, no site data. \"Delete plugin data on uninstall\" is not included."
 msgstr ""
 
-#: includes/class-settings-transfer.php:900
+#: includes/class-settings-transfer.php:906
 msgid "Export"
 msgstr ""
 
-#: includes/class-settings-transfer.php:904
+#: includes/class-settings-transfer.php:910
 msgid "Export settings"
 msgstr ""
 
-#: includes/class-settings-transfer.php:907
+#: includes/class-settings-transfer.php:913
 msgid "Import"
 msgstr ""
 
-#: includes/class-settings-transfer.php:908
+#: includes/class-settings-transfer.php:914
 msgid "Upload a file made with Export settings. You will see the changes before they are applied."
 msgstr ""
 
-#: includes/class-settings-transfer.php:912
+#: includes/class-settings-transfer.php:918
 msgid "Settings file to import"
 msgstr ""
 
-#: includes/class-settings-transfer.php:914
+#: includes/class-settings-transfer.php:920
 msgid "Upload and preview"
 msgstr ""
 
-#: includes/class-settings-transfer.php:917
+#: includes/class-settings-transfer.php:923
 msgid "Reset"
 msgstr ""
 
-#: includes/class-settings-transfer.php:918
+#: includes/class-settings-transfer.php:924
 msgid "Turn all settings off and set them to their defaults."
 msgstr ""
 
-#: includes/class-settings-transfer.php:922
+#: includes/class-settings-transfer.php:928
 msgid "All settings on every tab are turned off or set to their default. This can not be undone. Export your settings first if you may need them again."
 msgstr ""
 
-#: includes/class-settings-transfer.php:922
+#: includes/class-settings-transfer.php:928
 msgid "Reset all settings?"
 msgstr ""
 
-#: includes/class-settings-transfer.php:922
+#: includes/class-settings-transfer.php:928
 msgid "Reset settings"
 msgstr ""
 
@@ -771,10 +1039,6 @@ msgstr ""
 
 #: includes/settings/tabs/class-tab-autoload.php:267
 msgid "Total autoloaded size"
-msgstr ""
-
-#: includes/settings/tabs/class-tab-autoload.php:271
-msgid "Autoloaded options"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-autoload.php:275
@@ -1657,6 +1921,34 @@ msgstr ""
 
 #: includes/settings/tabs/class-tab-database.php:1132
 msgid "Site"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-environment.php:39
+msgid "Environment"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-environment.php:50
+msgid "Many slow sites are caused by the hosting setup, not by extra CSS or JS. Check your PHP, caches, WP-Cron and debug settings here."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-environment.php:100
+msgid "For more tests, like HTTPS, REST API and loopback requests, use Site Health."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-environment.php:101
+msgid "Open Site Health"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-environment.php:205
+msgid "Good"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-environment.php:206
+msgid "Recommended improvement"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-environment.php:207
+msgid "Info"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-media.php:39

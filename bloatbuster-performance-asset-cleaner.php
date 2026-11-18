@@ -44,6 +44,7 @@ Autoload_Rest::hooks();
 if ( \is_admin() ) {
 	require_once BLOATBUSTER_DIR . '/includes/settings/class-fields.php';
 	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-settings-tab.php';
+	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-environment.php';
 	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-assets.php';
 	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-core.php';
 	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-database.php';
@@ -56,6 +57,7 @@ if ( \is_admin() ) {
 	require_once BLOATBUSTER_DIR . '/includes/class-database-tools.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-cleanup-integrations.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-cron-status.php';
+	require_once BLOATBUSTER_DIR . '/includes/class-environment-checks.php';
 	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-owners.php';
 	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-actions.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-settings-transfer.php';

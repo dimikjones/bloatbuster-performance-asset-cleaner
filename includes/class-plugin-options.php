@@ -88,6 +88,7 @@ final class Plugin_Options {
 	 */
 	public static function get_tab_classes() {
 		$classes = array(
+			Tab_Environment::class,
 			Tab_Assets::class,
 			Tab_Core::class,
 			Tab_Database::class,

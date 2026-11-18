@@ -6,6 +6,19 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 
 Every option is off by default.
 
+### Environment
+
+Read-only report of the hosting setup that affects speed, with a short explanation for each finding and no score:
+
+* PHP version compared to the WordPress.org recommendation
+* PHP memory limit, WP_MEMORY_LIMIT and WP_MAX_MEMORY_LIMIT
+* OPcache status, memory and hit rate
+* Persistent object cache and page cache detection, without HTTP requests
+* WP-Cron mode and overdue events
+* Database server and version, total size and largest tables
+* Debug settings: WP_DEBUG, SAVEQUERIES, SCRIPT_DEBUG, errors on screen and a public debug.log
+* Autoloaded options size
+
 ### Assets
 
 * Disable Gutenberg block styles on the frontend
@@ -161,6 +174,7 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 
 | Hook | Type | Arguments | Use |
 | --- | --- | --- | --- |
+| `bloatbuster_environment_checks` | filter | `$checks` | Add, change or remove Environment tab checks. Each check: `id`, `label`, `value`, `status` (`good`, `recommended`, `info`), `message`, `link` (`url`, `text`). |
 | `bloatbuster_settings_tabs` | filter | `$classes` | Add tab class names. Classes that don't extend `Settings_Tab` are ignored. |
 | `bloatbuster_settings_fields` | filter | `$fields` | Add or change fields in any tab. Set the `tab` key. |
 | `bloatbuster_render_field_{type}` | action | `$args, $value, $option_name` | Render a custom field type. |

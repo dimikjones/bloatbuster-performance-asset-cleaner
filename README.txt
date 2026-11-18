@@ -16,6 +16,19 @@ Streamline your site's performance instantly. BloatBuster strips away unwanted W
 
 Every option is off by default, so nothing changes until you turn it on.
 
+= Environment =
+
+Read-only report of the hosting setup that affects speed, with a short explanation for each finding and no score:
+
+* PHP version compared to the WordPress.org recommendation
+* PHP memory limit, WP_MEMORY_LIMIT and WP_MAX_MEMORY_LIMIT
+* OPcache status, memory and hit rate
+* Persistent object cache and page cache detection, without HTTP requests
+* WP-Cron mode and overdue events
+* Database server and version, total size and largest tables
+* Debug settings: WP_DEBUG, SAVEQUERIES, SCRIPT_DEBUG, errors on screen and a public debug.log
+* Autoloaded options size
+
 = Assets =
 
 * Disable Gutenberg block styles on the frontend
