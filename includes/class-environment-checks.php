@@ -696,7 +696,6 @@ final class Environment_Checks {
 	 * @since 1.0.0
 	 */
 	public static function is_public_path( $path ) {
-		$path    = \wp_normalize_path( $path );
 		$folders = array( ABSPATH, WP_CONTENT_DIR );
 
 		// WordPress may be installed in a subfolder of the web root, e.g. /var/www/html/wordpress/.
@@ -704,20 +703,98 @@ final class Environment_Checks {
 			$folders[] = \sanitize_text_field( \wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) );
 		}
 
+		// Compare both the cleaned paths and the real paths, so ".." segments and symlinks are resolved.
+		$paths   = self::get_path_variants( $path, false );
+		$parents = array();
+
 		foreach ( $folders as $folder ) {
-			$folder = \trailingslashit( \wp_normalize_path( $folder ) );
+			$parents = array_merge( $parents, self::get_path_variants( $folder, true ) );
+		}
+
+		foreach ( $parents as $parent ) {
+			$parent = \trailingslashit( $parent );
 
 			// A root folder would match every path.
-			if ( '/' === $folder ) {
+			if ( '/' === $parent || preg_match( '#^[a-zA-Z]:/$#', $parent ) ) {
 				continue;
 			}
 
-			if ( 0 === stripos( $path, $folder ) ) {
-				return true;
+			foreach ( $paths as $candidate ) {
+				if ( 0 === stripos( $candidate, $parent ) ) {
+					return true;
+				}
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get the cleaned path and, when available, the real path of a file or folder.
+	 *
+	 * @param string $path      - Absolute file or folder path.
+	 * @param bool   $is_folder - True when the path is a folder, false for a file that may not exist yet.
+	 *
+	 * @return array - Unique normalized paths.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_path_variants( $path, $is_folder ) {
+		$variants = array( self::remove_dot_segments( $path ) );
+
+		// realpath() raises a warning for paths outside open_basedir, so skip it there.
+		if ( '' === (string) ini_get( 'open_basedir' ) ) {
+			if ( $is_folder ) {
+				$real = realpath( $path );
+			} else {
+				// The log file may not exist yet, so resolve its folder.
+				$real_folder = realpath( dirname( $path ) );
+				$real        = false !== $real_folder ? \trailingslashit( $real_folder ) . basename( $path ) : false;
+			}
+
+			if ( false !== $real ) {
+				$variants[] = \wp_normalize_path( $real );
+			}
+		}
+
+		return array_values( array_unique( $variants ) );
+	}
+
+	/**
+	 * Normalize a path and remove its "." and ".." segments, without touching the file system.
+	 *
+	 * @param string $path - Absolute path.
+	 *
+	 * @return string - Cleaned path with forward slashes.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function remove_dot_segments( $path ) {
+		$path   = \wp_normalize_path( $path );
+		$prefix = '';
+
+		// Keep the leading slash or Windows drive letter.
+		if ( preg_match( '#^(?:[a-zA-Z]:)?/#', $path, $matches ) ) {
+			$prefix = $matches[0];
+			$path   = substr( $path, strlen( $prefix ) );
+		}
+
+		$parts = array();
+
+		foreach ( explode( '/', $path ) as $part ) {
+			if ( '' === $part || '.' === $part ) {
+				continue;
+			}
+
+			if ( '..' === $part ) {
+				array_pop( $parts );
+				continue;
+			}
+
+			$parts[] = $part;
+		}
+
+		return $prefix . implode( '/', $parts );
 	}
 
 	/**
