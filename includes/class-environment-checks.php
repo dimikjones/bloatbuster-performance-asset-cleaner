@@ -463,7 +463,7 @@ final class Environment_Checks {
 		$status = Cron_Status::get_status();
 
 		if ( $status['disabled'] ) {
-			$value = \__( 'Server cron job (DISABLE_WP_CRON)', 'bloatbuster-performance-asset-cleaner' );
+			$value = \__( 'Off on page visits (DISABLE_WP_CRON)', 'bloatbuster-performance-asset-cleaner' );
 		} else {
 			$value = \__( 'Runs on page visits', 'bloatbuster-performance-asset-cleaner' );
 		}
@@ -487,6 +487,12 @@ final class Environment_Checks {
 			$check['status'] = 'recommended';
 			/* translators: %d: number of overdue events. */
 			$check['message'] = sprintf( \_n( '%d scheduled event is overdue, WP-Cron may not be running.', '%d scheduled events are overdue, WP-Cron may not be running.', $status['overdue'], 'bloatbuster-performance-asset-cleaner' ), $status['overdue'] );
+
+			if ( $status['disabled'] ) {
+				$check['message'] .= ' ' . \__( 'Check that the server cron job calls wp-cron.php.', 'bloatbuster-performance-asset-cleaner' );
+			}
+		} elseif ( $status['disabled'] ) {
+			$check['message'] = \__( 'Scheduled events run on time. Page visits don\'t run WP-Cron, so a server cron job must call wp-cron.php.', 'bloatbuster-performance-asset-cleaner' );
 		} else {
 			$check['message'] = \__( 'Scheduled events run on time.', 'bloatbuster-performance-asset-cleaner' );
 		}

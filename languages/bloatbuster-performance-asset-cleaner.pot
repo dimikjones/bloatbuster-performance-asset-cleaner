@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-18T22:58:38+01:00\n"
+"POT-Creation-Date: 2026-11-18T23:18:35+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -170,8 +170,8 @@ msgstr ""
 #: includes/autoload/class-autoload-list-table.php:420
 #: includes/class-environment-checks.php:266
 #: includes/class-environment-checks.php:282
-#: includes/class-environment-checks.php:541
-#: includes/class-environment-checks.php:611
+#: includes/class-environment-checks.php:552
+#: includes/class-environment-checks.php:622
 #: includes/class-settings-transfer.php:474
 msgid "Off"
 msgstr ""
@@ -392,183 +392,191 @@ msgstr ""
 msgid "The OPcache memory is full, new files are not cached. Ask your host to raise opcache.memory_consumption."
 msgstr ""
 
-#: includes/class-environment-checks.php:350
+#: includes/class-environment-checks.php:355
 msgid "Persistent object cache"
 msgstr ""
 
-#: includes/class-environment-checks.php:351
-#: includes/class-environment-checks.php:381
+#: includes/class-environment-checks.php:356
+#: includes/class-environment-checks.php:386
 msgid "Not detected"
 msgstr ""
 
-#: includes/class-environment-checks.php:356
+#: includes/class-environment-checks.php:361
 msgid "Not detected. A persistent object cache, like Redis or Memcached, can help database-heavy sites."
 msgstr ""
 
-#: includes/class-environment-checks.php:364
+#: includes/class-environment-checks.php:369
 msgid "Active"
 msgstr ""
 
-#: includes/class-environment-checks.php:365
+#: includes/class-environment-checks.php:370
 msgid "Database query results are kept in memory between requests."
 msgstr ""
 
-#: includes/class-environment-checks.php:380
+#: includes/class-environment-checks.php:385
 msgid "Page cache"
 msgstr ""
 
-#: includes/class-environment-checks.php:393
+#: includes/class-environment-checks.php:398
 msgid "A page cache plugin is active. Check its settings to make sure page caching is turned on."
 msgstr ""
 
-#: includes/class-environment-checks.php:397
+#: includes/class-environment-checks.php:402
 msgid "WP_CACHE is on and an advanced-cache.php drop-in is loaded."
 msgstr ""
 
-#: includes/class-environment-checks.php:399
+#: includes/class-environment-checks.php:404
 msgid "Not loaded"
 msgstr ""
 
-#: includes/class-environment-checks.php:401
+#: includes/class-environment-checks.php:406
 msgid "An advanced-cache.php drop-in exists, but WP_CACHE is off, so it is not loaded. Turn WP_CACHE on in wp-config.php or remove the leftover file."
 msgstr ""
 
-#: includes/class-environment-checks.php:403
+#: includes/class-environment-checks.php:408
 msgid "Not detected, a server or host cache may still be active."
 msgstr ""
 
-#: includes/class-environment-checks.php:461
-msgid "Server cron job (DISABLE_WP_CRON)"
+#: includes/class-environment-checks.php:466
+msgid "Off on page visits (DISABLE_WP_CRON)"
 msgstr ""
 
-#: includes/class-environment-checks.php:463
+#: includes/class-environment-checks.php:468
 msgid "Runs on page visits"
 msgstr ""
 
-#: includes/class-environment-checks.php:472
+#: includes/class-environment-checks.php:477
 msgid "WP-Cron"
 msgstr ""
 
-#: includes/class-environment-checks.php:477
+#: includes/class-environment-checks.php:482
 msgid "View scheduled events"
 msgstr ""
 
 #. translators: %d: number of overdue events.
-#: includes/class-environment-checks.php:484
+#: includes/class-environment-checks.php:489
 msgid "%d scheduled event is overdue, WP-Cron may not be running."
 msgid_plural "%d scheduled events are overdue, WP-Cron may not be running."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-environment-checks.php:486
+#: includes/class-environment-checks.php:492
+msgid "Check that the server cron job calls wp-cron.php."
+msgstr ""
+
+#: includes/class-environment-checks.php:495
+msgid "Scheduled events run on time. Page visits don't run WP-Cron, so a server cron job must call wp-cron.php."
+msgstr ""
+
+#: includes/class-environment-checks.php:497
 msgid "Scheduled events run on time."
 msgstr ""
 
-#: includes/class-environment-checks.php:515
+#: includes/class-environment-checks.php:526
 msgid "Database server"
 msgstr ""
 
-#: includes/class-environment-checks.php:518
+#: includes/class-environment-checks.php:529
 msgid "Site Health checks this version against the WordPress requirements."
 msgstr ""
 
-#: includes/class-environment-checks.php:540
+#: includes/class-environment-checks.php:551
 msgid "Debug mode"
 msgstr ""
 
-#: includes/class-environment-checks.php:546
+#: includes/class-environment-checks.php:557
 msgid "WP_DEBUG, SAVEQUERIES and SCRIPT_DEBUG are off."
 msgstr ""
 
-#: includes/class-environment-checks.php:551
+#: includes/class-environment-checks.php:562
 msgid "WP_DEBUG reports every PHP notice, SAVEQUERIES keeps every database query in memory and SCRIPT_DEBUG loads unminified files. Each adds work to every request."
 msgstr ""
 
-#: includes/class-environment-checks.php:555
+#: includes/class-environment-checks.php:566
 msgid "Turn them off in wp-config.php on a production site."
 msgstr ""
 
-#: includes/class-environment-checks.php:558
+#: includes/class-environment-checks.php:569
 msgid "Fine on a development or staging site."
 msgstr ""
 
-#: includes/class-environment-checks.php:577
+#: includes/class-environment-checks.php:588
 msgid "Errors on screen"
 msgstr ""
 
-#: includes/class-environment-checks.php:578
+#: includes/class-environment-checks.php:589
 msgid "Shown"
 msgstr ""
 
-#: includes/class-environment-checks.php:578
+#: includes/class-environment-checks.php:589
 msgid "Hidden"
 msgstr ""
 
-#: includes/class-environment-checks.php:583
+#: includes/class-environment-checks.php:594
 msgid "PHP errors are not shown to visitors."
 msgstr ""
 
-#: includes/class-environment-checks.php:588
+#: includes/class-environment-checks.php:599
 msgid "PHP errors are printed on the page (WP_DEBUG_DISPLAY or the PHP display_errors setting). This can break page layout and show file paths to visitors."
 msgstr ""
 
-#: includes/class-environment-checks.php:592
+#: includes/class-environment-checks.php:603
 msgid "Set WP_DEBUG_DISPLAY to false on a production site."
 msgstr ""
 
-#: includes/class-environment-checks.php:610
+#: includes/class-environment-checks.php:621
 msgid "Debug log"
 msgstr ""
 
-#: includes/class-environment-checks.php:619
+#: includes/class-environment-checks.php:630
 msgid "WordPress does not write a debug log."
 msgstr ""
 
-#: includes/class-environment-checks.php:634
+#: includes/class-environment-checks.php:645
 msgid "Errors are logged to a file outside the WordPress folders."
 msgstr ""
 
-#: includes/class-environment-checks.php:639
+#: includes/class-environment-checks.php:650
 msgid "The log file is inside a public folder, anyone who knows the URL may download it."
 msgstr ""
 
-#: includes/class-environment-checks.php:643
+#: includes/class-environment-checks.php:654
 msgid "Turn WP_DEBUG_LOG off or set it to a path outside the web root."
 msgstr ""
 
-#: includes/class-environment-checks.php:687
+#: includes/class-environment-checks.php:698
 #: includes/settings/tabs/class-tab-autoload.php:271
 msgid "Autoloaded options"
 msgstr ""
 
-#: includes/class-environment-checks.php:692
+#: includes/class-environment-checks.php:703
 msgid "Review autoloaded options"
 msgstr ""
 
 #. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/class-environment-checks.php:699
+#: includes/class-environment-checks.php:710
 msgid "Above the recommended limit of %s. Autoloaded options are loaded on every request."
 msgstr ""
 
 #. translators: %s: recommended size limit, e.g. 781 KB.
-#: includes/class-environment-checks.php:702
+#: includes/class-environment-checks.php:713
 msgid "Below the recommended limit of %s."
 msgstr ""
 
-#: includes/class-environment-checks.php:720
+#: includes/class-environment-checks.php:731
 msgid "Database size"
 msgstr ""
 
-#: includes/class-environment-checks.php:725
+#: includes/class-environment-checks.php:736
 msgid "Open database tools"
 msgstr ""
 
-#: includes/class-environment-checks.php:731
+#: includes/class-environment-checks.php:742
 msgid "Table sizes are not available."
 msgstr ""
 
 #. translators: 1: number of tables, 2: comma separated list of table names with sizes.
-#: includes/class-environment-checks.php:744
+#: includes/class-environment-checks.php:755
 msgid "%1$d table. Largest: %2$s."
 msgid_plural "%1$d tables. Largest: %2$s."
 msgstr[0] ""
