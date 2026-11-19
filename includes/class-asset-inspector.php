@@ -77,6 +77,13 @@ final class Asset_Inspector {
 	private static $plugin_folders = null;
 
 	/**
+	 * Loading strategy of each printed script tag: async, defer or empty.
+	 *
+	 * @var array
+	 */
+	private static $printed_strategies = array();
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -138,6 +145,9 @@ final class Asset_Inspector {
 	public static function add_scan_hooks() {
 		\add_action( 'wp_head', array( __CLASS__, 'record_head_assets' ), PHP_INT_MAX );
 
+		// Last, so it sees the final tag, also async or defer added by other plugins.
+		\add_filter( 'script_loader_tag', array( __CLASS__, 'record_script_tag' ), PHP_INT_MAX, 2 );
+
 		// Footer scripts and late styles are printed on wp_footer priority 20.
 		\add_action( 'wp_footer', array( __CLASS__, 'save_scan' ), PHP_INT_MAX );
 
@@ -161,6 +171,43 @@ final class Asset_Inspector {
 		}
 
 		self::save_scan();
+	}
+
+	/**
+	 * Remember the loading strategy of a printed script tag.
+	 *
+	 * WordPress drops a requested async or defer in some cases, e.g. with an
+	 * inline "after" script, so the printed tag is the only reliable source.
+	 *
+	 * @param string $tag    - Script tag HTML.
+	 * @param string $handle - Script handle.
+	 *
+	 * @return string - The tag, unchanged.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function record_script_tag( $tag, $handle ) {
+		$processor = new \WP_HTML_Tag_Processor( (string) $tag );
+		$strategy  = '';
+
+		while ( $processor->next_tag( 'script' ) ) {
+			// The tag also holds inline before/after scripts, only the one with src is the file.
+			if ( null === $processor->get_attribute( 'src' ) ) {
+				continue;
+			}
+
+			if ( null !== $processor->get_attribute( 'async' ) ) {
+				$strategy = 'async';
+			} elseif ( null !== $processor->get_attribute( 'defer' ) ) {
+				$strategy = 'defer';
+			}
+
+			break;
+		}
+
+		self::$printed_strategies[ (string) $handle ] = $strategy;
+
+		return $tag;
 	}
 
 	/**
@@ -300,19 +347,20 @@ final class Asset_Inspector {
 			}
 
 			$assets[ $type . ':' . $handle ] = array(
-				'type'        => $type,
-				'handle'      => (string) $handle,
-				'kind'        => $kind,
-				'src'         => $src,
-				'ver'         => is_string( $item->ver ) ? $item->ver : '',
-				'deps'        => array_values( array_map( 'strval', (array) $item->deps ) ),
-				'location'    => $location,
-				'strategy'    => 'js' === $type ? (string) $deps->get_data( $handle, 'strategy' ) : '',
-				'size'        => 'file' === $kind ? self::get_local_size( $src ) : null,
-				'inline_size' => $inline_size,
-				'owner'       => $owner['label'],
-				'owner_id'    => $owner['id'],
-				'confidence'  => $owner['confidence'],
+				'type'               => $type,
+				'handle'             => (string) $handle,
+				'kind'               => $kind,
+				'src'                => $src,
+				'ver'                => is_string( $item->ver ) ? $item->ver : '',
+				'deps'               => array_values( array_map( 'strval', (array) $item->deps ) ),
+				'location'           => $location,
+				'strategy'           => 'js' === $type && isset( self::$printed_strategies[ $handle ] ) ? self::$printed_strategies[ $handle ] : '',
+				'requested_strategy' => 'js' === $type ? (string) $deps->get_data( $handle, 'strategy' ) : '',
+				'size'               => 'file' === $kind ? self::get_local_size( $src ) : null,
+				'inline_size'        => $inline_size,
+				'owner'              => $owner['label'],
+				'owner_id'           => $owner['id'],
+				'confidence'         => $owner['confidence'],
 			);
 		}
 

@@ -285,18 +285,19 @@ final class Tab_Assets extends Settings_Tab {
 		$asset = \wp_parse_args(
 			(array) $asset,
 			array(
-				'type'        => '',
-				'handle'      => '',
-				'kind'        => 'file',
-				'src'         => '',
-				'ver'         => '',
-				'deps'        => array(),
-				'location'    => '',
-				'strategy'    => '',
-				'size'        => null,
-				'inline_size' => 0,
-				'owner'       => '',
-				'confidence'  => '',
+				'type'               => '',
+				'handle'             => '',
+				'kind'               => 'file',
+				'src'                => '',
+				'ver'                => '',
+				'deps'               => array(),
+				'location'           => '',
+				'strategy'           => '',
+				'requested_strategy' => '',
+				'size'               => null,
+				'inline_size'        => 0,
+				'owner'              => '',
+				'confidence'         => '',
 			)
 		);
 
@@ -315,7 +316,17 @@ final class Tab_Assets extends Settings_Tab {
 			</td>
 			<td><?php echo \esc_html( self::get_asset_size_label( $asset ) ); ?></td>
 			<td><?php echo \esc_html( self::get_location_label( $asset['location'] ) ); ?></td>
-			<td><?php echo \esc_html( '' !== $asset['strategy'] ? $asset['strategy'] : '—' ); ?></td>
+			<td>
+				<?php echo \esc_html( '' !== $asset['strategy'] ? $asset['strategy'] : '—' ); ?>
+				<?php if ( '' !== $asset['requested_strategy'] && $asset['requested_strategy'] !== $asset['strategy'] ) : ?>
+					<span class="bbpac-inspector-meta">
+						<?php
+						/* translators: %s: requested loading strategy, async or defer. */
+						echo \esc_html( sprintf( \__( 'Requested: %s, not applied by WordPress', 'bloatbuster-performance-asset-cleaner' ), $asset['requested_strategy'] ) );
+						?>
+					</span>
+				<?php endif; ?>
+			</td>
 			<td><?php echo \esc_html( ! empty( $asset['deps'] ) ? implode( ', ', (array) $asset['deps'] ) : '—' ); ?></td>
 			<td class="bbpac-inspector-source">
 				<?php if ( '' !== $asset['src'] ) : ?>
