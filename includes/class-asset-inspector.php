@@ -121,7 +121,10 @@ final class Asset_Inspector {
 			define( 'DONOTCACHEPAGE', true );
 		}
 
-		// REST, AJAX and feed requests never reach template_redirect.
+		/**
+		 * REST and AJAX requests never reach template_redirect. Feeds, sitemaps and
+		 * redirects do, but print no wp_head, so nothing is saved for them.
+		 */
 		\add_action( 'template_redirect', array( __CLASS__, 'add_scan_hooks' ) );
 	}
 
@@ -139,7 +142,25 @@ final class Asset_Inspector {
 		\add_action( 'wp_footer', array( __CLASS__, 'save_scan' ), PHP_INT_MAX );
 
 		// Fallback for themes without wp_footer(). shutdown may run after the iframe has loaded.
-		\add_action( 'shutdown', array( __CLASS__, 'save_scan' ) );
+		\add_action( 'shutdown', array( __CLASS__, 'save_scan_on_shutdown' ) );
+	}
+
+	/**
+	 * Save the scan on shutdown, only when a page was printed.
+	 *
+	 * Feeds, sitemaps, robots.txt and redirects pass template_redirect but
+	 * never print wp_head, so they would save an empty scan.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function save_scan_on_shutdown() {
+		if ( ! \did_action( 'wp_head' ) ) {
+			return;
+		}
+
+		self::save_scan();
 	}
 
 	/**
