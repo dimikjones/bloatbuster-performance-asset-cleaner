@@ -872,6 +872,11 @@ final class Environment_Checks {
 			implode( ', ', $largest )
 		);
 
+		// Database_Tools::get_table_stats() only reads the tables of the current site.
+		if ( \is_multisite() ) {
+			$check['message'] .= ' ' . \__( 'Only the tables of this site are counted.', 'bloatbuster-performance-asset-cleaner' );
+		}
+
 		return $check;
 	}
 
