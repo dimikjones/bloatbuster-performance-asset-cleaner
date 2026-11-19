@@ -146,8 +146,13 @@ final class Tab_Assets extends Settings_Tab {
 		<div class="bbpac-inspector" id="bbpac-inspector">
 			<div class="bbpac-inspector-form">
 				<label class="screen-reader-text" for="bbpac-inspector-url"><?php \esc_html_e( 'Page URL to scan', 'bloatbuster-performance-asset-cleaner' ); ?></label>
-				<?php // No name attribute, so the URL is not saved with the settings. ?>
-				<input type="url" id="bbpac-inspector-url" class="regular-text" value="<?php echo \esc_url( $default_url ); ?>">
+				<?php
+				/**
+				 * No name attribute, so the URL is not saved with the settings. A text input, not type="url",
+				 * so browser validation of a relative path can't block saving the settings form. JS validates it.
+				 */
+				?>
+				<input type="text" inputmode="url" autocomplete="off" spellcheck="false" id="bbpac-inspector-url" class="regular-text" value="<?php echo \esc_url( $default_url ); ?>">
 				<button type="button" class="button button-secondary" id="bbpac-inspector-scan"><?php \esc_html_e( 'Scan page', 'bloatbuster-performance-asset-cleaner' ); ?></button>
 				<span class="spinner"></span>
 			</div>
