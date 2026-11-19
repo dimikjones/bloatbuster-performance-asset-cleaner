@@ -301,7 +301,8 @@ final class Tab_Assets extends Settings_Tab {
 		);
 
 		$type_label = 'css' === $asset['type'] ? \__( 'CSS', 'bloatbuster-performance-asset-cleaner' ) : \__( 'JavaScript', 'bloatbuster-performance-asset-cleaner' );
-		$search     = strtolower( $asset['handle'] . ' ' . $asset['owner'] . ' ' . $asset['src'] );
+		// Lowercased in JS, PHP strtolower() would miss non-ASCII letters like É.
+		$search = $asset['handle'] . ' ' . $asset['owner'] . ' ' . $asset['src'];
 		?>
 		<tr data-bbpac-type="<?php echo \esc_attr( $asset['type'] ); ?>" data-bbpac-search="<?php echo \esc_attr( $search ); ?>">
 			<td><code><?php echo \esc_html( $asset['handle'] ); ?></code></td>

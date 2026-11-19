@@ -510,13 +510,16 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		return;
 	}
 
+	// Lowercase the row text once, the same way as the search term, so names like "École" match.
+	const searchTexts = rows.map( ( row ) => row.dataset.bbpacSearch.toLowerCase() );
+
 	const applyFilters = () => {
 		const term = search.value.trim().toLowerCase();
 		let shown = 0;
 
-		rows.forEach( ( row ) => {
+		rows.forEach( ( row, index ) => {
 			const typeMatches = 'all' === activeType || row.dataset.bbpacType === activeType;
-			const termMatches = '' === term || row.dataset.bbpacSearch.includes( term );
+			const termMatches = '' === term || searchTexts[ index ].includes( term );
 
 			row.hidden = ! ( typeMatches && termMatches );
 			shown += row.hidden ? 0 : 1;
