@@ -10,6 +10,10 @@
   --bbpac-gray-bg-color: #b5b3b5;
   --bbpac-border-color: #dedede;
   --bbpac-border-active: #c1c1c1;
+  --bbpac-warning-color: #dba617;
+  --bbpac-status-good-color: #008a20;
+  --bbpac-status-warning-color: #996800;
+  --bbpac-status-info-color: #2271b1;
 }
 
 .toplevel_page_bloatbuster_performance_asset_cleaner_options {
@@ -429,7 +433,7 @@
     text-decoration: none;
 
     &.bbpac-card-warning {
-      border-color: #dba617;
+      border-color: var(--bbpac-warning-color);
     }
   }
 
@@ -463,6 +467,70 @@
 
   .bbpac-status-warning {
     color: #b32d2e;
+  }
+
+  // Environment tab.
+  .bbpac-env-cards .bbpac-card-value {
+    overflow-wrap: anywhere;
+  }
+
+  .bbpac-env-checks {
+    margin: 20px 0;
+    background: #fff;
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 8px;
+  }
+
+  .bbpac-env-check {
+    display: flex;
+    gap: 12px;
+    margin: 0;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--bbpac-border-color);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    .dashicons {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    &.bbpac-env-good .dashicons {
+      color: var(--bbpac-status-good-color);
+    }
+
+    &.bbpac-env-recommended .dashicons {
+      color: var(--bbpac-status-warning-color);
+    }
+
+    &.bbpac-env-info .dashicons {
+      color: var(--bbpac-status-info-color);
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .description {
+      margin-top: 4px;
+    }
+  }
+
+  .bbpac-env-check-body {
+    min-width: 0;
+  }
+
+  .bbpac-env-check-status {
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .bbpac-env-check-value {
+    margin-left: 6px;
+    color: #50575e;
+    overflow-wrap: anywhere;
   }
 
   .bbpac-autoload-manager {
