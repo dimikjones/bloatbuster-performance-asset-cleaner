@@ -416,12 +416,22 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 	};
 
+	// One scan at a time, for both the button and the Enter key.
+	let scanning = false;
+
 	const startScan = async () => {
+		if ( scanning ) {
+			return;
+		}
+
+		scanning = true;
+
 		const target = getTargetUrl();
 
 		if ( ! target ) {
 			status.textContent = bbpacData.i18n.invalidUrl;
 			urlInput.focus();
+			scanning = false;
 			return;
 		}
 
@@ -434,10 +444,12 @@ document.addEventListener( 'DOMContentLoaded', () => {
 			} );
 
 			if ( ! confirmed ) {
+				scanning = false;
 				return;
 			}
 		}
 
+		// No reset after this point, the page always navigates to the result.
 		const scanId = createScanId();
 		const resultUrl = new URL( bbpacData.tabUrl );
 		const frame = document.createElement( 'iframe' );
