@@ -536,8 +536,7 @@ final class Asset_Inspector {
 				continue;
 			}
 
-			$folder = array_search( $plugin['name'], self::get_plugin_folders(), true );
-			$id     = false !== $folder ? 'plugin:' . $folder : 'unknown';
+			$id = ! empty( $plugin['id'] ) ? $plugin['id'] : 'unknown';
 
 			return self::owner( $plugin['name'], $id, 'likely' );
 		}
