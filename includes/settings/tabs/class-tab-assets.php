@@ -395,6 +395,11 @@ final class Tab_Assets extends Settings_Tab {
 			return \__( 'Group, loads its dependencies', 'bloatbuster-performance-asset-cleaner' );
 		}
 
+		if ( 'inlined' === $asset['kind'] ) {
+			/* translators: %s: size of the inline code that replaced the file, e.g. 2 KB. */
+			return sprintf( \__( 'Inlined by a plugin, %s', 'bloatbuster-performance-asset-cleaner' ), \size_format( $inline, 1 ) );
+		}
+
 		if ( 'inline' === $asset['kind'] ) {
 			/* translators: %s: size of the inline code, e.g. 2 KB. */
 			return sprintf( \__( 'Inline, %s', 'bloatbuster-performance-asset-cleaner' ), \size_format( $inline, 1 ) );

@@ -104,6 +104,16 @@ final class Asset_Inspector {
 	);
 
 	/**
+	 * Bytes of printed tags a filter replaced with inline code, keyed by type and handle.
+	 *
+	 * @var array
+	 */
+	private static $inlined_bytes = array(
+		'css' => array(),
+		'js'  => array(),
+	);
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -211,6 +221,12 @@ final class Asset_Inspector {
 		$handle  = (string) $handle;
 		$urls    = self::get_stylesheet_urls( (string) $tag );
 		$printed = '' !== trim( (string) $tag );
+		$inlined = 0;
+
+		// A tag without any URL, like critical CSS printed in a <style>, replaced the file with inline code.
+		if ( $printed && empty( $urls ) && ! self::has_url_reference( (string) $tag ) ) {
+			$inlined = strlen( (string) $tag );
+		}
 
 		/**
 		 * On RTL pages core filters the -rtl tag in a second call with the same handle.
@@ -220,10 +236,17 @@ final class Asset_Inspector {
 			$first_urls = isset( self::$printed_srcs['css'][ $handle ] ) ? self::$printed_srcs['css'][ $handle ] : array();
 			$urls       = array_values( array_unique( array_merge( $first_urls, $urls ) ) );
 			$printed    = $printed || self::$printed_tags['css'][ $handle ];
+			$inlined   += isset( self::$inlined_bytes['css'][ $handle ] ) ? self::$inlined_bytes['css'][ $handle ] : 0;
 		}
 
 		self::$printed_tags['css'][ $handle ] = $printed;
 		self::$printed_srcs['css'][ $handle ] = $urls;
+
+		if ( $inlined > 0 ) {
+			self::$inlined_bytes['css'][ $handle ] = $inlined;
+		} else {
+			unset( self::$inlined_bytes['css'][ $handle ] );
+		}
 
 		return $tag;
 	}
@@ -242,10 +265,12 @@ final class Asset_Inspector {
 	 * @since 1.0.0
 	 */
 	public static function record_script_tag( $tag, $handle ) {
+		$handle    = (string) $handle;
 		$processor = new \WP_HTML_Tag_Processor( (string) $tag );
 		$strategy  = '';
+		$printed   = '' !== trim( (string) $tag );
 
-		self::$printed_tags['js'][ (string) $handle ] = '' !== trim( (string) $tag );
+		self::$printed_tags['js'][ $handle ] = $printed;
 
 		while ( $processor->next_tag( 'script' ) ) {
 			$src = $processor->get_attribute( 'src' );
@@ -255,7 +280,7 @@ final class Asset_Inspector {
 				continue;
 			}
 
-			self::$printed_srcs['js'][ (string) $handle ] = array( $src );
+			self::$printed_srcs['js'][ $handle ] = array( $src );
 
 			if ( null !== $processor->get_attribute( 'async' ) ) {
 				$strategy = 'async';
@@ -266,9 +291,49 @@ final class Asset_Inspector {
 			break;
 		}
 
-		self::$printed_strategies[ (string) $handle ] = $strategy;
+		// A tag without any URL replaced the file with inline code. Delayed scripts keep the URL in e.g. data-src.
+		if ( $printed && empty( self::$printed_srcs['js'][ $handle ] ) && ! self::has_url_reference( (string) $tag ) ) {
+			self::$inlined_bytes['js'][ $handle ] = strlen( (string) $tag );
+		}
+
+		self::$printed_strategies[ $handle ] = $strategy;
 
 		return $tag;
+	}
+
+	/**
+	 * Check if any tag in the HTML points to a file, e.g. a preload href or a delayed script data-src.
+	 *
+	 * @param string $tag - Tag HTML.
+	 *
+	 * @return bool - True when an attribute is named *src or *href, or its value looks like a URL.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function has_url_reference( $tag ) {
+		$processor = new \WP_HTML_Tag_Processor( $tag );
+
+		while ( $processor->next_tag() ) {
+			foreach ( (array) $processor->get_attribute_names_with_prefix( '' ) as $name ) {
+				$value = $processor->get_attribute( $name );
+
+				if ( ! is_string( $value ) || '' === trim( $value ) ) {
+					continue;
+				}
+
+				$value = trim( $value );
+
+				if ( preg_match( '/(^|-)(src|href)$/', $name ) ) {
+					return true;
+				}
+
+				if ( preg_match( '#^(https?:)?//#i', $value ) || preg_match( '#^/[^/]#', $value ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -433,6 +498,11 @@ final class Asset_Inspector {
 				$src         = '';
 				$kind        = 'not_printed';
 				$inline_size = self::get_printed_inline_size( $deps, $handle, $type );
+			} elseif ( empty( $printed_srcs ) && isset( self::$inlined_bytes[ $type ][ $handle ] ) ) {
+				// A *_loader_tag filter printed the code inline, the page made no request for the file.
+				$src         = '';
+				$kind        = 'inlined';
+				$inline_size = self::$inlined_bytes[ $type ][ $handle ] + self::get_printed_inline_size( $deps, $handle, $type );
 			} elseif ( '' !== $src ) {
 				$kind = 'file';
 			} elseif ( $inline_size > 0 ) {
@@ -604,10 +674,10 @@ final class Asset_Inspector {
 	}
 
 	/**
-	 * Get the size of the inline code still printed for a handle whose file tag was not printed.
+	 * Get the size of the inline code core prints outside the file tag, for a handle whose file tag was not printed or was inlined.
 	 *
 	 * Scripts: wp_localize_script() data is printed before the src check in
-	 * WP_Scripts::do_item(), before/after code is part of the removed tag.
+	 * WP_Scripts::do_item(), before/after code is part of the filtered tag.
 	 * Styles: an empty href returns before any output, an empty tag from
 	 * style_loader_tag still prints the inline style after it.
 	 *
