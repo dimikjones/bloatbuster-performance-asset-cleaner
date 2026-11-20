@@ -223,9 +223,16 @@ final class Asset_Inspector {
 		$printed = '' !== trim( (string) $tag );
 		$inlined = 0;
 
-		// A tag without any URL, like critical CSS printed in a <style>, replaced the file with inline code.
-		if ( $printed && empty( $urls ) && ! self::has_url_reference( (string) $tag ) ) {
-			$inlined = strlen( (string) $tag );
+		/**
+		 * No stylesheet link: a preload or a lazy loader keeps the URL in another attribute.
+		 * A tag without any URL, like critical CSS in a <style>, replaced the file with inline code.
+		 */
+		if ( $printed && empty( $urls ) ) {
+			$urls = self::get_referenced_urls( (string) $tag );
+
+			if ( empty( $urls ) ) {
+				$inlined = strlen( (string) $tag );
+			}
 		}
 
 		/**
@@ -276,7 +283,7 @@ final class Asset_Inspector {
 			$src = $processor->get_attribute( 'src' );
 
 			// The tag also holds inline before/after scripts, only the one with src is the file.
-			if ( ! is_string( $src ) || '' === $src ) {
+			if ( ! self::is_file_url( $src ) ) {
 				continue;
 			}
 
@@ -291,9 +298,15 @@ final class Asset_Inspector {
 			break;
 		}
 
-		// A tag without any URL replaced the file with inline code. Delayed scripts keep the URL in e.g. data-src.
-		if ( $printed && empty( self::$printed_srcs['js'][ $handle ] ) && ! self::has_url_reference( (string) $tag ) ) {
-			self::$inlined_bytes['js'][ $handle ] = strlen( (string) $tag );
+		// Delayed scripts keep the URL in another attribute, e.g. data-src. A tag without any URL replaced the file with inline code.
+		if ( $printed && empty( self::$printed_srcs['js'][ $handle ] ) ) {
+			$urls = self::get_referenced_urls( (string) $tag );
+
+			if ( ! empty( $urls ) ) {
+				self::$printed_srcs['js'][ $handle ] = $urls;
+			} else {
+				self::$inlined_bytes['js'][ $handle ] = strlen( (string) $tag );
+			}
 		}
 
 		self::$printed_strategies[ $handle ] = $strategy;
@@ -302,38 +315,60 @@ final class Asset_Inspector {
 	}
 
 	/**
-	 * Check if any tag in the HTML points to a file, e.g. a preload href or a delayed script data-src.
+	 * Get the file URLs a tag points to, e.g. a preload href or a delayed script data-src.
 	 *
 	 * @param string $tag - Tag HTML.
 	 *
-	 * @return bool - True when an attribute is named *src or *href, or its value looks like a URL.
+	 * @return array - Unique URLs, values of attributes named *src or *href first, then other URL-like values.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function has_url_reference( $tag ) {
+	public static function get_referenced_urls( $tag ) {
 		$processor = new \WP_HTML_Tag_Processor( $tag );
+		$named     = array();
+		$other     = array();
 
 		while ( $processor->next_tag() ) {
 			foreach ( (array) $processor->get_attribute_names_with_prefix( '' ) as $name ) {
 				$value = $processor->get_attribute( $name );
+				$value = is_string( $value ) ? trim( $value ) : '';
 
-				if ( ! is_string( $value ) || '' === trim( $value ) ) {
+				if ( ! self::is_file_url( $value ) ) {
 					continue;
 				}
 
-				$value = trim( $value );
-
 				if ( preg_match( '/(^|-)(src|href)$/', $name ) ) {
-					return true;
-				}
-
-				if ( preg_match( '#^(https?:)?//#i', $value ) || preg_match( '#^/[^/]#', $value ) ) {
-					return true;
+					$named[] = $value;
+				} elseif ( preg_match( '#^(https?:)?//#i', $value ) || preg_match( '#^/[^/]#', $value ) ) {
+					$other[] = $value;
 				}
 			}
 		}
 
-		return false;
+		return array_values( array_unique( array_merge( $named, $other ) ) );
+	}
+
+	/**
+	 * Check if an attribute value can point to a file.
+	 *
+	 * @param mixed $value - Attribute value.
+	 *
+	 * @return bool - False for empty values, fragments, data URIs (inline code) and javascript: URLs.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_file_url( $value ) {
+		if ( ! is_string( $value ) ) {
+			return false;
+		}
+
+		$value = trim( $value );
+
+		if ( '' === $value || '#' === $value[0] ) {
+			return false;
+		}
+
+		return ! preg_match( '/^(data|javascript):/i', $value );
 	}
 
 	/**
@@ -359,7 +394,7 @@ final class Asset_Inspector {
 				continue;
 			}
 
-			if ( is_string( $href ) && '' !== $href && ! in_array( $href, $urls, true ) ) {
+			if ( self::is_file_url( $href ) && ! in_array( $href, $urls, true ) ) {
 				$urls[] = $href;
 			}
 		}
