@@ -514,6 +514,11 @@
     align-items: center;
     gap: 12px;
     margin: 12px 0 8px;
+
+    // WordPress .button sets display, which would override the hidden attribute.
+    .button[hidden] {
+      display: none;
+    }
   }
 
   .bbpac-inspector-views,
