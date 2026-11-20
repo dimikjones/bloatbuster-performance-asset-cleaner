@@ -550,7 +550,12 @@ final class Asset_Inspector {
 				}
 
 				// External files and local files that could not be read, also next to files with a size.
-				$group['unknown_size_count'] += isset( $asset['unsized_files'] ) ? (int) $asset['unsized_files'] : 0;
+				if ( isset( $asset['unsized_files'] ) ) {
+					$group['unknown_size_count'] += (int) $asset['unsized_files'];
+				} elseif ( 'file' === $kind && ! isset( $asset['size'] ) ) {
+					// Scans saved before unsized_files: only a file without any size is known.
+					++$group['unknown_size_count'];
+				}
 			}
 
 			$groups[ $owner_id ] = $group;
