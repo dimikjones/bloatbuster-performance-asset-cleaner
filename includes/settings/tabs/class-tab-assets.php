@@ -307,8 +307,8 @@ final class Tab_Assets extends Settings_Tab {
 				<thead>
 					<tr>
 						<th scope="col"><?php \esc_html_e( 'Likely source', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'CSS files', 'bloatbuster-performance-asset-cleaner' ); ?></th>
-						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'JS files', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'CSS assets', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'JS assets', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'Local size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'Inline size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
 						<?php if ( $show_unknown ) : ?>
