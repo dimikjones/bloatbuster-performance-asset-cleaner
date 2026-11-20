@@ -505,6 +505,11 @@ final class Asset_Inspector {
 			$confidence = isset( $asset['confidence'], $rank[ $asset['confidence'] ] ) ? $asset['confidence'] : 'unknown';
 			$kind       = isset( $asset['kind'] ) ? $asset['kind'] : 'file';
 
+			// Uploads and external hosts tell where the file is, not who added it. Also fixes scans saved as confirmed.
+			if ( 'uploads' === $owner_id || 0 === strpos( $owner_id, 'external:' ) ) {
+				$confidence = 'unknown';
+			}
+
 			if ( isset( $groups[ $owner_id ] ) ) {
 				$group = $groups[ $owner_id ];
 			} else {
@@ -939,7 +944,7 @@ final class Asset_Inspector {
 		}
 
 		/* translators: %s: host name, e.g. cdn.example.com. */
-		return self::owner( sprintf( \__( 'External (%s)', 'bloatbuster-performance-asset-cleaner' ), $host ), 'external:' . strtolower( $host ), 'confirmed' );
+		return self::owner( sprintf( \__( 'External (%s)', 'bloatbuster-performance-asset-cleaner' ), $host ), 'external:' . strtolower( $host ), 'unknown' );
 	}
 
 	/**
@@ -1032,7 +1037,7 @@ final class Asset_Inspector {
 				return self::owner( $plugins[ $slug ], 'plugin:' . $slug, 'likely' );
 			}
 
-			return self::owner( \__( 'Uploads', 'bloatbuster-performance-asset-cleaner' ), 'uploads', 'confirmed' );
+			return self::owner( \__( 'Uploads', 'bloatbuster-performance-asset-cleaner' ), 'uploads', 'unknown' );
 		}
 
 		return null;
