@@ -502,13 +502,22 @@
     margin: 12px 0;
   }
 
+  .bbpac-inspector-views {
+    display: flex;
+    gap: 4px;
+    margin: 12px 0 8px;
+  }
+
   .bbpac-inspector-filters {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     margin: 12px 0 8px;
+  }
 
+  .bbpac-inspector-views,
+  .bbpac-inspector-filters {
     .button[aria-pressed="true"] {
       background: #f0f0f1;
       border-color: #8c8f94;
@@ -535,7 +544,7 @@
     margin: 0;
     border: 0;
 
-    th {
+    thead th {
       position: sticky;
       top: 0;
       background: #fff;
@@ -555,6 +564,36 @@
 
     code {
       word-break: break-all;
+    }
+  }
+
+  .bbpac-footprint-table {
+    .bbpac-num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      cursor: pointer;
+
+      &:hover td {
+        background: #f6f7f7;
+      }
+    }
+
+    .button-link {
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .bbpac-badge {
+      margin-left: 6px;
+    }
+
+    tfoot th,
+    tfoot td {
+      padding: 10px 10px;
+      font-weight: 700;
     }
   }
 

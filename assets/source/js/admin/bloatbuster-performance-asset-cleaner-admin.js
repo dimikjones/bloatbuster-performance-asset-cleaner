@@ -499,12 +499,32 @@ document.addEventListener( 'DOMContentLoaded', () => {
 		}
 	} );
 
-	// Type filter and search, on the rendered table rows.
-	const rows = Array.from( inspector.querySelectorAll( '.bbpac-inspector-table tbody tr' ) );
+	// "By source" and "By asset" views.
+	const viewButtons = Array.from( inspector.querySelectorAll( '[data-bbpac-view-switch]' ) );
+	const views = Array.from( inspector.querySelectorAll( '[data-bbpac-view]' ) );
+
+	const showView = ( name ) => {
+		views.forEach( ( view ) => {
+			view.hidden = view.dataset.bbpacView !== name;
+		} );
+
+		viewButtons.forEach( ( button ) => {
+			button.setAttribute( 'aria-pressed', button.dataset.bbpacViewSwitch === name ? 'true' : 'false' );
+		} );
+	};
+
+	viewButtons.forEach( ( button ) => {
+		button.addEventListener( 'click', () => showView( button.dataset.bbpacViewSwitch ) );
+	} );
+
+	// Type, source and search filters, on the rendered asset rows.
+	const rows = Array.from( inspector.querySelectorAll( '[data-bbpac-view="assets"] .bbpac-inspector-table tbody tr' ) );
 	const filterButtons = Array.from( inspector.querySelectorAll( '[data-bbpac-filter]' ) );
 	const search = document.getElementById( 'bbpac-inspector-search' );
 	const count = inspector.querySelector( '.bbpac-inspector-count' );
+	const ownerButton = inspector.querySelector( '.bbpac-inspector-owner' );
 	let activeType = 'all';
+	let activeOwner = '';
 
 	if ( 0 === rows.length || ! search ) {
 		return;
@@ -519,14 +539,35 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 		rows.forEach( ( row, index ) => {
 			const typeMatches = 'all' === activeType || row.dataset.bbpacType === activeType;
+			const ownerMatches = '' === activeOwner || row.dataset.bbpacOwnerId === activeOwner;
 			const termMatches = '' === term || searchTexts[ index ].includes( term );
 
-			row.hidden = ! ( typeMatches && termMatches );
+			row.hidden = ! ( typeMatches && ownerMatches && termMatches );
 			shown += row.hidden ? 0 : 1;
 		} );
 
 		count.textContent = bbpacData.i18n.shownCount.replace( '%1$d', shown ).replace( '%2$d', rows.length );
 	};
+
+	const setOwner = ( ownerId, label ) => {
+		activeOwner = ownerId;
+		ownerButton.hidden = '' === ownerId;
+		ownerButton.textContent = '' === ownerId ? '' : bbpacData.i18n.ownerFilter.replace( '%s', label );
+		applyFilters();
+	};
+
+	// A source in the "By source" view opens its assets. The whole row is clickable, the button is for the keyboard.
+	inspector.querySelectorAll( '[data-bbpac-owner-row]' ).forEach( ( row ) => {
+		row.addEventListener( 'click', () => {
+			const button = row.querySelector( '[data-bbpac-owner]' );
+
+			setOwner( button.dataset.bbpacOwner, button.dataset.bbpacOwnerLabel );
+			showView( 'assets' );
+			ownerButton.focus();
+		} );
+	} );
+
+	ownerButton.addEventListener( 'click', () => setOwner( '', '' ) );
 
 	filterButtons.forEach( ( button ) => {
 		button.addEventListener( 'click', () => {

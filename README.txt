@@ -38,6 +38,7 @@ Read-only report of the hosting setup that affects speed, with a short explanati
 * Disable jQuery Migrate on the frontend
 * Disable emoji scripts and styles
 * Frontend asset inspector: scan a page and see its CSS and JavaScript files with the plugin or theme that adds them, size, header or footer and async/defer
+* By source view of a scan: CSS and JavaScript count and size per plugin, theme or external host, with a note when the source is only likely
 
 = WordPress Core =
 

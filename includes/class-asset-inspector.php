@@ -476,6 +476,115 @@ final class Asset_Inspector {
 	}
 
 	/**
+	 * Group scanned assets by the plugin, theme or other source that adds them.
+	 *
+	 * Uses the same rules as the scan summary: assets whose file was not printed add
+	 * only the inline code still printed, and are not counted.
+	 *
+	 * @param array $assets - Assets keyed by "{type}:{handle}", from a saved scan.
+	 *
+	 * @return array - Groups with label, owner_id, confidence, css_count, js_count, local_size, inline_size and unknown_size_count, largest first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_footprint( $assets ) {
+		$groups = array();
+		$rank   = array(
+			'confirmed' => 2,
+			'likely'    => 1,
+			'unknown'   => 0,
+		);
+
+		foreach ( (array) $assets as $asset ) {
+			if ( ! is_array( $asset ) ) {
+				continue;
+			}
+
+			$owner_id   = isset( $asset['owner_id'] ) && '' !== $asset['owner_id'] ? (string) $asset['owner_id'] : 'unknown';
+			$confidence = isset( $asset['confidence'], $rank[ $asset['confidence'] ] ) ? $asset['confidence'] : 'unknown';
+			$kind       = isset( $asset['kind'] ) ? $asset['kind'] : 'file';
+
+			if ( isset( $groups[ $owner_id ] ) ) {
+				$group = $groups[ $owner_id ];
+			} else {
+				$group = array(
+					'label'              => isset( $asset['owner'] ) && '' !== $asset['owner'] ? (string) $asset['owner'] : $owner_id,
+					'owner_id'           => $owner_id,
+					'confidence'         => $confidence,
+					'css_count'          => 0,
+					'js_count'           => 0,
+					'local_size'         => 0,
+					'inline_size'        => 0,
+					'unknown_size_count' => 0,
+				);
+			}
+
+			/**
+			 * One file in the plugin or theme folder confirms the source. Its inline-only
+			 * handles, matched by name, would otherwise mark a confirmed plugin as likely.
+			 */
+			if ( $rank[ $confidence ] > $rank[ $group['confidence'] ] ) {
+				$group['confidence'] = $confidence;
+			}
+
+			$group['inline_size'] += isset( $asset['inline_size'] ) ? (int) $asset['inline_size'] : 0;
+
+			// The file was not printed, only its inline code counts.
+			if ( 'not_printed' !== $kind ) {
+				if ( isset( $asset['type'] ) && 'css' === $asset['type'] ) {
+					++$group['css_count'];
+				} elseif ( isset( $asset['type'] ) && 'js' === $asset['type'] ) {
+					++$group['js_count'];
+				}
+
+				if ( isset( $asset['size'] ) ) {
+					$group['local_size'] += (int) $asset['size'];
+				} elseif ( 'file' === $kind ) {
+					// External files and local files that could not be read.
+					++$group['unknown_size_count'];
+				}
+			}
+
+			$groups[ $owner_id ] = $group;
+		}
+
+		$groups = array_values( $groups );
+
+		usort( $groups, array( __CLASS__, 'compare_footprint_groups' ) );
+
+		/**
+		 * Filter the asset groups shown in the "By source" view of the asset inspector.
+		 *
+		 * @param array $groups - Groups with label, owner_id, confidence, css_count, js_count, local_size, inline_size and unknown_size_count.
+		 * @param array $assets - Scanned assets keyed by "{type}:{handle}".
+		 *
+		 * @since 1.0.0
+		 */
+		return (array) \apply_filters( 'bloatbuster_asset_footprint_groups', $groups, $assets );
+	}
+
+	/**
+	 * Sort footprint groups by total size, largest first, then by label.
+	 *
+	 * @param array $first  - First group.
+	 * @param array $second - Second group.
+	 *
+	 * @return int - Negative when the first group comes first, positive when the second does.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function compare_footprint_groups( $first, $second ) {
+		$first_total  = $first['local_size'] + $first['inline_size'];
+		$second_total = $second['local_size'] + $second['inline_size'];
+
+		if ( $first_total !== $second_total ) {
+			return $second_total <=> $first_total;
+		}
+
+		return strcasecmp( $first['label'], $second['label'] );
+	}
+
+	/**
 	 * Get the URL of the current request, without the scan query args.
 	 *
 	 * @return string - Page URL.
