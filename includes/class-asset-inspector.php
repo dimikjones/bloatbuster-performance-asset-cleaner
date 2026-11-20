@@ -84,6 +84,16 @@ final class Asset_Inspector {
 	private static $printed_strategies = array();
 
 	/**
+	 * URLs of the printed asset tags, keyed by type and handle.
+	 *
+	 * @var array
+	 */
+	private static $printed_srcs = array(
+		'css' => array(),
+		'js'  => array(),
+	);
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -145,7 +155,8 @@ final class Asset_Inspector {
 	public static function add_scan_hooks() {
 		\add_action( 'wp_head', array( __CLASS__, 'record_head_assets' ), PHP_INT_MAX );
 
-		// Last, so it sees the final tag, also async or defer added by other plugins.
+		// Last, so they see the final tags, also URLs and async or defer changed by other plugins.
+		\add_filter( 'style_loader_tag', array( __CLASS__, 'record_style_tag' ), PHP_INT_MAX, 2 );
 		\add_filter( 'script_loader_tag', array( __CLASS__, 'record_script_tag' ), PHP_INT_MAX, 2 );
 
 		// Footer scripts and late styles are printed on wp_footer priority 20.
@@ -174,7 +185,41 @@ final class Asset_Inspector {
 	}
 
 	/**
-	 * Remember the loading strategy of a printed script tag.
+	 * Remember the URLs of a printed stylesheet tag.
+	 *
+	 * On RTL pages WordPress prints the -rtl file instead of, or next to, the
+	 * registered one, and style_loader_src filters can change the URL.
+	 *
+	 * @param string $tag    - Style tag HTML.
+	 * @param string $handle - Style handle.
+	 *
+	 * @return string - The tag, unchanged.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function record_style_tag( $tag, $handle ) {
+		$handle = (string) $handle;
+		$urls   = self::get_stylesheet_urls( (string) $tag );
+
+		if ( empty( $urls ) ) {
+			return $tag;
+		}
+
+		/**
+		 * On RTL pages core filters the -rtl tag in a second call with the same handle.
+		 * With rtl "replace" only that tag is printed, otherwise both are.
+		 */
+		if ( isset( self::$printed_srcs['css'][ $handle ] ) && 'replace' !== \wp_styles()->get_data( $handle, 'rtl' ) ) {
+			$urls = array_values( array_unique( array_merge( self::$printed_srcs['css'][ $handle ], $urls ) ) );
+		}
+
+		self::$printed_srcs['css'][ $handle ] = $urls;
+
+		return $tag;
+	}
+
+	/**
+	 * Remember the URL and loading strategy of a printed script tag.
 	 *
 	 * WordPress drops a requested async or defer in some cases, e.g. with an
 	 * inline "after" script, so the printed tag is the only reliable source.
@@ -191,10 +236,14 @@ final class Asset_Inspector {
 		$strategy  = '';
 
 		while ( $processor->next_tag( 'script' ) ) {
+			$src = $processor->get_attribute( 'src' );
+
 			// The tag also holds inline before/after scripts, only the one with src is the file.
-			if ( null === $processor->get_attribute( 'src' ) ) {
+			if ( ! is_string( $src ) || '' === $src ) {
 				continue;
 			}
+
+			self::$printed_srcs['js'][ (string) $handle ] = array( $src );
 
 			if ( null !== $processor->get_attribute( 'async' ) ) {
 				$strategy = 'async';
@@ -208,6 +257,37 @@ final class Asset_Inspector {
 		self::$printed_strategies[ (string) $handle ] = $strategy;
 
 		return $tag;
+	}
+
+	/**
+	 * Get the URLs of the stylesheet links in a style tag.
+	 *
+	 * Other links, like a preload added by a theme, don't load the file as a stylesheet.
+	 *
+	 * @param string $tag - Style tag HTML.
+	 *
+	 * @return array - Unique URLs in printed order.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_stylesheet_urls( $tag ) {
+		$processor = new \WP_HTML_Tag_Processor( $tag );
+		$urls      = array();
+
+		while ( $processor->next_tag( 'link' ) ) {
+			$rel  = strtolower( (string) $processor->get_attribute( 'rel' ) );
+			$href = $processor->get_attribute( 'href' );
+
+			if ( ! in_array( 'stylesheet', preg_split( '/\s+/', $rel ), true ) ) {
+				continue;
+			}
+
+			if ( is_string( $href ) && '' !== $href && ! in_array( $href, $urls, true ) ) {
+				$urls[] = $href;
+			}
+		}
+
+		return $urls;
 	}
 
 	/**
@@ -324,10 +404,14 @@ final class Asset_Inspector {
 				continue;
 			}
 
-			$item        = $deps->registered[ $handle ];
-			$src         = self::get_absolute_src( $deps, $item->src );
-			$inline_size = self::get_inline_size( $deps, $handle, $type );
-			$owner       = self::get_owner( $src, $handle );
+			$item           = $deps->registered[ $handle ];
+			$registered_src = self::get_absolute_src( $deps, $item->src );
+			$printed_srcs   = self::get_printed_srcs( $deps, $type, $handle );
+			$src            = ! empty( $printed_srcs ) ? $printed_srcs[0] : $registered_src;
+			$inline_size    = self::get_inline_size( $deps, $handle, $type );
+
+			// The registered URL points to the plugin or theme folder, also when a CDN rewrites the printed one.
+			$owner = self::get_owner( '' !== $registered_src ? $registered_src : $src, $handle );
 
 			if ( '' !== $src ) {
 				$kind = 'file';
@@ -351,12 +435,14 @@ final class Asset_Inspector {
 				'handle'             => (string) $handle,
 				'kind'               => $kind,
 				'src'                => $src,
+				'registered_src'     => self::is_same_url( $registered_src, $src ) ? '' : $registered_src,
+				'extra_srcs'         => array_slice( $printed_srcs, 1 ),
 				'ver'                => is_string( $item->ver ) ? $item->ver : '',
 				'deps'               => array_values( array_map( 'strval', (array) $item->deps ) ),
 				'location'           => $location,
 				'strategy'           => 'js' === $type && isset( self::$printed_strategies[ $handle ] ) ? self::$printed_strategies[ $handle ] : '',
 				'requested_strategy' => 'js' === $type ? (string) $deps->get_data( $handle, 'strategy' ) : '',
-				'size'               => 'file' === $kind ? self::get_local_size( $src ) : null,
+				'size'               => 'file' === $kind ? self::get_files_size( ! empty( $printed_srcs ) ? $printed_srcs : array( $src ) ) : null,
 				'inline_size'        => $inline_size,
 				'owner'              => $owner['label'],
 				'owner_id'           => $owner['id'],
@@ -365,6 +451,75 @@ final class Asset_Inspector {
 		}
 
 		return $assets;
+	}
+
+	/**
+	 * Get the absolute URLs printed for a handle.
+	 *
+	 * @param \WP_Styles|\WP_Scripts $deps   - wp_styles() or wp_scripts().
+	 * @param string                 $type   - Asset type: css or js.
+	 * @param string                 $handle - Asset handle.
+	 *
+	 * @return array - Absolute URLs, empty when no tag with a URL was recorded.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_printed_srcs( $deps, $type, $handle ) {
+		if ( empty( self::$printed_srcs[ $type ][ $handle ] ) ) {
+			return array();
+		}
+
+		$urls = array();
+
+		foreach ( self::$printed_srcs[ $type ][ $handle ] as $url ) {
+			$url = self::get_absolute_src( $deps, $url );
+
+			if ( '' !== $url ) {
+				$urls[] = $url;
+			}
+		}
+
+		return $urls;
+	}
+
+	/**
+	 * Check if two asset URLs point to the same file, ignoring the query and fragment.
+	 *
+	 * @param string $first  - First URL.
+	 * @param string $second - Second URL.
+	 *
+	 * @return bool - True when the URLs match without query and fragment.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function is_same_url( $first, $second ) {
+		$first  = preg_replace( '/[?#].*$/', '', $first );
+		$second = preg_replace( '/[?#].*$/', '', $second );
+
+		return $first === $second;
+	}
+
+	/**
+	 * Get the total size of local asset files.
+	 *
+	 * @param array $urls - Absolute asset URLs.
+	 *
+	 * @return int|null - Size in bytes, or null when none of the files is local.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_files_size( $urls ) {
+		$total = null;
+
+		foreach ( $urls as $url ) {
+			$size = self::get_local_size( $url );
+
+			if ( null !== $size ) {
+				$total = (int) $total + $size;
+			}
+		}
+
+		return $total;
 	}
 
 	/**

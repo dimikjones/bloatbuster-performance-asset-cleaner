@@ -289,6 +289,8 @@ final class Tab_Assets extends Settings_Tab {
 				'handle'             => '',
 				'kind'               => 'file',
 				'src'                => '',
+				'registered_src'     => '',
+				'extra_srcs'         => array(),
 				'ver'                => '',
 				'deps'               => array(),
 				'location'           => '',
@@ -303,7 +305,8 @@ final class Tab_Assets extends Settings_Tab {
 
 		$type_label = 'css' === $asset['type'] ? \__( 'CSS', 'bloatbuster-performance-asset-cleaner' ) : \__( 'JavaScript', 'bloatbuster-performance-asset-cleaner' );
 		// Lowercased in JS, PHP strtolower() would miss non-ASCII letters like É.
-		$search = $asset['handle'] . ' ' . $asset['owner'] . ' ' . $asset['src'];
+		$extra_srcs = array_filter( (array) $asset['extra_srcs'], 'is_string' );
+		$search     = $asset['handle'] . ' ' . $asset['owner'] . ' ' . $asset['src'] . ' ' . implode( ' ', $extra_srcs );
 		?>
 		<tr data-bbpac-type="<?php echo \esc_attr( $asset['type'] ); ?>" data-bbpac-search="<?php echo \esc_attr( $search ); ?>">
 			<td><code><?php echo \esc_html( $asset['handle'] ); ?></code></td>
@@ -331,6 +334,20 @@ final class Tab_Assets extends Settings_Tab {
 			<td class="bbpac-inspector-source">
 				<?php if ( '' !== $asset['src'] ) : ?>
 					<a href="<?php echo \esc_url( $asset['src'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo \esc_html( $asset['src'] ); ?></a>
+					<?php foreach ( $extra_srcs as $extra_src ) : ?>
+						<span class="bbpac-inspector-meta">
+							<?php \esc_html_e( 'Also loaded:', 'bloatbuster-performance-asset-cleaner' ); ?>
+							<a href="<?php echo \esc_url( $extra_src ); ?>" target="_blank" rel="noopener noreferrer"><?php echo \esc_html( $extra_src ); ?></a>
+						</span>
+					<?php endforeach; ?>
+					<?php if ( '' !== $asset['registered_src'] ) : ?>
+						<span class="bbpac-inspector-meta">
+							<?php
+							/* translators: %s: asset URL as registered, before WordPress or a plugin changed it. */
+							echo \esc_html( sprintf( \__( 'Registered as: %s', 'bloatbuster-performance-asset-cleaner' ), $asset['registered_src'] ) );
+							?>
+						</span>
+					<?php endif; ?>
 					<?php if ( '' !== $asset['ver'] ) : ?>
 						<span class="bbpac-inspector-meta">
 							<?php
