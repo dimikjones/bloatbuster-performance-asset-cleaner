@@ -195,6 +195,11 @@ final class Tab_Assets extends Settings_Tab {
 		$total  = 0;
 
 		foreach ( $scan['assets'] as $asset ) {
+			// Listed in the table, but the page did not load them.
+			if ( isset( $asset['kind'] ) && 'not_printed' === $asset['kind'] ) {
+				continue;
+			}
+
 			if ( isset( $asset['type'], $counts[ $asset['type'] ] ) ) {
 				++$counts[ $asset['type'] ];
 			}
@@ -306,7 +311,7 @@ final class Tab_Assets extends Settings_Tab {
 		$type_label = 'css' === $asset['type'] ? \__( 'CSS', 'bloatbuster-performance-asset-cleaner' ) : \__( 'JavaScript', 'bloatbuster-performance-asset-cleaner' );
 		// Lowercased in JS, PHP strtolower() would miss non-ASCII letters like É.
 		$extra_srcs = array_filter( (array) $asset['extra_srcs'], 'is_string' );
-		$search     = $asset['handle'] . ' ' . $asset['owner'] . ' ' . $asset['src'] . ' ' . implode( ' ', $extra_srcs );
+		$search     = $asset['handle'] . ' ' . $asset['owner'] . ' ' . $asset['src'] . ' ' . $asset['registered_src'] . ' ' . implode( ' ', $extra_srcs );
 		?>
 		<tr data-bbpac-type="<?php echo \esc_attr( $asset['type'] ); ?>" data-bbpac-search="<?php echo \esc_attr( $search ); ?>">
 			<td><code><?php echo \esc_html( $asset['handle'] ); ?></code></td>
@@ -356,6 +361,14 @@ final class Tab_Assets extends Settings_Tab {
 							?>
 						</span>
 					<?php endif; ?>
+				<?php elseif ( '' !== $asset['registered_src'] ) : ?>
+					—
+					<span class="bbpac-inspector-meta">
+						<?php
+						/* translators: %s: asset URL as registered, before WordPress or a plugin changed it. */
+						echo \esc_html( sprintf( \__( 'Registered as: %s', 'bloatbuster-performance-asset-cleaner' ), $asset['registered_src'] ) );
+						?>
+					</span>
 				<?php else : ?>
 					—
 				<?php endif; ?>
@@ -385,7 +398,13 @@ final class Tab_Assets extends Settings_Tab {
 			return sprintf( \__( 'Inline, %s', 'bloatbuster-performance-asset-cleaner' ), \size_format( $inline, 1 ) );
 		}
 
-		$label = null === $asset['size'] ? '—' : \size_format( (int) $asset['size'], 1 );
+		if ( 'not_printed' === $asset['kind'] ) {
+			$label = \__( 'File not printed', 'bloatbuster-performance-asset-cleaner' );
+		} elseif ( null === $asset['size'] ) {
+			$label = '—';
+		} else {
+			$label = \size_format( (int) $asset['size'], 1 );
+		}
 
 		if ( $inline > 0 ) {
 			/* translators: 1: file size or a dash when unknown, 2: size of the inline code, e.g. 2 KB. */

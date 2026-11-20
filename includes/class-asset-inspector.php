@@ -94,6 +94,16 @@ final class Asset_Inspector {
 	);
 
 	/**
+	 * Whether a non-empty tag was printed, keyed by type and handle.
+	 *
+	 * @var array
+	 */
+	private static $printed_tags = array(
+		'css' => array(),
+		'js'  => array(),
+	);
+
+	/**
 	 * Hook in methods.
 	 *
 	 * @return void
@@ -198,21 +208,21 @@ final class Asset_Inspector {
 	 * @since 1.0.0
 	 */
 	public static function record_style_tag( $tag, $handle ) {
-		$handle = (string) $handle;
-		$urls   = self::get_stylesheet_urls( (string) $tag );
-
-		if ( empty( $urls ) ) {
-			return $tag;
-		}
+		$handle  = (string) $handle;
+		$urls    = self::get_stylesheet_urls( (string) $tag );
+		$printed = '' !== trim( (string) $tag );
 
 		/**
 		 * On RTL pages core filters the -rtl tag in a second call with the same handle.
 		 * With rtl "replace" only that tag is printed, otherwise both are.
 		 */
-		if ( isset( self::$printed_srcs['css'][ $handle ] ) && 'replace' !== \wp_styles()->get_data( $handle, 'rtl' ) ) {
-			$urls = array_values( array_unique( array_merge( self::$printed_srcs['css'][ $handle ], $urls ) ) );
+		if ( isset( self::$printed_tags['css'][ $handle ] ) && 'replace' !== \wp_styles()->get_data( $handle, 'rtl' ) ) {
+			$first_urls = isset( self::$printed_srcs['css'][ $handle ] ) ? self::$printed_srcs['css'][ $handle ] : array();
+			$urls       = array_values( array_unique( array_merge( $first_urls, $urls ) ) );
+			$printed    = $printed || self::$printed_tags['css'][ $handle ];
 		}
 
+		self::$printed_tags['css'][ $handle ] = $printed;
 		self::$printed_srcs['css'][ $handle ] = $urls;
 
 		return $tag;
@@ -234,6 +244,8 @@ final class Asset_Inspector {
 	public static function record_script_tag( $tag, $handle ) {
 		$processor = new \WP_HTML_Tag_Processor( (string) $tag );
 		$strategy  = '';
+
+		self::$printed_tags['js'][ (string) $handle ] = '' !== trim( (string) $tag );
 
 		while ( $processor->next_tag( 'script' ) ) {
 			$src = $processor->get_attribute( 'src' );
@@ -413,7 +425,14 @@ final class Asset_Inspector {
 			// The registered URL points to the plugin or theme folder, also when a CDN rewrites the printed one.
 			$owner = self::get_owner( '' !== $registered_src ? $registered_src : $src, $handle );
 
-			if ( '' !== $src ) {
+			/**
+			 * WordPress marks a handle done also when a *_loader_src filter empties the URL or a
+			 * *_loader_tag filter returns an empty tag, so the file was never printed.
+			 */
+			if ( '' !== $registered_src && empty( self::$printed_tags[ $type ][ $handle ] ) ) {
+				$src  = '';
+				$kind = 'not_printed';
+			} elseif ( '' !== $src ) {
 				$kind = 'file';
 			} elseif ( $inline_size > 0 ) {
 				$kind = 'inline';

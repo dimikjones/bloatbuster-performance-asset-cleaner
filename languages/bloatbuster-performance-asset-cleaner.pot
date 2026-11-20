@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-20T17:02:10+01:00\n"
+"POT-Creation-Date: 2026-11-20T17:25:27+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -202,7 +202,7 @@ msgid "Widgets"
 msgstr ""
 
 #: includes/autoload/class-autoload-owners.php:57
-#: includes/class-asset-inspector.php:613
+#: includes/class-asset-inspector.php:633
 msgid "Unknown"
 msgstr ""
 
@@ -316,26 +316,26 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: includes/class-asset-inspector.php:603
-#: includes/class-asset-inspector.php:684
+#: includes/class-asset-inspector.php:623
+#: includes/class-asset-inspector.php:704
 msgid "WordPress core"
 msgstr ""
 
-#: includes/class-asset-inspector.php:620
+#: includes/class-asset-inspector.php:640
 msgid "This site"
 msgstr ""
 
 #. translators: %s: host name, e.g. cdn.example.com.
-#: includes/class-asset-inspector.php:624
+#: includes/class-asset-inspector.php:644
 msgid "External (%s)"
 msgstr ""
 
 #. translators: %s: must-use plugin file or folder name.
-#: includes/class-asset-inspector.php:689
+#: includes/class-asset-inspector.php:709
 msgid "Must-use plugin: %s"
 msgstr ""
 
-#: includes/class-asset-inspector.php:717
+#: includes/class-asset-inspector.php:737
 msgid "Uploads"
 msgstr ""
 
@@ -1095,6 +1095,7 @@ msgstr ""
 
 #. translators: %s: asset URL as registered, before WordPress or a plugin changed it.
 #: includes/settings/tabs/class-tab-assets.php:347
+#: includes/settings/tabs/class-tab-assets.php:364
 msgid "Registered as: %s"
 msgstr ""
 
@@ -1103,25 +1104,29 @@ msgstr ""
 msgid "ver %s"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:380
+#: includes/settings/tabs/class-tab-assets.php:388
 msgid "Group, loads its dependencies"
 msgstr ""
 
 #. translators: %s: size of the inline code, e.g. 2 KB.
-#: includes/settings/tabs/class-tab-assets.php:385
+#: includes/settings/tabs/class-tab-assets.php:393
 msgid "Inline, %s"
 msgstr ""
 
+#: includes/settings/tabs/class-tab-assets.php:397
+msgid "File not printed"
+msgstr ""
+
 #. translators: 1: file size or a dash when unknown, 2: size of the inline code, e.g. 2 KB.
-#: includes/settings/tabs/class-tab-assets.php:392
+#: includes/settings/tabs/class-tab-assets.php:406
 msgid "%1$s + %2$s inline"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:409
+#: includes/settings/tabs/class-tab-assets.php:423
 msgid "Header"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:413
+#: includes/settings/tabs/class-tab-assets.php:427
 msgid "Footer"
 msgstr ""
 
