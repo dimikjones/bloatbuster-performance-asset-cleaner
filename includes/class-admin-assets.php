@@ -76,6 +76,8 @@ final class Admin_Assets {
 					'unsavedMessage'     => \__( 'The page reloads after the scan and your unsaved changes on this tab are lost.', 'bloatbuster-performance-asset-cleaner' ),
 					/* translators: 1: number of shown assets, 2: total number of assets. */
 					'shownCount'         => \__( '%1$d of %2$d shown', 'bloatbuster-performance-asset-cleaner' ),
+					/* translators: %s: plugin, theme or other source name. */
+					'ownerFilter'        => \__( 'Source: %s, show all', 'bloatbuster-performance-asset-cleaner' ),
 					'deleteLabel'        => \__( 'Delete', 'bloatbuster-performance-asset-cleaner' ),
 					'disableLabel'       => \__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ),
 					/* translators: %d: number of selected options. */

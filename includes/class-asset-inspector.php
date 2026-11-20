@@ -476,6 +476,133 @@ final class Asset_Inspector {
 	}
 
 	/**
+	 * Group scanned assets by the plugin, theme or other source that adds them.
+	 *
+	 * Uses the same rules as the scan summary: assets whose file was not printed add
+	 * only the inline code still printed, and are not counted.
+	 *
+	 * @param array $assets - Assets keyed by "{type}:{handle}", from a saved scan.
+	 *
+	 * @return array - Groups with label, owner_id, confidence, css_count, js_count, local_size, inline_size and unknown_size_count, largest first.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_footprint( $assets ) {
+		$groups      = array();
+		$file_groups = array();
+		$rank        = array(
+			'confirmed' => 2,
+			'likely'    => 1,
+			'unknown'   => 0,
+		);
+
+		foreach ( (array) $assets as $asset ) {
+			if ( ! is_array( $asset ) ) {
+				continue;
+			}
+
+			$owner_id   = isset( $asset['owner_id'] ) && '' !== $asset['owner_id'] ? (string) $asset['owner_id'] : 'unknown';
+			$confidence = isset( $asset['confidence'], $rank[ $asset['confidence'] ] ) ? $asset['confidence'] : 'unknown';
+			$kind       = isset( $asset['kind'] ) ? $asset['kind'] : 'file';
+
+			// Uploads and external hosts tell where the file is, not who added it. Also fixes scans saved as confirmed.
+			if ( 'uploads' === $owner_id || 0 === strpos( $owner_id, 'external:' ) ) {
+				$confidence = 'unknown';
+			}
+
+			if ( isset( $groups[ $owner_id ] ) ) {
+				$group = $groups[ $owner_id ];
+			} else {
+				$group = array(
+					'label'              => isset( $asset['owner'] ) && '' !== $asset['owner'] ? (string) $asset['owner'] : $owner_id,
+					'owner_id'           => $owner_id,
+					'confidence'         => $confidence,
+					'css_count'          => 0,
+					'js_count'           => 0,
+					'local_size'         => 0,
+					'inline_size'        => 0,
+					'unknown_size_count' => 0,
+				);
+			}
+
+			/**
+			 * A group is only as certain as its least certain file. Inline-only handles are
+			 * matched by name, so they count only while the group has no file asset.
+			 */
+			$is_file_asset = in_array( $kind, array( 'file', 'inlined', 'not_printed' ), true );
+
+			if ( $is_file_asset && ! isset( $file_groups[ $owner_id ] ) ) {
+				$file_groups[ $owner_id ] = true;
+				$group['confidence']      = $confidence;
+			} elseif ( $is_file_asset || ! isset( $file_groups[ $owner_id ] ) ) {
+				if ( $rank[ $confidence ] < $rank[ $group['confidence'] ] ) {
+					$group['confidence'] = $confidence;
+				}
+			}
+
+			$group['inline_size'] += isset( $asset['inline_size'] ) ? (int) $asset['inline_size'] : 0;
+
+			// The file was not printed, only its inline code counts.
+			if ( 'not_printed' !== $kind ) {
+				if ( isset( $asset['type'] ) && 'css' === $asset['type'] ) {
+					++$group['css_count'];
+				} elseif ( isset( $asset['type'] ) && 'js' === $asset['type'] ) {
+					++$group['js_count'];
+				}
+
+				if ( isset( $asset['size'] ) ) {
+					$group['local_size'] += (int) $asset['size'];
+				}
+
+				// External files and local files that could not be read, also next to files with a size.
+				if ( isset( $asset['unsized_files'] ) ) {
+					$group['unknown_size_count'] += (int) $asset['unsized_files'];
+				} elseif ( 'file' === $kind && ! isset( $asset['size'] ) ) {
+					// Scans saved before unsized_files: only a file without any size is known.
+					++$group['unknown_size_count'];
+				}
+			}
+
+			$groups[ $owner_id ] = $group;
+		}
+
+		$groups = array_values( $groups );
+
+		usort( $groups, array( __CLASS__, 'compare_footprint_groups' ) );
+
+		/**
+		 * Filter the asset groups shown in the "By source" view of the asset inspector.
+		 *
+		 * @param array $groups - Groups with label, owner_id, confidence, css_count, js_count, local_size, inline_size and unknown_size_count.
+		 * @param array $assets - Scanned assets keyed by "{type}:{handle}".
+		 *
+		 * @since 1.0.0
+		 */
+		return (array) \apply_filters( 'bloatbuster_asset_footprint_groups', $groups, $assets );
+	}
+
+	/**
+	 * Sort footprint groups by total size, largest first, then by label.
+	 *
+	 * @param array $first  - First group.
+	 * @param array $second - Second group.
+	 *
+	 * @return int - Negative when the first group comes first, positive when the second does.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function compare_footprint_groups( $first, $second ) {
+		$first_total  = $first['local_size'] + $first['inline_size'];
+		$second_total = $second['local_size'] + $second['inline_size'];
+
+		if ( $first_total !== $second_total ) {
+			return $second_total <=> $first_total;
+		}
+
+		return strcasecmp( $first['label'], $second['label'] );
+	}
+
+	/**
 	 * Get the URL of the current request, without the scan query args.
 	 *
 	 * @return string - Page URL.
@@ -547,6 +674,15 @@ final class Asset_Inspector {
 				$kind = 'group';
 			}
 
+			$size          = null;
+			$unsized_files = 0;
+
+			if ( 'file' === $kind ) {
+				$file_urls     = ! empty( $printed_srcs ) ? $printed_srcs : array( $src );
+				$size          = self::get_files_size( $file_urls );
+				$unsized_files = self::count_unsized_files( $file_urls );
+			}
+
 			if ( null === $head_done ) {
 				$location = '';
 			} elseif ( in_array( $handle, $head_done, true ) ) {
@@ -567,7 +703,8 @@ final class Asset_Inspector {
 				'location'           => $location,
 				'strategy'           => 'js' === $type && isset( self::$printed_strategies[ $handle ] ) ? self::$printed_strategies[ $handle ] : '',
 				'requested_strategy' => 'js' === $type ? (string) $deps->get_data( $handle, 'strategy' ) : '',
-				'size'               => 'file' === $kind ? self::get_files_size( ! empty( $printed_srcs ) ? $printed_srcs : array( $src ) ) : null,
+				'size'               => $size,
+				'unsized_files'      => $unsized_files,
 				'inline_size'        => $inline_size,
 				'owner'              => $owner['label'],
 				'owner_id'           => $owner['id'],
@@ -646,6 +783,27 @@ final class Asset_Inspector {
 		}
 
 		return $total;
+	}
+
+	/**
+	 * Count the asset files without a readable local size.
+	 *
+	 * @param array $urls - Absolute asset URLs.
+	 *
+	 * @return int - Number of external files and local files that could not be read.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function count_unsized_files( $urls ) {
+		$count = 0;
+
+		foreach ( $urls as $url ) {
+			if ( null === self::get_local_size( $url ) ) {
+				++$count;
+			}
+		}
+
+		return $count;
 	}
 
 	/**
@@ -786,7 +944,7 @@ final class Asset_Inspector {
 		}
 
 		/* translators: %s: host name, e.g. cdn.example.com. */
-		return self::owner( sprintf( \__( 'External (%s)', 'bloatbuster-performance-asset-cleaner' ), $host ), 'external:' . strtolower( $host ), 'confirmed' );
+		return self::owner( sprintf( \__( 'External (%s)', 'bloatbuster-performance-asset-cleaner' ), $host ), 'external:' . strtolower( $host ), 'unknown' );
 	}
 
 	/**
@@ -879,7 +1037,7 @@ final class Asset_Inspector {
 				return self::owner( $plugins[ $slug ], 'plugin:' . $slug, 'likely' );
 			}
 
-			return self::owner( \__( 'Uploads', 'bloatbuster-performance-asset-cleaner' ), 'uploads', 'confirmed' );
+			return self::owner( \__( 'Uploads', 'bloatbuster-performance-asset-cleaner' ), 'uploads', 'unknown' );
 		}
 
 		return null;

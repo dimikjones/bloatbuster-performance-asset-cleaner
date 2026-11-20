@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-20T17:47:51+01:00\n"
+"POT-Creation-Date: 2026-11-20T22:51:54+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -83,7 +83,7 @@ msgid "Option"
 msgstr ""
 
 #: includes/autoload/class-autoload-list-table.php:131
-#: includes/settings/tabs/class-tab-assets.php:265
+#: includes/settings/tabs/class-tab-assets.php:448
 #: includes/settings/tabs/class-tab-database.php:387
 msgid "Size"
 msgstr ""
@@ -99,7 +99,7 @@ msgstr ""
 
 #: includes/autoload/class-autoload-list-table.php:172
 #: includes/autoload/class-autoload-list-table.php:369
-#: includes/class-admin-assets.php:80
+#: includes/class-admin-assets.php:82
 msgid "Disable autoload"
 msgstr ""
 
@@ -109,7 +109,7 @@ msgstr ""
 
 #: includes/autoload/class-autoload-list-table.php:174
 #: includes/autoload/class-autoload-list-table.php:377
-#: includes/class-admin-assets.php:79
+#: includes/class-admin-assets.php:81
 msgid "Delete"
 msgstr ""
 
@@ -126,7 +126,7 @@ msgid "Apply"
 msgstr ""
 
 #: includes/autoload/class-autoload-list-table.php:220
-#: includes/settings/tabs/class-tab-assets.php:243
+#: includes/settings/tabs/class-tab-assets.php:425
 msgid "All"
 msgstr ""
 
@@ -202,7 +202,8 @@ msgid "Widgets"
 msgstr ""
 
 #: includes/autoload/class-autoload-owners.php:57
-#: includes/class-asset-inspector.php:743
+#: includes/class-asset-inspector.php:931
+#: includes/settings/tabs/class-tab-assets.php:381
 msgid "Unknown"
 msgstr ""
 
@@ -257,85 +258,90 @@ msgstr ""
 msgid "%1$d of %2$d shown"
 msgstr ""
 
+#. translators: %s: plugin, theme or other source name.
+#: includes/class-admin-assets.php:80
+msgid "Source: %s, show all"
+msgstr ""
+
 #. translators: %d: number of selected options.
-#: includes/class-admin-assets.php:82
+#: includes/class-admin-assets.php:84
 msgid "Selected options: %d."
 msgstr ""
 
-#: includes/class-admin-assets.php:83
+#: includes/class-admin-assets.php:85
 msgid "Delete the selected options?"
 msgstr ""
 
-#: includes/class-admin-assets.php:84
+#: includes/class-admin-assets.php:86
 msgid "This can not be undone. Export them first if you may need them again."
 msgstr ""
 
-#: includes/class-admin-assets.php:85
+#: includes/class-admin-assets.php:87
 msgid "Disable autoload for the selected options?"
 msgstr ""
 
-#: includes/class-admin-assets.php:86
+#: includes/class-admin-assets.php:88
 msgid "Their values are kept. WordPress loads them only when they are needed."
 msgstr ""
 
-#: includes/class-admin-assets.php:87
+#: includes/class-admin-assets.php:89
 msgid "Delete this option?"
 msgstr ""
 
 #. translators: %s: option name.
-#: includes/class-admin-assets.php:89
+#: includes/class-admin-assets.php:91
 msgid "%s will be deleted. This can not be undone."
 msgstr ""
 
-#: includes/class-admin-assets.php:90
+#: includes/class-admin-assets.php:92
 msgid "Loading…"
 msgstr ""
 
-#: includes/class-admin-assets.php:91
+#: includes/class-admin-assets.php:93
 msgid "The value could not be loaded."
 msgstr ""
 
-#: includes/class-admin-assets.php:92
+#: includes/class-admin-assets.php:94
 msgid "This value may contain a secret, like an API key, so it is hidden."
 msgstr ""
 
-#: includes/class-admin-assets.php:93
+#: includes/class-admin-assets.php:95
 msgid "The value is long, only the start is shown."
 msgstr ""
 
-#: includes/class-admin-assets.php:94
+#: includes/class-admin-assets.php:96
 msgid "This value has bytes that are not valid text. They are shown as � here, the stored value is not changed. Use Export to get the exact value."
 msgstr ""
 
-#: includes/class-admin-assets.php:95
+#: includes/class-admin-assets.php:97
 msgid "Copied"
 msgstr ""
 
-#: includes/class-admin-assets.php:96
+#: includes/class-admin-assets.php:98
 #: includes/settings/tabs/class-tab-autoload.php:329
 msgid "Copy"
 msgstr ""
 
-#: includes/class-asset-inspector.php:733
-#: includes/class-asset-inspector.php:814
+#: includes/class-asset-inspector.php:921
+#: includes/class-asset-inspector.php:1002
 msgid "WordPress core"
 msgstr ""
 
-#: includes/class-asset-inspector.php:750
+#: includes/class-asset-inspector.php:938
 msgid "This site"
 msgstr ""
 
 #. translators: %s: host name, e.g. cdn.example.com.
-#: includes/class-asset-inspector.php:754
+#: includes/class-asset-inspector.php:942
 msgid "External (%s)"
 msgstr ""
 
 #. translators: %s: must-use plugin file or folder name.
-#: includes/class-asset-inspector.php:819
+#: includes/class-asset-inspector.php:1007
 msgid "Must-use plugin: %s"
 msgstr ""
 
-#: includes/class-asset-inspector.php:847
+#: includes/class-asset-inspector.php:1035
 msgid "Uploads"
 msgstr ""
 
@@ -1014,124 +1020,188 @@ msgstr ""
 msgid "No scan yet."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:175
+#: includes/settings/tabs/class-tab-assets.php:188
 msgid "The scan runs as your user, so assets loaded only for logged-in users may show. Plugins that combine or minify files still list the original handles."
 msgstr ""
 
 #. translators: 1: scan date and time, 2: number of CSS assets, 3: number of JavaScript assets, 4: total size, e.g. 120 KB.
-#: includes/settings/tabs/class-tab-assets.php:218
+#: includes/settings/tabs/class-tab-assets.php:231
 msgid "Last scan: %1$s. %2$d CSS, %3$d JavaScript, %4$s in local files and inline code."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:237
-msgid "No styles or scripts were found on this page."
-msgstr ""
-
-#: includes/settings/tabs/class-tab-assets.php:244
-#: includes/settings/tabs/class-tab-assets.php:313
-msgid "CSS"
-msgstr ""
-
-#: includes/settings/tabs/class-tab-assets.php:245
-#: includes/settings/tabs/class-tab-assets.php:313
-msgid "JavaScript"
+#: includes/settings/tabs/class-tab-assets.php:248
+msgid "By source"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-assets.php:249
+msgid "By asset"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:252
+msgid "View"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:309
+msgid "Likely source"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:310
+msgid "CSS assets"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:311
+msgid "JS assets"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:312
+msgid "Local size"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:313
+msgid "Inline size"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:315
+msgid "Size unknown"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:338
+msgid "Total"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:351
+msgid "Sizes are uncompressed local file sizes, not transfer sizes. A large footprint does not mean the files are unnecessary."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:353
+msgid "Size unknown: files on another host, like a CDN, or local files that could not be read."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:356
+msgid "Likely: the source is guessed from the handle name or from a plugin folder in uploads. Unknown: the file is on this site, but not in a plugin, theme or core folder."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:378
+msgid "Likely"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:379
+msgid "Guessed from the handle name or from a plugin folder in uploads, not from the plugin or theme folder."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:382
+msgid "Not in a plugin, theme or core folder, so the source could not be found."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:419
+msgid "No styles or scripts were found on this page."
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:426
+#: includes/settings/tabs/class-tab-assets.php:497
+msgid "CSS"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:427
+#: includes/settings/tabs/class-tab-assets.php:497
+msgid "JavaScript"
+msgstr ""
+
+#: includes/settings/tabs/class-tab-assets.php:431
 msgid "Filter by type"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:254
+#: includes/settings/tabs/class-tab-assets.php:436
 msgid "Search assets"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:255
+#: includes/settings/tabs/class-tab-assets.php:437
 msgid "Search handle, owner or source"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:262
+#: includes/settings/tabs/class-tab-assets.php:445
 msgid "Handle"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:263
+#: includes/settings/tabs/class-tab-assets.php:446
 #: includes/settings/tabs/class-tab-database.php:819
 #: includes/settings/tabs/class-tab-database.php:905
 #: includes/settings/tabs/class-tab-database.php:1124
 msgid "Type"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:264
+#: includes/settings/tabs/class-tab-assets.php:447
 msgid "Owner"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:266
+#: includes/settings/tabs/class-tab-assets.php:449
 msgid "Location"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:267
+#: includes/settings/tabs/class-tab-assets.php:450
 msgid "Strategy"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:268
+#: includes/settings/tabs/class-tab-assets.php:451
 msgid "Dependencies"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:269
+#: includes/settings/tabs/class-tab-assets.php:452
 msgid "Source"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:324
+#: includes/settings/tabs/class-tab-assets.php:508
 msgid "(likely)"
 msgstr ""
 
 #. translators: %s: requested loading strategy, async or defer.
-#: includes/settings/tabs/class-tab-assets.php:335
+#: includes/settings/tabs/class-tab-assets.php:519
 msgid "Requested: %s, not applied by WordPress"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:346
+#: includes/settings/tabs/class-tab-assets.php:530
 msgid "Also loaded:"
 msgstr ""
 
 #. translators: %s: asset URL as registered, before WordPress or a plugin changed it.
-#: includes/settings/tabs/class-tab-assets.php:354
-#: includes/settings/tabs/class-tab-assets.php:371
+#: includes/settings/tabs/class-tab-assets.php:538
+#: includes/settings/tabs/class-tab-assets.php:555
 msgid "Registered as: %s"
 msgstr ""
 
 #. translators: %s: asset version.
-#: includes/settings/tabs/class-tab-assets.php:362
+#: includes/settings/tabs/class-tab-assets.php:546
 msgid "ver %s"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:395
+#: includes/settings/tabs/class-tab-assets.php:579
 msgid "Group, loads its dependencies"
 msgstr ""
 
 #. translators: %s: size of the inline code that replaced the file, e.g. 2 KB.
-#: includes/settings/tabs/class-tab-assets.php:400
+#: includes/settings/tabs/class-tab-assets.php:584
 msgid "Inlined by a plugin, %s"
 msgstr ""
 
 #. translators: %s: size of the inline code, e.g. 2 KB.
-#: includes/settings/tabs/class-tab-assets.php:405
+#: includes/settings/tabs/class-tab-assets.php:589
 msgid "Inline, %s"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:409
+#: includes/settings/tabs/class-tab-assets.php:593
 msgid "File not printed"
 msgstr ""
 
 #. translators: 1: file size or a dash when unknown, 2: size of the inline code, e.g. 2 KB.
-#: includes/settings/tabs/class-tab-assets.php:418
+#: includes/settings/tabs/class-tab-assets.php:602
 msgid "%1$s + %2$s inline"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:435
+#: includes/settings/tabs/class-tab-assets.php:619
 msgid "Header"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:439
+#: includes/settings/tabs/class-tab-assets.php:623
 msgid "Footer"
 msgstr ""
 

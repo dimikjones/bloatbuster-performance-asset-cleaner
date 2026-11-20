@@ -28,6 +28,7 @@ Read-only report of the hosting setup that affects speed, with a short explanati
 * Disable jQuery Migrate on the frontend
 * Disable emoji scripts and styles
 * Frontend asset inspector: scan a page and see its CSS and JavaScript files with the plugin or theme that adds them, size, header or footer and async/defer
+* By source view of a scan: CSS and JavaScript count and size per plugin, theme or external host, with a note when the source is only likely
 
 ### WordPress Core
 
@@ -176,6 +177,7 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | Hook | Type | Arguments | Use |
 | --- | --- | --- | --- |
 | `bloatbuster_asset_inspector_assets` | filter | `$assets, $url` | Change the assets of a frontend scan before they are saved. Keyed `{type}:{handle}`. |
+| `bloatbuster_asset_footprint_groups` | filter | `$groups, $assets` | Change the groups of the "By source" view of a scan. |
 | `bloatbuster_environment_checks` | filter | `$checks` | Add, change or remove Environment tab checks. Each check: `id`, `label`, `value`, `status` (`good`, `recommended`, `info`), `message`, `link` (`url`, `text`). |
 | `bloatbuster_settings_tabs` | filter | `$classes` | Add tab class names. Classes that don't extend `Settings_Tab` are ignored. |
 | `bloatbuster_settings_fields` | filter | `$fields` | Add or change fields in any tab. Set the `tab` key. |
