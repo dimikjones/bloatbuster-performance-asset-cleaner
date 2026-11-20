@@ -406,7 +406,7 @@ final class Asset_Inspector {
 
 			$item           = $deps->registered[ $handle ];
 			$registered_src = self::get_absolute_src( $deps, $item->src );
-			$printed_srcs   = self::get_printed_srcs( $deps, $type, $handle );
+			$printed_srcs   = self::get_printed_srcs( $type, $handle );
 			$src            = ! empty( $printed_srcs ) ? $printed_srcs[0] : $registered_src;
 			$inline_size    = self::get_inline_size( $deps, $handle, $type );
 
@@ -456,23 +456,24 @@ final class Asset_Inspector {
 	/**
 	 * Get the absolute URLs printed for a handle.
 	 *
-	 * @param \WP_Styles|\WP_Scripts $deps   - wp_styles() or wp_scripts().
-	 * @param string                 $type   - Asset type: css or js.
-	 * @param string                 $handle - Asset handle.
+	 * @param string $type   - Asset type: css or js.
+	 * @param string $handle - Asset handle.
 	 *
 	 * @return array - Absolute URLs, empty when no tag with a URL was recorded.
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_printed_srcs( $deps, $type, $handle ) {
+	public static function get_printed_srcs( $type, $handle ) {
 		if ( empty( self::$printed_srcs[ $type ][ $handle ] ) ) {
 			return array();
 		}
 
-		$urls = array();
+		$page_url = self::get_current_url();
+		$urls     = array();
 
 		foreach ( self::$printed_srcs[ $type ][ $handle ] as $url ) {
-			$url = self::get_absolute_src( $deps, $url );
+			// Already in the HTML, so resolve it like the browser does, against the page and not the registry base_url.
+			$url = (string) \WP_Http::make_absolute_url( $url, $page_url );
 
 			if ( '' !== $url ) {
 				$urls[] = $url;
