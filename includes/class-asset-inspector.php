@@ -430,8 +430,9 @@ final class Asset_Inspector {
 			 * *_loader_tag filter returns an empty tag, so the file was never printed.
 			 */
 			if ( '' !== $registered_src && empty( self::$printed_tags[ $type ][ $handle ] ) ) {
-				$src  = '';
-				$kind = 'not_printed';
+				$src         = '';
+				$kind        = 'not_printed';
+				$inline_size = self::get_printed_inline_size( $deps, $handle, $type );
 			} elseif ( '' !== $src ) {
 				$kind = 'file';
 			} elseif ( $inline_size > 0 ) {
@@ -596,6 +597,45 @@ final class Asset_Inspector {
 
 			if ( is_string( $data ) ) {
 				$size += strlen( $data );
+			}
+		}
+
+		return $size;
+	}
+
+	/**
+	 * Get the size of the inline code still printed for a handle whose file tag was not printed.
+	 *
+	 * Scripts: wp_localize_script() data is printed before the src check in
+	 * WP_Scripts::do_item(), before/after code is part of the removed tag.
+	 * Styles: an empty href returns before any output, an empty tag from
+	 * style_loader_tag still prints the inline style after it.
+	 *
+	 * @param \WP_Styles|\WP_Scripts $deps   - wp_styles() or wp_scripts().
+	 * @param string                 $handle - Asset handle.
+	 * @param string                 $type   - Asset type: css or js.
+	 *
+	 * @return int - Size in bytes.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_printed_inline_size( $deps, $handle, $type ) {
+		if ( 'js' === $type ) {
+			$data = $deps->get_data( $handle, 'data' );
+
+			return is_string( $data ) ? strlen( $data ) : 0;
+		}
+
+		// style_loader_tag did not run, so the href was empty and nothing was printed.
+		if ( ! isset( self::$printed_tags['css'][ $handle ] ) ) {
+			return 0;
+		}
+
+		$size = 0;
+
+		foreach ( (array) $deps->get_data( $handle, 'after' ) as $code ) {
+			if ( is_string( $code ) ) {
+				$size += strlen( $code );
 			}
 		}
 

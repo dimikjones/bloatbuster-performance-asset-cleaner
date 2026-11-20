@@ -195,7 +195,10 @@ final class Tab_Assets extends Settings_Tab {
 		$total  = 0;
 
 		foreach ( $scan['assets'] as $asset ) {
-			// Listed in the table, but the page did not load them.
+			// For assets without a printed file, inline_size holds only the code still printed.
+			$total += isset( $asset['inline_size'] ) ? (int) $asset['inline_size'] : 0;
+
+			// Listed in the table, but the page did not load their file.
 			if ( isset( $asset['kind'] ) && 'not_printed' === $asset['kind'] ) {
 				continue;
 			}
@@ -205,7 +208,6 @@ final class Tab_Assets extends Settings_Tab {
 			}
 
 			$total += isset( $asset['size'] ) ? (int) $asset['size'] : 0;
-			$total += isset( $asset['inline_size'] ) ? (int) $asset['inline_size'] : 0;
 		}
 
 		$date = \wp_date( \get_option( 'date_format' ) . ' ' . \get_option( 'time_format' ), (int) $scan['time'] );
