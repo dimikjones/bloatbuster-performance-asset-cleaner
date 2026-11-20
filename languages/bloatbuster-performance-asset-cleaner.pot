@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-20T00:15:30+01:00\n"
+"POT-Creation-Date: 2026-11-20T16:19:02+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -202,7 +202,7 @@ msgid "Widgets"
 msgstr ""
 
 #: includes/autoload/class-autoload-owners.php:57
-#: includes/class-asset-inspector.php:410
+#: includes/class-asset-inspector.php:458
 msgid "Unknown"
 msgstr ""
 
@@ -316,26 +316,26 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: includes/class-asset-inspector.php:400
-#: includes/class-asset-inspector.php:481
+#: includes/class-asset-inspector.php:448
+#: includes/class-asset-inspector.php:529
 msgid "WordPress core"
 msgstr ""
 
-#: includes/class-asset-inspector.php:417
+#: includes/class-asset-inspector.php:465
 msgid "This site"
 msgstr ""
 
 #. translators: %s: host name, e.g. cdn.example.com.
-#: includes/class-asset-inspector.php:421
+#: includes/class-asset-inspector.php:469
 msgid "External (%s)"
 msgstr ""
 
 #. translators: %s: must-use plugin file or folder name.
-#: includes/class-asset-inspector.php:486
+#: includes/class-asset-inspector.php:534
 msgid "Must-use plugin: %s"
 msgstr ""
 
-#: includes/class-asset-inspector.php:514
+#: includes/class-asset-inspector.php:562
 msgid "Uploads"
 msgstr ""
 
@@ -1028,12 +1028,12 @@ msgid "No styles or scripts were found on this page."
 msgstr ""
 
 #: includes/settings/tabs/class-tab-assets.php:237
-#: includes/settings/tabs/class-tab-assets.php:303
+#: includes/settings/tabs/class-tab-assets.php:304
 msgid "CSS"
 msgstr ""
 
 #: includes/settings/tabs/class-tab-assets.php:238
-#: includes/settings/tabs/class-tab-assets.php:303
+#: includes/settings/tabs/class-tab-assets.php:304
 msgid "JavaScript"
 msgstr ""
 
@@ -1080,34 +1080,39 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:313
+#: includes/settings/tabs/class-tab-assets.php:314
 msgid "(likely)"
 msgstr ""
 
+#. translators: %s: requested loading strategy, async or defer.
+#: includes/settings/tabs/class-tab-assets.php:325
+msgid "Requested: %s, not applied by WordPress"
+msgstr ""
+
 #. translators: %s: asset version.
-#: includes/settings/tabs/class-tab-assets.php:327
+#: includes/settings/tabs/class-tab-assets.php:338
 msgid "ver %s"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:352
+#: includes/settings/tabs/class-tab-assets.php:363
 msgid "Group, loads its dependencies"
 msgstr ""
 
 #. translators: %s: size of the inline code, e.g. 2 KB.
-#: includes/settings/tabs/class-tab-assets.php:357
+#: includes/settings/tabs/class-tab-assets.php:368
 msgid "Inline, %s"
 msgstr ""
 
 #. translators: 1: file size or a dash when unknown, 2: size of the inline code, e.g. 2 KB.
-#: includes/settings/tabs/class-tab-assets.php:364
+#: includes/settings/tabs/class-tab-assets.php:375
 msgid "%1$s + %2$s inline"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:381
+#: includes/settings/tabs/class-tab-assets.php:392
 msgid "Header"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-assets.php:385
+#: includes/settings/tabs/class-tab-assets.php:396
 msgid "Footer"
 msgstr ""
 
