@@ -488,8 +488,9 @@ final class Asset_Inspector {
 	 * @since 1.0.0
 	 */
 	public static function get_footprint( $assets ) {
-		$groups = array();
-		$rank   = array(
+		$groups      = array();
+		$file_groups = array();
+		$rank        = array(
 			'confirmed' => 2,
 			'likely'    => 1,
 			'unknown'   => 0,
@@ -520,11 +521,18 @@ final class Asset_Inspector {
 			}
 
 			/**
-			 * One file in the plugin or theme folder confirms the source. Its inline-only
-			 * handles, matched by name, would otherwise mark a confirmed plugin as likely.
+			 * A group is only as certain as its least certain file. Inline-only handles are
+			 * matched by name, so they count only while the group has no file asset.
 			 */
-			if ( $rank[ $confidence ] > $rank[ $group['confidence'] ] ) {
-				$group['confidence'] = $confidence;
+			$is_file_asset = in_array( $kind, array( 'file', 'inlined', 'not_printed' ), true );
+
+			if ( $is_file_asset && ! isset( $file_groups[ $owner_id ] ) ) {
+				$file_groups[ $owner_id ] = true;
+				$group['confidence']      = $confidence;
+			} elseif ( $is_file_asset || ! isset( $file_groups[ $owner_id ] ) ) {
+				if ( $rank[ $confidence ] < $rank[ $group['confidence'] ] ) {
+					$group['confidence'] = $confidence;
+				}
 			}
 
 			$group['inline_size'] += isset( $asset['inline_size'] ) ? (int) $asset['inline_size'] : 0;
