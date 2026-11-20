@@ -547,10 +547,10 @@ final class Asset_Inspector {
 
 				if ( isset( $asset['size'] ) ) {
 					$group['local_size'] += (int) $asset['size'];
-				} elseif ( 'file' === $kind ) {
-					// External files and local files that could not be read.
-					++$group['unknown_size_count'];
 				}
+
+				// External files and local files that could not be read, also next to files with a size.
+				$group['unknown_size_count'] += isset( $asset['unsized_files'] ) ? (int) $asset['unsized_files'] : 0;
 			}
 
 			$groups[ $owner_id ] = $group;
@@ -664,6 +664,15 @@ final class Asset_Inspector {
 				$kind = 'group';
 			}
 
+			$size          = null;
+			$unsized_files = 0;
+
+			if ( 'file' === $kind ) {
+				$file_urls     = ! empty( $printed_srcs ) ? $printed_srcs : array( $src );
+				$size          = self::get_files_size( $file_urls );
+				$unsized_files = self::count_unsized_files( $file_urls );
+			}
+
 			if ( null === $head_done ) {
 				$location = '';
 			} elseif ( in_array( $handle, $head_done, true ) ) {
@@ -684,7 +693,8 @@ final class Asset_Inspector {
 				'location'           => $location,
 				'strategy'           => 'js' === $type && isset( self::$printed_strategies[ $handle ] ) ? self::$printed_strategies[ $handle ] : '',
 				'requested_strategy' => 'js' === $type ? (string) $deps->get_data( $handle, 'strategy' ) : '',
-				'size'               => 'file' === $kind ? self::get_files_size( ! empty( $printed_srcs ) ? $printed_srcs : array( $src ) ) : null,
+				'size'               => $size,
+				'unsized_files'      => $unsized_files,
 				'inline_size'        => $inline_size,
 				'owner'              => $owner['label'],
 				'owner_id'           => $owner['id'],
@@ -763,6 +773,27 @@ final class Asset_Inspector {
 		}
 
 		return $total;
+	}
+
+	/**
+	 * Count the asset files without a readable local size.
+	 *
+	 * @param array $urls - Absolute asset URLs.
+	 *
+	 * @return int - Number of external files and local files that could not be read.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function count_unsized_files( $urls ) {
+		$count = 0;
+
+		foreach ( $urls as $url ) {
+			if ( null === self::get_local_size( $url ) ) {
+				++$count;
+			}
+		}
+
+		return $count;
 	}
 
 	/**
