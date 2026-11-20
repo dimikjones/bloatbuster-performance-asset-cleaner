@@ -379,3 +379,163 @@ document.addEventListener( 'click', async ( event ) => {
 		submitConfirmed( button.form, button );
 	}
 } );
+
+/**
+ * Assets tab: frontend asset inspector.
+ *
+ * Loads the page in a sandboxed, hidden iframe with a scan id. The frontend
+ * request saves the printed assets, then the tab reloads with the scan id so
+ * PHP can tell if the scan was saved. Only URLs of this site are allowed.
+ */
+const serializeForm = ( form ) => new URLSearchParams( new FormData( form ) ).toString();
+
+const createScanId = () => `${ Date.now().toString( 36 ) }${ Math.random().toString( 36 ).slice( 2, 10 ) }`;
+
+document.addEventListener( 'DOMContentLoaded', () => {
+	const inspector = document.getElementById( 'bbpac-inspector' );
+
+	if ( ! inspector || ! bbpacData.homeUrl ) {
+		return;
+	}
+
+	const urlInput = document.getElementById( 'bbpac-inspector-url' );
+	const scanButton = document.getElementById( 'bbpac-inspector-scan' );
+	const spinner = inspector.querySelector( '.bbpac-inspector-form .spinner' );
+	const status = inspector.querySelector( '.bbpac-inspector-status' );
+	const settingsForm = inspector.closest( 'form' );
+	const initialState = settingsForm ? serializeForm( settingsForm ) : '';
+	const homeOrigin = new URL( bbpacData.homeUrl ).origin;
+
+	const getTargetUrl = () => {
+		try {
+			const target = new URL( urlInput.value.trim() || bbpacData.homeUrl, bbpacData.homeUrl );
+
+			return target.origin === homeOrigin ? target : null;
+		} catch ( error ) {
+			return null;
+		}
+	};
+
+	// One scan at a time, for both the button and the Enter key.
+	let scanning = false;
+
+	const startScan = async () => {
+		if ( scanning ) {
+			return;
+		}
+
+		scanning = true;
+
+		const target = getTargetUrl();
+
+		if ( ! target ) {
+			status.textContent = bbpacData.i18n.invalidUrl;
+			urlInput.focus();
+			scanning = false;
+			return;
+		}
+
+		if ( settingsForm && serializeForm( settingsForm ) !== initialState ) {
+			const confirmed = await confirmDialog.ask( {
+				title: bbpacData.i18n.unsavedTitle,
+				message: bbpacData.i18n.unsavedMessage,
+				confirmLabel: bbpacData.i18n.scanLabel,
+				destructive: false,
+			} );
+
+			if ( ! confirmed ) {
+				scanning = false;
+				return;
+			}
+		}
+
+		// No reset after this point, the page always navigates to the result.
+		const scanId = createScanId();
+		const resultUrl = new URL( bbpacData.tabUrl );
+		const frame = document.createElement( 'iframe' );
+		let finished = false;
+
+		target.searchParams.set( bbpacData.scanArg, scanId );
+		target.searchParams.set( '_wpnonce', bbpacData.inspectNonce );
+		resultUrl.searchParams.set( bbpacData.resultArg, scanId );
+
+		const finish = () => {
+			if ( finished ) {
+				return;
+			}
+
+			finished = true;
+			window.location.href = resultUrl.toString();
+		};
+
+		scanButton.disabled = true;
+		spinner.classList.add( 'is-active' );
+		status.textContent = bbpacData.i18n.scanning;
+
+		// No allow-scripts: the page's JavaScript doesn't run, so it can't navigate this tab.
+		frame.setAttribute( 'sandbox', 'allow-same-origin' );
+		frame.setAttribute( 'aria-hidden', 'true' );
+		frame.setAttribute( 'tabindex', '-1' );
+		frame.className = 'bbpac-inspector-frame';
+		frame.addEventListener( 'load', finish );
+		frame.src = target.toString();
+		document.body.appendChild( frame );
+
+		window.setTimeout( finish, 20000 );
+	};
+
+	scanButton.addEventListener( 'click', startScan );
+
+	// The inputs are inside the settings form, Enter must not save the settings.
+	inspector.addEventListener( 'keydown', ( event ) => {
+		if ( 'Enter' !== event.key || ! event.target.matches( 'input' ) ) {
+			return;
+		}
+
+		event.preventDefault();
+
+		if ( event.target === urlInput ) {
+			startScan();
+		}
+	} );
+
+	// Type filter and search, on the rendered table rows.
+	const rows = Array.from( inspector.querySelectorAll( '.bbpac-inspector-table tbody tr' ) );
+	const filterButtons = Array.from( inspector.querySelectorAll( '[data-bbpac-filter]' ) );
+	const search = document.getElementById( 'bbpac-inspector-search' );
+	const count = inspector.querySelector( '.bbpac-inspector-count' );
+	let activeType = 'all';
+
+	if ( 0 === rows.length || ! search ) {
+		return;
+	}
+
+	// Lowercase the row text once, the same way as the search term, so names like "École" match.
+	const searchTexts = rows.map( ( row ) => row.dataset.bbpacSearch.toLowerCase() );
+
+	const applyFilters = () => {
+		const term = search.value.trim().toLowerCase();
+		let shown = 0;
+
+		rows.forEach( ( row, index ) => {
+			const typeMatches = 'all' === activeType || row.dataset.bbpacType === activeType;
+			const termMatches = '' === term || searchTexts[ index ].includes( term );
+
+			row.hidden = ! ( typeMatches && termMatches );
+			shown += row.hidden ? 0 : 1;
+		} );
+
+		count.textContent = bbpacData.i18n.shownCount.replace( '%1$d', shown ).replace( '%2$d', rows.length );
+	};
+
+	filterButtons.forEach( ( button ) => {
+		button.addEventListener( 'click', () => {
+			activeType = button.dataset.bbpacFilter;
+			filterButtons.forEach( ( other ) => other.setAttribute( 'aria-pressed', other === button ? 'true' : 'false' ) );
+			applyFilters();
+		} );
+	} );
+
+	search.addEventListener( 'input', applyFilters );
+	applyFilters();
+} );

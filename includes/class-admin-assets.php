@@ -61,9 +61,21 @@ final class Admin_Assets {
 			'bloatbuster-performance-asset-cleaner-admin',
 			'bbpacAdmin',
 			array(
-				'valueUrl' => \esc_url_raw( \rest_url( Autoload_Rest::REST_NAMESPACE . '/autoload/value' ) ),
-				'nonce'    => \wp_create_nonce( 'wp_rest' ),
-				'i18n'     => array(
+				'valueUrl'     => \esc_url_raw( \rest_url( Autoload_Rest::REST_NAMESPACE . '/autoload/value' ) ),
+				'nonce'        => \wp_create_nonce( 'wp_rest' ),
+				'inspectNonce' => \wp_create_nonce( Asset_Inspector::NONCE_ACTION ),
+				'homeUrl'      => \esc_url_raw( \home_url( '/' ) ),
+				'tabUrl'       => \esc_url_raw( \admin_url( 'admin.php?page=' . BLOATBUSTER_OPTION . '&tab=' . Tab_Assets::get_slug() ) ),
+				'scanArg'      => Asset_Inspector::SCAN_ARG,
+				'resultArg'    => Asset_Inspector::RESULT_ARG,
+				'i18n'         => array(
+					'scanning'           => \__( 'Scanning the page…', 'bloatbuster-performance-asset-cleaner' ),
+					'invalidUrl'         => \__( 'Enter a page URL of this site.', 'bloatbuster-performance-asset-cleaner' ),
+					'scanLabel'          => \__( 'Scan page', 'bloatbuster-performance-asset-cleaner' ),
+					'unsavedTitle'       => \__( 'Scan without saving?', 'bloatbuster-performance-asset-cleaner' ),
+					'unsavedMessage'     => \__( 'The page reloads after the scan and your unsaved changes on this tab are lost.', 'bloatbuster-performance-asset-cleaner' ),
+					/* translators: 1: number of shown assets, 2: total number of assets. */
+					'shownCount'         => \__( '%1$d of %2$d shown', 'bloatbuster-performance-asset-cleaner' ),
 					'deleteLabel'        => \__( 'Delete', 'bloatbuster-performance-asset-cleaner' ),
 					'disableLabel'       => \__( 'Disable autoload', 'bloatbuster-performance-asset-cleaner' ),
 					/* translators: %d: number of selected options. */

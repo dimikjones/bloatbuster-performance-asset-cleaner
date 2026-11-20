@@ -86,7 +86,7 @@ final class Autoload_Owners {
 	/**
 	 * Get option prefixes of installed plugins, the active theme and known plugins.
 	 *
-	 * @return array - Prefix => owner name and status, longest prefix first.
+	 * @return array - Prefix => owner name, status and id (e.g. plugin:woocommerce, theme:twentytwentyfive), longest prefix first.
 	 *
 	 * @since 1.0.0
 	 */
@@ -103,12 +103,12 @@ final class Autoload_Owners {
 		$prefixes = array();
 
 		foreach ( $plugins as $file => $plugin ) {
+			$slug  = false === strpos( $file, '/' ) ? basename( $file, '.php' ) : dirname( $file );
 			$owner = array(
 				'name'   => $plugin['Name'],
 				'status' => \is_plugin_active( $file ) ? 'active' : 'inactive',
+				'id'     => 'plugin:' . $slug,
 			);
-
-			$slug = false === strpos( $file, '/' ) ? basename( $file, '.php' ) : dirname( $file );
 
 			foreach ( array( $slug, $plugin['TextDomain'] ) as $candidate ) {
 				$candidate = strtolower( (string) $candidate );
@@ -132,12 +132,14 @@ final class Autoload_Owners {
 				$prefixes[ $prefix ] = array(
 					'name'   => $plugins[ $plugin_file ]['Name'],
 					'status' => \is_plugin_active( $plugin_file ) ? 'active' : 'inactive',
+					'id'     => 'plugin:' . dirname( $plugin_file ),
 				);
 			} else {
 				$prefixes[ $prefix ] = array(
 					/* translators: %s: plugin folder name. */
 					'name'   => sprintf( \__( 'Not installed: %s', 'bloatbuster-performance-asset-cleaner' ), dirname( $plugin_file ) ),
 					'status' => 'inactive',
+					'id'     => 'plugin:' . dirname( $plugin_file ),
 				);
 			}
 		}
@@ -149,6 +151,7 @@ final class Autoload_Owners {
 				/* translators: %s: theme name. */
 				'name'   => sprintf( \__( 'Active theme: %s', 'bloatbuster-performance-asset-cleaner' ), \wp_get_theme()->get( 'Name' ) ),
 				'status' => 'active',
+				'id'     => 'theme:' . \get_stylesheet(),
 			);
 
 			$prefixes[ $theme_slug ]                          = $theme_owner;

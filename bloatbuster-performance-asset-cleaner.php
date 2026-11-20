@@ -32,12 +32,14 @@ define( 'BLOATBUSTER_OPTION', 'bloatbuster_performance_asset_cleaner_options' );
 // --- INCLUDES ---
 // Options logic, required on both front-end and admin.
 require_once BLOATBUSTER_DIR . '/includes/class-options-dispatch.php';
+require_once BLOATBUSTER_DIR . '/includes/class-asset-inspector.php';
 
 // Autoloaded options data and REST route, REST requests are not admin requests.
 require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-options.php';
 require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-rest.php';
 
 Options_Dispatch::hooks();
+Asset_Inspector::hooks();
 Autoload_Rest::hooks();
 
 // Settings page and its assets.

@@ -37,6 +37,7 @@ Read-only report of the hosting setup that affects speed, with a short explanati
 * Disable Dashicons on the frontend when the toolbar is hidden
 * Disable jQuery Migrate on the frontend
 * Disable emoji scripts and styles
+* Frontend asset inspector: scan a page and see its CSS and JavaScript files with the plugin or theme that adds them, size, header or footer and async/defer
 
 = WordPress Core =
 
