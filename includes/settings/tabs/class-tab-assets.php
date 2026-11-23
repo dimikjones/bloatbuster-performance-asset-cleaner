@@ -169,7 +169,20 @@ final class Tab_Assets extends Settings_Tab {
 			}
 
 			self::render_scan_summary( $scan );
-			self::render_assets_table( $scan['assets'] );
+
+			if ( ! empty( $scan['assets'] ) ) {
+				self::render_view_switch();
+				?>
+				<div class="bbpac-inspector-view" data-bbpac-view="sources">
+					<?php self::render_footprint_table( Asset_Inspector::get_footprint( $scan['assets'] ) ); ?>
+				</div>
+				<div class="bbpac-inspector-view" data-bbpac-view="assets" hidden>
+					<?php self::render_assets_table( $scan['assets'] ); ?>
+				</div>
+				<?php
+			} else {
+				self::render_assets_table( $scan['assets'] );
+			}
 			?>
 			<p class="description">
 				<?php \esc_html_e( 'The scan runs as your user, so assets loaded only for logged-in users may show. Plugins that combine or minify files still list the original handles.', 'bloatbuster-performance-asset-cleaner' ); ?>
@@ -224,6 +237,175 @@ final class Tab_Assets extends Settings_Tab {
 	}
 
 	/**
+	 * Render the buttons that switch between the "By source" and "By asset" views.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_view_switch() {
+		$views = array(
+			'sources' => \__( 'By source', 'bloatbuster-performance-asset-cleaner' ),
+			'assets'  => \__( 'By asset', 'bloatbuster-performance-asset-cleaner' ),
+		);
+		?>
+		<div class="bbpac-inspector-views" role="group" aria-label="<?php \esc_attr_e( 'View', 'bloatbuster-performance-asset-cleaner' ); ?>">
+			<?php foreach ( $views as $view => $label ) : ?>
+				<button type="button" class="button" data-bbpac-view-switch="<?php echo \esc_attr( $view ); ?>" aria-pressed="<?php echo 'sources' === $view ? 'true' : 'false'; ?>"><?php echo \esc_html( $label ); ?></button>
+			<?php endforeach; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the table of asset groups by plugin, theme or other source.
+	 *
+	 * @param array $groups - Groups from Asset_Inspector::get_footprint().
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_footprint_table( $groups ) {
+		$rows   = array();
+		$totals = array(
+			'css_count'          => 0,
+			'js_count'           => 0,
+			'local_size'         => 0,
+			'inline_size'        => 0,
+			'unknown_size_count' => 0,
+		);
+
+		foreach ( (array) $groups as $group ) {
+			$group = \wp_parse_args(
+				(array) $group,
+				array(
+					'label'              => '',
+					'owner_id'           => '',
+					'confidence'         => 'unknown',
+					'css_count'          => 0,
+					'js_count'           => 0,
+					'local_size'         => 0,
+					'inline_size'        => 0,
+					'unknown_size_count' => 0,
+				)
+			);
+
+			foreach ( array_keys( $totals ) as $key ) {
+				$group[ $key ]   = (int) $group[ $key ];
+				$totals[ $key ] += $group[ $key ];
+			}
+
+			$rows[] = $group;
+		}
+
+		// Only external or unreadable files have no size, most pages have none.
+		$show_unknown = 0 < $totals['unknown_size_count'];
+		?>
+		<div class="bbpac-inspector-table-wrap">
+			<table class="widefat striped bbpac-inspector-table bbpac-footprint-table">
+				<thead>
+					<tr>
+						<th scope="col"><?php \esc_html_e( 'Likely source', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'CSS assets', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'JS assets', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'Local size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<th scope="col" class="bbpac-num"><?php \esc_html_e( 'Inline size', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<?php if ( $show_unknown ) : ?>
+							<th scope="col" class="bbpac-num"><?php \esc_html_e( 'Size unknown', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<?php endif; ?>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $rows as $group ) : ?>
+						<tr data-bbpac-owner-row="<?php echo \esc_attr( $group['owner_id'] ); ?>">
+							<td>
+								<button type="button" class="button-link" data-bbpac-owner="<?php echo \esc_attr( $group['owner_id'] ); ?>" data-bbpac-owner-label="<?php echo \esc_attr( $group['label'] ); ?>"><?php echo \esc_html( $group['label'] ); ?></button>
+								<?php self::render_confidence_badge( $group['confidence'], $group['owner_id'] ); ?>
+							</td>
+							<td class="bbpac-num"><?php echo \esc_html( \number_format_i18n( $group['css_count'] ) ); ?></td>
+							<td class="bbpac-num"><?php echo \esc_html( \number_format_i18n( $group['js_count'] ) ); ?></td>
+							<td class="bbpac-num"><?php echo \esc_html( self::get_size_or_dash( $group['local_size'] ) ); ?></td>
+							<td class="bbpac-num"><?php echo \esc_html( self::get_size_or_dash( $group['inline_size'] ) ); ?></td>
+							<?php if ( $show_unknown ) : ?>
+								<td class="bbpac-num"><?php echo \esc_html( 0 < $group['unknown_size_count'] ? \number_format_i18n( $group['unknown_size_count'] ) : '—' ); ?></td>
+							<?php endif; ?>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+				<tfoot>
+					<tr>
+						<th scope="row"><?php \esc_html_e( 'Total', 'bloatbuster-performance-asset-cleaner' ); ?></th>
+						<td class="bbpac-num"><?php echo \esc_html( \number_format_i18n( $totals['css_count'] ) ); ?></td>
+						<td class="bbpac-num"><?php echo \esc_html( \number_format_i18n( $totals['js_count'] ) ); ?></td>
+						<td class="bbpac-num"><?php echo \esc_html( self::get_size_or_dash( $totals['local_size'] ) ); ?></td>
+						<td class="bbpac-num"><?php echo \esc_html( self::get_size_or_dash( $totals['inline_size'] ) ); ?></td>
+						<?php if ( $show_unknown ) : ?>
+							<td class="bbpac-num"><?php echo \esc_html( \number_format_i18n( $totals['unknown_size_count'] ) ); ?></td>
+						<?php endif; ?>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+		<p class="description">
+			<?php \esc_html_e( 'Sizes are uncompressed local file sizes, not transfer sizes. A large footprint does not mean the files are unnecessary.', 'bloatbuster-performance-asset-cleaner' ); ?>
+			<?php if ( $show_unknown ) : ?>
+				<?php \esc_html_e( 'Size unknown: files on another host, like a CDN, or local files that could not be read.', 'bloatbuster-performance-asset-cleaner' ); ?>
+			<?php endif; ?>
+			<br>
+			<?php \esc_html_e( 'Likely: the source is guessed from the handle name or from a plugin folder in uploads. Unknown: the file is on this site, but not in a plugin, theme or core folder.', 'bloatbuster-performance-asset-cleaner' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Render a badge for a source that is not confirmed by its folder.
+	 *
+	 * @param string $confidence - confirmed, likely or unknown.
+	 * @param string $owner_id   - Source id, e.g. plugin:woocommerce.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_confidence_badge( $confidence, $owner_id ) {
+		// The "Unknown" and "This site" labels already say the source is not known.
+		if ( in_array( $owner_id, array( 'unknown', 'site' ), true ) ) {
+			return;
+		}
+
+		if ( 'likely' === $confidence ) {
+			$label = \__( 'Likely', 'bloatbuster-performance-asset-cleaner' );
+			$title = \__( 'Guessed from the handle name or from a plugin folder in uploads, not from the plugin or theme folder.', 'bloatbuster-performance-asset-cleaner' );
+		} elseif ( 'unknown' === $confidence ) {
+			$label = \__( 'Unknown', 'bloatbuster-performance-asset-cleaner' );
+			$title = \__( 'Not in a plugin, theme or core folder, so the source could not be found.', 'bloatbuster-performance-asset-cleaner' );
+		} else {
+			return;
+		}
+		?>
+		<span class="bbpac-badge" title="<?php echo \esc_attr( $title ); ?>"><?php echo \esc_html( $label ); ?></span>
+		<?php
+	}
+
+	/**
+	 * Format a size in bytes, or a dash for zero.
+	 *
+	 * @param int $bytes - Size in bytes.
+	 *
+	 * @return string - Formatted size, e.g. 12 KB, or a dash.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_size_or_dash( $bytes ) {
+		if ( 0 >= $bytes ) {
+			return '—';
+		}
+
+		return (string) \size_format( $bytes, 1 );
+	}
+
+	/**
 	 * Render the filters and the table of scanned assets.
 	 *
 	 * @param array $assets - Assets keyed by "{type}:{handle}".
@@ -253,6 +435,7 @@ final class Tab_Assets extends Settings_Tab {
 			</div>
 			<label class="screen-reader-text" for="bbpac-inspector-search"><?php \esc_html_e( 'Search assets', 'bloatbuster-performance-asset-cleaner' ); ?></label>
 			<input type="search" id="bbpac-inspector-search" placeholder="<?php \esc_attr_e( 'Search handle, owner or source', 'bloatbuster-performance-asset-cleaner' ); ?>">
+			<button type="button" class="button bbpac-inspector-owner" hidden></button>
 			<span class="bbpac-inspector-count" aria-live="polite"></span>
 		</div>
 		<div class="bbpac-inspector-table-wrap">
@@ -306,6 +489,7 @@ final class Tab_Assets extends Settings_Tab {
 				'size'               => null,
 				'inline_size'        => 0,
 				'owner'              => '',
+				'owner_id'           => '',
 				'confidence'         => '',
 			)
 		);
@@ -315,7 +499,7 @@ final class Tab_Assets extends Settings_Tab {
 		$extra_srcs = array_filter( (array) $asset['extra_srcs'], 'is_string' );
 		$search     = $asset['handle'] . ' ' . $asset['owner'] . ' ' . $asset['src'] . ' ' . $asset['registered_src'] . ' ' . implode( ' ', $extra_srcs );
 		?>
-		<tr data-bbpac-type="<?php echo \esc_attr( $asset['type'] ); ?>" data-bbpac-search="<?php echo \esc_attr( $search ); ?>">
+		<tr data-bbpac-type="<?php echo \esc_attr( $asset['type'] ); ?>" data-bbpac-owner-id="<?php echo \esc_attr( '' !== $asset['owner_id'] ? $asset['owner_id'] : 'unknown' ); ?>" data-bbpac-search="<?php echo \esc_attr( $search ); ?>">
 			<td><code><?php echo \esc_html( $asset['handle'] ); ?></code></td>
 			<td><?php echo \esc_html( $type_label ); ?></td>
 			<td>
