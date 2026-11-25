@@ -1280,6 +1280,17 @@ final class Database_Tools {
 
 		// Not autoloaded, the log is only read on the Database tab.
 		\update_option( self::LOG_OPTION, array_slice( $log, 0, $size ), false );
+
+		/**
+		 * Fires after a cleanup run is logged, for manual and scheduled runs.
+		 *
+		 * @param string $action    - Action ID, same as the field ID.
+		 * @param int    $deleted   - Number of deleted items.
+		 * @param int    $remaining - Number of items left to delete.
+		 *
+		 * @since 1.0.0
+		 */
+		\do_action( 'bloatbuster_cleanup_completed', \sanitize_key( $action ), \absint( $deleted ), \absint( $remaining ) );
 	}
 
 	/**
