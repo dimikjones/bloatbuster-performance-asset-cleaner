@@ -194,6 +194,9 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | `bloatbuster_autoload_per_page` | filter | `$per_page` | Options per page in the Autoloaded Options table. Default 50. |
 | `bloatbuster_cleanup_integrations` | filter | `$integrations` | Add plugin data cleanups to the Database tab. See below. |
 | `bloatbuster_cleanup_log_size` | filter | `$size` | Number of runs kept in the Recent cleanups log. Default 10. |
+| `bloatbuster_loaded` | action | none | Fires when the plugin is loaded. Addons check `did_action( 'bloatbuster_loaded' )` on `plugins_loaded`. |
+| `bloatbuster_cleanup_completed` | action | `$action, $deleted, $remaining` | After a cleanup run is logged, manual or scheduled. |
+| `bloatbuster_asset_scan_saved` | action | `$scan, $user_id` | After a frontend asset scan is saved. `$scan`: `id`, `url`, `time`, `assets`. |
 
 ### Plugin data cleanups
 
@@ -224,6 +227,11 @@ namespace BloatBuster_Pro;
 final class Settings {
 
 	public static function hooks() {
+		// BloatBuster is not active or too old.
+		if ( ! \did_action( 'bloatbuster_loaded' ) || version_compare( BLOATBUSTER_VERSION, '1.0.0', '<' ) ) {
+			return;
+		}
+
 		if ( ! \is_admin() ) {
 			return;
 		}
@@ -307,3 +315,4 @@ final class Tab_Pro extends \BloatBuster\Settings_Tab {
 * Tabs and fields are cached once per request. Register filters before `admin_init`, e.g. on `plugins_loaded`.
 * Tabs that return `'admin-post'` from `get_form_type()` (like Database) submit to `admin-post.php`, so their fields are not saved through `options.php`.
 * Addon fields are stored in the same option array. Prefix their IDs (e.g. `pro_`) to avoid conflicts.
+* `Database_Tools`, `Cleanup_Integrations`, `Cron_Status`, `Autoload_Options` and `Autoload_Owners` load on every request, so WP-Cron and WP-CLI jobs can call them. `Environment_Checks`, `Settings_Transfer` and the settings classes load only in the admin.

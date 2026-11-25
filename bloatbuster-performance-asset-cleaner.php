@@ -38,6 +38,12 @@ require_once BLOATBUSTER_DIR . '/includes/class-asset-inspector.php';
 require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-options.php';
 require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-rest.php';
 
+// Cleanup and diagnostics data, also for WP-Cron, WP-CLI and add-ons. Class definitions only, no hooks.
+require_once BLOATBUSTER_DIR . '/includes/class-database-tools.php';
+require_once BLOATBUSTER_DIR . '/includes/class-cleanup-integrations.php';
+require_once BLOATBUSTER_DIR . '/includes/class-cron-status.php';
+require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-owners.php';
+
 Options_Dispatch::hooks();
 Asset_Inspector::hooks();
 Autoload_Rest::hooks();
@@ -56,11 +62,8 @@ if ( \is_admin() ) {
 	require_once BLOATBUSTER_DIR . '/includes/settings/tabs/class-tab-advanced.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-plugin-options.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-admin-assets.php';
-	require_once BLOATBUSTER_DIR . '/includes/class-database-tools.php';
-	require_once BLOATBUSTER_DIR . '/includes/class-cleanup-integrations.php';
-	require_once BLOATBUSTER_DIR . '/includes/class-cron-status.php';
+	// Admin only: environment checks link to the tabs, settings transfer uses the fields.
 	require_once BLOATBUSTER_DIR . '/includes/class-environment-checks.php';
-	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-owners.php';
 	require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-actions.php';
 	require_once BLOATBUSTER_DIR . '/includes/class-settings-transfer.php';
 
@@ -70,3 +73,13 @@ if ( \is_admin() ) {
 	Autoload_Actions::hooks();
 	Settings_Transfer::hooks();
 }
+
+/**
+ * Fires when BloatBuster has loaded its classes and added its hooks.
+ *
+ * Plugins load in any order, so add-ons check did_action( 'bloatbuster_loaded' ) and
+ * BLOATBUSTER_VERSION on plugins_loaded before they start.
+ *
+ * @since 1.0.0
+ */
+\do_action( 'bloatbuster_loaded' );

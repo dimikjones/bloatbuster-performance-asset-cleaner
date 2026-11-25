@@ -446,16 +446,25 @@ final class Asset_Inspector {
 		 */
 		$assets = (array) \apply_filters( 'bloatbuster_asset_inspector_assets', $assets, $url );
 
-		\update_user_option(
-			\get_current_user_id(),
-			self::USER_OPTION,
-			array(
-				'id'     => self::$scan_id,
-				'url'    => $url,
-				'time'   => time(),
-				'assets' => $assets,
-			)
+		$user_id = \get_current_user_id();
+		$scan    = array(
+			'id'     => self::$scan_id,
+			'url'    => $url,
+			'time'   => time(),
+			'assets' => $assets,
 		);
+
+		\update_user_option( $user_id, self::USER_OPTION, $scan );
+
+		/**
+		 * Fires after an asset scan is saved as the user's last scan, e.g. to keep a scan history.
+		 *
+		 * @param array $scan    - Scan with id, url, time and assets.
+		 * @param int   $user_id - User who ran the scan.
+		 *
+		 * @since 1.0.0
+		 */
+		\do_action( 'bloatbuster_asset_scan_saved', $scan, $user_id );
 	}
 
 	/**
@@ -1053,10 +1062,6 @@ final class Asset_Inspector {
 	 * @since 1.0.0
 	 */
 	public static function get_owner_from_handle( $handle ) {
-		if ( ! class_exists( __NAMESPACE__ . '\Autoload_Owners' ) ) {
-			require_once BLOATBUSTER_DIR . '/includes/autoload/class-autoload-owners.php';
-		}
-
 		foreach ( Autoload_Owners::get_prefixes() as $prefix => $plugin ) {
 			if ( ! Autoload_Owners::has_prefix( $handle, (string) $prefix ) ) {
 				continue;
