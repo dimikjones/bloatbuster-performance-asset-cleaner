@@ -299,14 +299,25 @@ final class Plugin_Options {
 		}
 
 		foreach ( self::get_fields() as $field ) {
-			// Child fields get a row class, hidden until their parent toggle is on.
+			// Row classes: the field type sets the row layout, e.g. full width for actions and reports.
+			$row_classes = array();
+
+			if ( ! empty( $field['class'] ) && is_string( $field['class'] ) ) {
+				$row_classes[] = $field['class'];
+			}
+
+			$row_classes[] = 'bbpac-row-' . \sanitize_html_class( $field['type'] );
+
+			// Child fields are hidden until their parent toggle is on.
 			if ( ! empty( $field['parent'] ) ) {
-				$field['class'] = 'bbpac-child';
+				$row_classes[] = 'bbpac-child';
 
 				if ( ! Options_Dispatch::get_option_value( $field['parent'] ) ) {
-					$field['class'] .= ' bbpac-hidden';
+					$row_classes[] = 'bbpac-hidden';
 				}
 			}
+
+			$field['class'] = implode( ' ', $row_classes );
 
 			// Link the row title to the input, so screen readers announce it and clicking it focuses the field.
 			if ( empty( $field['label_for'] ) && in_array( $field['type'], array( 'toggle', 'checkbox', 'select', 'number' ), true ) ) {
@@ -457,16 +468,16 @@ final class Plugin_Options {
 		\settings_errors( 'messages' );
 		?>
 		<div class="wrap" id="bloatbuster-performance-asset-cleaner-options">
-			<h1><?php echo \esc_html( self::get_page_title() ); ?></h1>
-			<p><?php \esc_html_e( 'Streamline your site\'s performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			<?php self::render_header(); ?>
+			<div class="bbpac-panel">
 			<nav class="nav-tab-wrapper">
 				<?php foreach ( $tabs as $slug => $tab ) : ?>
-					<a href="<?php echo \esc_url( \add_query_arg( 'tab', $slug, \menu_page_url( BLOATBUSTER_OPTION, false ) ) ); ?>" class="nav-tab<?php echo $slug === $current_tab ? ' nav-tab-active' : ''; ?>"><?php echo \esc_html( $tab['label'] ); ?></a>
+					<a href="<?php echo \esc_url( \add_query_arg( 'tab', $slug, \menu_page_url( BLOATBUSTER_OPTION, false ) ) ); ?>" class="nav-tab<?php echo $slug === $current_tab ? ' nav-tab-active' : ''; ?>"<?php echo $slug === $current_tab ? ' aria-current="page"' : ''; ?>><?php echo \esc_html( $tab['label'] ); ?></a>
 				<?php endforeach; ?>
 			</nav>
 			<?php
 			/**
-			 * Fires before the current tab form.
+			 * Fires before the current tab form, inside the settings panel.
 			 *
 			 * @param string $current_tab - Current tab slug.
 			 *
@@ -476,7 +487,9 @@ final class Plugin_Options {
 			?>
 			<?php if ( 'custom' === $tab_class::get_form_type() ) : ?>
 				<?php self::render_section( array( 'id' => $current_tab ) ); ?>
-				<?php $tab_class::render_content(); ?>
+				<div class="bbpac-panel-body">
+					<?php $tab_class::render_content(); ?>
+				</div>
 			<?php elseif ( 'admin-post' === $tab_class::get_form_type() ) : ?>
 				<form action="<?php echo \esc_url( \admin_url( 'admin-post.php' ) ); ?>" method="POST">
 					<input type="hidden" name="action" value="<?php echo \esc_attr( $tab_class::get_form_action() ); ?>">
@@ -491,9 +504,10 @@ final class Plugin_Options {
 					<?php \submit_button(); ?>
 				</form>
 			<?php endif; ?>
+			</div>
 			<?php
 			/**
-			 * Fires after the current tab form.
+			 * Fires after the current tab form, below the settings panel.
 			 *
 			 * @param string $current_tab - Current tab slug.
 			 *
@@ -504,6 +518,110 @@ final class Plugin_Options {
 		</div>
 		<?php
 		self::render_confirm_dialog();
+	}
+
+	/**
+	 * Render the header card with the logo, intro, active count and version.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_header() {
+		$active_count = self::get_active_count();
+		$pill_class   = $active_count > 0 ? 'bbpac-pill bbpac-pill-active' : 'bbpac-pill';
+
+		$active_label = sprintf(
+			/* translators: %s: number of enabled optimizations. */
+			\_n( '%s optimization active', '%s optimizations active', $active_count, 'bloatbuster-performance-asset-cleaner' ),
+			\number_format_i18n( $active_count )
+		);
+		?>
+		<div class="bbpac-header">
+			<div class="bbpac-header-brand">
+				<h1 class="bbpac-header-title">
+					<img src="<?php echo \esc_url( BLOATBUSTER_URL . 'assets/images/bloatbuster-logo.svg' ); ?>" alt="<?php echo \esc_attr( self::get_page_title() ); ?>" width="360" height="77">
+				</h1>
+				<p class="bbpac-header-intro"><?php \esc_html_e( 'Streamline your site\'s performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			</div>
+			<div class="bbpac-header-meta">
+				<span class="<?php echo \esc_attr( $pill_class ); ?>"><?php echo \esc_html( $active_label ); ?></span>
+				<span class="bbpac-version"><?php echo \esc_html( 'v' . BLOATBUSTER_VERSION ); ?></span>
+			</div>
+		</div>
+		<?php // WordPress moves admin notices of other plugins after this element, not into the header. ?>
+		<hr class="wp-header-end">
+		<?php
+	}
+
+	/**
+	 * Count the enabled optimizations that take effect.
+	 *
+	 * Locked fields have no effect, child fields only refine their parent, and
+	 * fields with 'optimization' => false (e.g. delete data on uninstall) are not optimizations.
+	 * Selects count when set to a value other than the WordPress default (empty).
+	 * Fields with the same 'optimization_group' count once, e.g. speculative loading mode and eagerness.
+	 *
+	 * @return int - Number of active optimizations.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_active_count() {
+		$options = \get_option( BLOATBUSTER_OPTION );
+
+		if ( ! is_array( $options ) ) {
+			return 0;
+		}
+
+		$count          = 0;
+		$counted_groups = array();
+
+		foreach ( self::get_fields() as $field ) {
+			if ( ! in_array( $field['type'], array( 'toggle', 'checkbox', 'checkbox_list', 'select' ), true ) ) {
+				continue;
+			}
+
+			if ( ! empty( $field['locked'] ) || ! empty( $field['parent'] ) ) {
+				continue;
+			}
+
+			if ( isset( $field['optimization'] ) && false === $field['optimization'] ) {
+				continue;
+			}
+
+			$value = $options[ $field['id'] ] ?? null;
+
+			// Only choices that still exist can take effect, e.g. image sizes of a previous theme can't.
+			if ( 'checkbox_list' === $field['type'] ) {
+				$available = isset( $field['options'] ) && is_array( $field['options'] ) ? array_keys( $field['options'] ) : array();
+				$value     = is_array( $value ) ? array_intersect( $value, $available ) : array();
+			}
+
+			// A select takes effect only with a known, non-default value.
+			if ( 'select' === $field['type'] ) {
+				$is_known = is_scalar( $value ) && isset( $field['options'][ $value ] );
+				$value    = $is_known ? $value : '';
+			}
+
+			// A checkbox list, e.g. disabled image sizes, counts as one optimization.
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			$group = isset( $field['optimization_group'] ) && is_string( $field['optimization_group'] ) ? $field['optimization_group'] : '';
+
+			if ( '' !== $group ) {
+				if ( isset( $counted_groups[ $group ] ) ) {
+					continue;
+				}
+
+				$counted_groups[ $group ] = true;
+			}
+
+			++$count;
+		}
+
+		return $count;
 	}
 
 	/**

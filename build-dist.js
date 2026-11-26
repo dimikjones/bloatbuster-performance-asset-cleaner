@@ -24,6 +24,7 @@ const INCLUDE_PATTERNS = [
 	'**/*.php',
 	'**/*.css',
 	'assets/*.js',
+	'assets/images/**',
 	'assets/source/**',
 	'package.json',
 	'webpack.config.js',

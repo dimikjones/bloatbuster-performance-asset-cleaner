@@ -169,6 +169,8 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | `confirm` | `action` | Confirmation message shown before the action runs. |
 | `render_callback` | `action`, `report` | Callable that prints the content. For `action`, returning `false` disables the button. |
 | `locked`, `locked_message` | all | Disables the field and shows the message (HTML, run through `wp_kses_post()`). |
+| `optimization` | toggle, checkbox, checkbox_list | Default `true`. `false` leaves the field out of the "optimizations active" header count. |
+| `optimization_group` | toggle, checkbox, checkbox_list, select | Fields with the same group count once in the header count, e.g. speculative loading mode and eagerness. |
 
 `action` and `report` fields are not saved.
 
@@ -184,8 +186,8 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | `bloatbuster_render_field_{type}` | action | `$args, $value, $option_name` | Render a custom field type. |
 | `bloatbuster_sanitize_field_{type}` | filter | `$value, $raw, $field` | Sanitize a custom field type. Return `null` to remove the stored value. |
 | `bloatbuster_settings_page_notices` | action | `$current_tab` | Add notices with `add_settings_error( 'messages', ... )`. |
-| `bloatbuster_before_tab_content` | action | `$current_tab` | Print content before the tab form. |
-| `bloatbuster_after_tab_content` | action | `$current_tab` | Print content after the tab form. |
+| `bloatbuster_before_tab_content` | action | `$current_tab` | Print content before the tab form, inside the settings panel. |
+| `bloatbuster_after_tab_content` | action | `$current_tab` | Print content after the tab form, below the settings panel. |
 | `bloatbuster_settings_transfer_excluded` | filter | `$excluded` | Field IDs left out of settings export, import and reset. Default `delete_data_on_uninstall`. |
 | `bloatbuster_autoload_protected_options` | filter | `$protected` | Option names that can't have autoload changed or be deleted. |
 | `bloatbuster_autoload_sensitive_patterns` | filter | `$patterns` | Name parts that mask an option value in the value viewer. |

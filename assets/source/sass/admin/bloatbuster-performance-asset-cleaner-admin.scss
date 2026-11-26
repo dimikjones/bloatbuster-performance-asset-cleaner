@@ -4,12 +4,25 @@
  */
 
 :root {
-  // Color variables
-  --bbpac-main-color: #f66f44;
-  --bbpac-active-color: #3bb66b;
-  --bbpac-gray-bg-color: #b5b3b5;
-  --bbpac-border-color: #dedede;
-  --bbpac-border-active: #c1c1c1;
+  // Brand accents. Text on soft tints uses the *-text shades for WCAG AA contrast.
+  --bbpac-main-color: #cf4b1b;
+  --bbpac-main-hover: #b8441a;
+  --bbpac-main-soft: #fff4ef;
+  --bbpac-main-text: #b8441a;
+  --bbpac-active-color: #169c53;
+  --bbpac-active-hover: #117a40;
+  --bbpac-active-soft: #eefbf3;
+  --bbpac-active-text: #117a40;
+
+  // Neutrals, matching WordPress admin.
+  --bbpac-surface-bg: #ffffff;
+  --bbpac-subtle-bg: #f6f7f7;
+  --bbpac-text-primary: #1d2327;
+  --bbpac-text-muted: #646970;
+  --bbpac-border-color: #dcdcde;
+  --bbpac-border-active: #c3c4c7;
+
+  // Status colors.
   --bbpac-warning-color: #dba617;
   --bbpac-status-good-color: #008a20;
   --bbpac-status-warning-color: #996800;
@@ -18,7 +31,7 @@
 
 .toplevel_page_bloatbuster_performance_asset_cleaner_options {
   #wpwrap {
-    background: #fcfcfc;
+    background: #f0f0f1;
   }
   #wpcontent {
     padding-left: 0;
@@ -30,45 +43,187 @@
   margin: 0;
   padding: 20px 50px;
 
-  > h1 {
-    font-weight: 700;
-    padding-bottom: 0;
-    font-size: 26px;
+  // Header card: logo, intro, active count and version.
+  .bbpac-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 20px;
+    padding: 20px;
+    background: var(--bbpac-surface-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
+  }
 
-    + p {
-      font-weight: 500;
-      font-size: 15px;
-      margin: 0.5em 0 2em 0;
-      max-width: 65%;
+  .bbpac-header-brand {
+    flex: 1 1 360px;
+    min-width: 0;
+  }
+
+  .bbpac-header-title {
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+
+    img {
+      display: block;
+      width: 100%;
+      max-width: 360px;
+      height: auto;
     }
   }
 
-  .nav-tab-wrapper {
-    border-bottom: 1px solid var(--bbpac-main-color);
+  .bbpac-header-intro {
+    max-width: 720px;
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--bbpac-text-muted);
+  }
+
+  .bbpac-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bbpac-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--bbpac-text-muted);
+    background: var(--bbpac-subtle-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 999px;
+
+    &.bbpac-pill-active {
+      color: var(--bbpac-active-text);
+      background: var(--bbpac-active-soft);
+      border-color: rgba(22, 156, 83, 0.2);
+    }
+  }
+
+  .bbpac-version {
+    display: inline-block;
+    padding: 4px 10px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--bbpac-text-muted);
+    background: var(--bbpac-subtle-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 4px;
+  }
+
+  // Settings panel: tabs, section header, rows and save bar in one card.
+  .bbpac-panel {
+    // Wide tables scroll inside the panel, and the corners stay rounded.
+    overflow-x: auto;
+    background: var(--bbpac-surface-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
+  }
+
+  .bbpac-panel-body {
+    padding: 20px;
+
+    > :first-child {
+      margin-top: 0;
+    }
+  }
+
+  // Underline tabs instead of the WordPress tab boxes.
+  .bbpac-panel > .nav-tab-wrapper {
+    display: flex;
+    gap: 24px;
+    margin: 0;
+    padding: 12px 20px 0;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--bbpac-border-color);
+
     .nav-tab {
-      &:first-of-type {
-        margin-left: 0;
+      margin: 0 0 -1px;
+      padding: 0 0 12px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.5;
+      white-space: nowrap;
+      color: var(--bbpac-text-muted);
+      background: none;
+      border: 0;
+      border-bottom: 2px solid transparent;
+
+      &:hover {
+        color: var(--bbpac-text-primary);
+        border-bottom-color: var(--bbpac-border-active);
+      }
+
+      &:focus {
+        outline: 2px solid var(--bbpac-main-color);
+        outline-offset: 2px;
+        box-shadow: none;
       }
     }
 
     .nav-tab-active,
     .nav-tab-active:hover {
+      font-weight: 700;
+      color: var(--bbpac-text-primary);
       border-bottom-color: var(--bbpac-main-color);
     }
   }
 
   .bbpac-section-description {
-    background: #fff;
-    padding: 10px;
-    border-bottom: 1px solid var(--bbpac-main-color);
+    padding: 12px 20px;
+    background: var(--bbpac-subtle-bg);
+    border-bottom: 1px solid var(--bbpac-border-color);
 
     > h2 {
-      display: none;
+      margin: 0;
+      padding: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--bbpac-text-primary);
     }
 
-    * {
-      margin: 0;
-      font-weight: 500;
+    > p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--bbpac-text-muted);
+    }
+  }
+
+  // Save bar.
+  .bbpac-panel p.submit {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 14px 20px;
+    background: var(--bbpac-subtle-bg);
+    border-top: 1px solid var(--bbpac-border-color);
+  }
+
+  .button-primary {
+    background: var(--bbpac-main-color);
+    border-color: var(--bbpac-main-color);
+    color: #fff;
+
+    &:hover,
+    &:focus {
+      background: var(--bbpac-main-hover);
+      border-color: var(--bbpac-main-hover);
+      color: #fff;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--bbpac-main-hover);
     }
   }
 
@@ -78,39 +233,55 @@
 
   // Child combinators so nested tables (Database tab reports) keep WP core table styles.
   .form-table {
+    margin: 0;
+
     > tbody > tr > td,
     > tbody > tr > td p,
     > tbody > tr > th {
-      font-size: 15px;
+      font-size: 14px;
     }
 
     > tbody > tr > th {
       width: auto;
       padding: 0;
-      color: var(--bbpac-main-color);
-      font-weight: 700;
+      color: var(--bbpac-text-primary);
+      font-weight: 600;
     }
 
     > tbody > tr > td p {
-      color: #313131;
+      margin: 4px 0 0;
+      color: var(--bbpac-text-primary);
     }
 
+    > tbody > tr > td p.description {
+      font-size: 13px;
+      color: var(--bbpac-text-muted);
+    }
+
+    // Divided rows, the field is placed in the right padding.
     > tbody > tr {
       position: relative;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
-      width: 80%;
-      // Keep room for the field, it is placed right of the row.
-      max-width: calc(100% - 275px);
-      margin: 20px 0;
-      padding-right: 40px;
+      width: 100%;
+      margin: 0;
+      padding: 16px 300px 16px 20px;
 
       @media screen and (max-width: 782px) {
-        width: 50%;
-        max-width: none;
-        padding-right: 20px;
+        padding: 16px 20px;
       }
+    }
+
+    > tbody > tr + tr {
+      border-top: 1px solid var(--bbpac-border-color);
+    }
+
+    // Actions, reports and checkbox lists hold tables or lists, so they use the full width.
+    > tbody > tr.bbpac-row-action,
+    > tbody > tr.bbpac-row-report,
+    > tbody > tr.bbpac-row-checkbox_list {
+      padding-right: 20px;
     }
 
     > tbody > tr > td {
@@ -118,15 +289,20 @@
 
       > .bbpac-field {
         position: absolute;
-        left: 100%;
-        width: 275px;
-        height: 100%;
         top: 0;
+        right: 20px;
+        width: 260px;
+        height: 100%;
         display: flex;
         align-items: center;
+        justify-content: flex-end;
 
         @media screen and (max-width: 782px) {
-          width: 65%;
+          position: static;
+          width: auto;
+          height: auto;
+          margin-top: 8px;
+          justify-content: flex-start;
         }
       }
     }
@@ -159,7 +335,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: var(--bbpac-gray-bg-color);
+        background-color: var(--bbpac-border-active);
         -webkit-transition: 0.3s;
         transition: 0.3s;
 
@@ -182,6 +358,12 @@
 
       input:focus + .slider {
         box-shadow: none;
+      }
+
+      // Keyboard focus ring, the input itself is invisible.
+      input:focus-visible + .slider {
+        outline: 2px solid var(--bbpac-main-color);
+        outline-offset: 2px;
       }
 
       input:checked + .slider:before {
@@ -216,7 +398,7 @@
         line-height: 21px;
         font-weight: inherit;
         color: inherit;
-        background-color: #fff;
+        background-color: var(--bbpac-surface-bg);
         border: 1px solid var(--bbpac-border-color);
         border-radius: 34px;
         outline: 0;
@@ -230,7 +412,7 @@
 
         &:focus {
           color: #000;
-          background-color: #fff;
+          background-color: var(--bbpac-surface-bg);
           border-color: var(--bbpac-border-active);
         }
       }
@@ -240,7 +422,7 @@
     &.select {
       select {
         color: currentColor;
-        background-color: #fff;
+        background-color: var(--bbpac-surface-bg);
         background-position: right 15px top 55%;
         border: 1px solid var(--bbpac-border-color);
         box-shadow: none;
@@ -258,7 +440,7 @@
 
         &:focus {
           color: #000;
-          background-color: #fff;
+          background-color: var(--bbpac-surface-bg);
           border-color: var(--bbpac-border-active);
         }
 
@@ -283,7 +465,7 @@
     &.checkbox-list {
       input {
         appearance: none;
-        background: #fff;
+        background: var(--bbpac-surface-bg);
         border: 1px solid var(--bbpac-border-color);
         border-radius: 50%;
         display: inline-block;
@@ -350,7 +532,7 @@
       > tr {
         > td {
           .bbpac-status-good {
-            color: var(--bbpac-active-color);
+            color: var(--bbpac-active-text);
           }
 
           .bbpac-status-warning {
@@ -380,6 +562,11 @@
     margin: 8px 0;
 
     thead {
+      th,
+      td {
+        background: var(--bbpac-subtle-bg);
+      }
+
       th {
         padding: 15px 10px;
 
@@ -407,7 +594,8 @@
   }
 
   .form-table tr.bbpac-child {
-    padding-left: 24px;
+    // Row padding (20px) plus the indent.
+    padding-left: 44px;
 
     th {
       font-weight: 500;
@@ -434,14 +622,21 @@
     gap: 4px;
     min-width: 0;
     padding: 16px 20px;
-    background: #fff;
+    background: var(--bbpac-surface-bg);
     border: 1px solid var(--bbpac-border-color);
     border-radius: 8px;
     color: inherit;
     text-decoration: none;
 
+    // Orange accent on the left, the meta text says why.
     &.bbpac-card-warning {
-      border-color: var(--bbpac-warning-color);
+      border-color: var(--bbpac-border-color);
+      box-shadow: inset 3px 0 0 var(--bbpac-main-color);
+
+      .bbpac-card-meta {
+        font-weight: 600;
+        color: var(--bbpac-main-text);
+      }
     }
   }
 
@@ -450,27 +645,34 @@
     border-color: var(--bbpac-main-color);
   }
 
+  a.bbpac-card:focus {
+    outline: 2px solid var(--bbpac-main-color);
+    outline-offset: 2px;
+  }
+
   .bbpac-card-label {
-    font-size: 13px;
-    color: #50575e;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--bbpac-text-muted);
   }
 
   .bbpac-card-value {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
     line-height: 1.3;
+    color: var(--bbpac-text-primary);
   }
 
   .bbpac-card-meta {
     overflow: hidden;
     font-size: 12px;
-    color: #646970;
+    color: var(--bbpac-text-muted);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .bbpac-status-good {
-    color: var(--bbpac-active-color);
+    color: var(--bbpac-active-text);
   }
 
   .bbpac-status-warning {
@@ -524,9 +726,10 @@
   .bbpac-inspector-views,
   .bbpac-inspector-filters {
     .button[aria-pressed="true"] {
-      background: #f0f0f1;
-      border-color: #8c8f94;
-      box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5);
+      color: var(--bbpac-main-text);
+      background: var(--bbpac-main-soft);
+      border-color: var(--bbpac-main-color);
+      box-shadow: none;
     }
   }
 
@@ -536,7 +739,7 @@
   }
 
   .bbpac-inspector-count {
-    color: #646970;
+    color: var(--bbpac-text-muted);
   }
 
   .bbpac-inspector-table-wrap {
@@ -552,7 +755,7 @@
     thead th {
       position: sticky;
       top: 0;
-      background: #fff;
+      background: var(--bbpac-subtle-bg);
     }
 
     thead th:first-child {
@@ -582,7 +785,7 @@
       cursor: pointer;
 
       &:hover td {
-        background: #f6f7f7;
+        background: var(--bbpac-subtle-bg);
       }
     }
 
@@ -610,7 +813,7 @@
   .bbpac-inspector-meta {
     display: block;
     font-size: 12px;
-    color: #646970;
+    color: var(--bbpac-text-muted);
   }
 
   // Environment tab.
@@ -620,7 +823,7 @@
 
   .bbpac-env-checks {
     margin: 20px 0;
-    background: #fff;
+    background: var(--bbpac-surface-bg);
     border: 1px solid var(--bbpac-border-color);
     border-radius: 8px;
   }
@@ -673,7 +876,7 @@
 
   .bbpac-env-check-value {
     margin-left: 6px;
-    color: #50575e;
+    color: var(--bbpac-text-muted);
     overflow-wrap: anywhere;
   }
 
@@ -711,7 +914,7 @@
       display: block;
       margin-top: 4px;
       font-size: 12px;
-      color: #646970;
+      color: var(--bbpac-text-muted);
 
       &.bbpac-owner-inactive,
       &.bbpac-owner-unknown {
@@ -731,18 +934,18 @@
     border-radius: 10px;
     font-size: 12px;
     line-height: 1.5;
-    background: #f0f0f1;
-    color: #50575e;
+    background: var(--bbpac-subtle-bg);
+    color: var(--bbpac-text-muted);
 
     &.bbpac-badge-on {
-      background: #e6f4ea;
-      color: #1e6b3a;
+      background: var(--bbpac-active-soft);
+      color: var(--bbpac-active-text);
     }
 
     &.bbpac-badge-protected {
       margin-top: 4px;
-      background: #fcf0e3;
-      color: #8a4b0f;
+      background: var(--bbpac-main-soft);
+      color: var(--bbpac-main-text);
     }
   }
 
@@ -750,7 +953,7 @@
   .bbpac-settings-transfer {
     margin-top: 30px;
     padding: 16px 20px;
-    background: #fff;
+    background: var(--bbpac-surface-bg);
     border: 1px solid var(--bbpac-border-color);
     border-radius: 8px;
 
@@ -834,7 +1037,7 @@
   }
 
   .bbpac-value-meta {
-    color: #646970;
+    color: var(--bbpac-text-muted);
   }
 
   .bbpac-value-notice {
@@ -848,7 +1051,7 @@
     overflow: auto;
     margin: 0;
     padding: 12px;
-    background: #f6f7f7;
+    background: var(--bbpac-subtle-bg);
     white-space: pre-wrap;
     word-break: break-all;
   }
@@ -870,19 +1073,24 @@
   > .bbpac-field.checkbox-list {
   position: static;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 6px 16px;
+  // CSS min(), not the Sass function, which can't mix % and px.
+  grid-template-columns: repeat(auto-fill, minmax(#{"min(100%, 280px)"}, 1fr));
+  gap: 8px 16px;
   width: auto;
   height: auto;
   margin: 8px 0;
   padding: 0;
   border: 0;
 
+  // Long size names have no spaces, let them wrap instead of overlapping the next column.
   label {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
+    min-width: 0;
     font-size: 14px;
+    line-height: 20px;
+    overflow-wrap: anywhere;
     cursor: pointer;
   }
 }
