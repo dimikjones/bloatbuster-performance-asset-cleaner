@@ -457,8 +457,7 @@ final class Plugin_Options {
 		\settings_errors( 'messages' );
 		?>
 		<div class="wrap" id="bloatbuster-performance-asset-cleaner-options">
-			<h1><?php echo \esc_html( self::get_page_title() ); ?></h1>
-			<p><?php \esc_html_e( 'Streamline your site\'s performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			<?php self::render_header(); ?>
 			<nav class="nav-tab-wrapper">
 				<?php foreach ( $tabs as $slug => $tab ) : ?>
 					<a href="<?php echo \esc_url( \add_query_arg( 'tab', $slug, \menu_page_url( BLOATBUSTER_OPTION, false ) ) ); ?>" class="nav-tab<?php echo $slug === $current_tab ? ' nav-tab-active' : ''; ?>"><?php echo \esc_html( $tab['label'] ); ?></a>
@@ -504,6 +503,69 @@ final class Plugin_Options {
 		</div>
 		<?php
 		self::render_confirm_dialog();
+	}
+
+	/**
+	 * Render the header card with the logo, intro, active count and version.
+	 *
+	 * @return void
+	 *
+	 * @since 1.0.0
+	 */
+	public static function render_header() {
+		$active_count = self::get_active_count();
+		$pill_class   = $active_count > 0 ? 'bbpac-pill bbpac-pill-active' : 'bbpac-pill';
+
+		$active_label = sprintf(
+			/* translators: %s: number of enabled optimizations. */
+			\_n( '%s optimization active', '%s optimizations active', $active_count, 'bloatbuster-performance-asset-cleaner' ),
+			\number_format_i18n( $active_count )
+		);
+		?>
+		<div class="bbpac-header">
+			<div class="bbpac-header-brand">
+				<h1 class="bbpac-header-title">
+					<img src="<?php echo \esc_url( BLOATBUSTER_URL . 'assets/images/bloatbuster-logo.svg' ); ?>" alt="<?php echo \esc_attr( self::get_page_title() ); ?>" width="360" height="77">
+				</h1>
+				<p class="bbpac-header-intro"><?php \esc_html_e( 'Streamline your site\'s performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean.', 'bloatbuster-performance-asset-cleaner' ); ?></p>
+			</div>
+			<div class="bbpac-header-meta">
+				<span class="<?php echo \esc_attr( $pill_class ); ?>"><?php echo \esc_html( $active_label ); ?></span>
+				<span class="bbpac-version"><?php echo \esc_html( 'v' . BLOATBUSTER_VERSION ); ?></span>
+			</div>
+		</div>
+		<?php // WordPress moves admin notices of other plugins after this element, not into the header. ?>
+		<hr class="wp-header-end">
+		<?php
+	}
+
+	/**
+	 * Count the enabled toggle and checkbox settings.
+	 *
+	 * @return int - Number of enabled settings.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_active_count() {
+		$options = \get_option( BLOATBUSTER_OPTION );
+
+		if ( ! is_array( $options ) ) {
+			return 0;
+		}
+
+		$count = 0;
+
+		foreach ( self::get_fields() as $field ) {
+			if ( ! in_array( $field['type'], array( 'toggle', 'checkbox' ), true ) ) {
+				continue;
+			}
+
+			if ( ! empty( $options[ $field['id'] ] ) ) {
+				++$count;
+			}
+		}
+
+		return $count;
 	}
 
 	/**

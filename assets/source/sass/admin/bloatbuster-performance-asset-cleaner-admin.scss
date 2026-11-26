@@ -43,17 +43,82 @@
   margin: 0;
   padding: 20px 50px;
 
-  > h1 {
-    font-weight: 700;
-    padding-bottom: 0;
-    font-size: 26px;
+  // Header card: logo, intro, active count and version.
+  .bbpac-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 20px;
+    padding: 20px;
+    background: var(--bbpac-surface-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
+  }
 
-    + p {
-      font-weight: 500;
-      font-size: 15px;
-      margin: 0.5em 0 2em 0;
-      max-width: 65%;
+  .bbpac-header-brand {
+    flex: 1 1 360px;
+    min-width: 0;
+  }
+
+  .bbpac-header-title {
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+
+    img {
+      display: block;
+      width: 100%;
+      max-width: 360px;
+      height: auto;
     }
+  }
+
+  .bbpac-header-intro {
+    max-width: 720px;
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--bbpac-text-muted);
+  }
+
+  .bbpac-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bbpac-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--bbpac-text-muted);
+    background: var(--bbpac-subtle-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 999px;
+
+    &.bbpac-pill-active {
+      color: var(--bbpac-active-text);
+      background: var(--bbpac-active-soft);
+      border-color: rgba(22, 156, 83, 0.2);
+    }
+  }
+
+  .bbpac-version {
+    display: inline-block;
+    padding: 4px 10px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--bbpac-text-muted);
+    background: var(--bbpac-subtle-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 4px;
   }
 
   .nav-tab-wrapper {
