@@ -121,32 +121,109 @@
     border-radius: 4px;
   }
 
-  .nav-tab-wrapper {
-    border-bottom: 1px solid var(--bbpac-main-color);
+  // Settings panel: tabs, section header, rows and save bar in one card.
+  .bbpac-panel {
+    // Wide tables scroll inside the panel, and the corners stay rounded.
+    overflow-x: auto;
+    background: var(--bbpac-surface-bg);
+    border: 1px solid var(--bbpac-border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
+  }
+
+  .bbpac-panel-body {
+    padding: 20px;
+
+    > :first-child {
+      margin-top: 0;
+    }
+  }
+
+  // Underline tabs instead of the WordPress tab boxes.
+  .bbpac-panel > .nav-tab-wrapper {
+    display: flex;
+    gap: 24px;
+    margin: 0;
+    padding: 12px 20px 0;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--bbpac-border-color);
+
     .nav-tab {
-      &:first-of-type {
-        margin-left: 0;
+      margin: 0 0 -1px;
+      padding: 0 0 12px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.5;
+      white-space: nowrap;
+      color: var(--bbpac-text-muted);
+      background: none;
+      border: 0;
+      border-bottom: 2px solid transparent;
+
+      &:hover {
+        color: var(--bbpac-text-primary);
+        border-bottom-color: var(--bbpac-border-active);
+      }
+
+      &:focus {
+        outline: 2px solid var(--bbpac-main-color);
+        outline-offset: 2px;
+        box-shadow: none;
       }
     }
 
     .nav-tab-active,
     .nav-tab-active:hover {
+      font-weight: 700;
+      color: var(--bbpac-text-primary);
       border-bottom-color: var(--bbpac-main-color);
     }
   }
 
   .bbpac-section-description {
-    background: #fff;
-    padding: 10px;
-    border-bottom: 1px solid var(--bbpac-main-color);
+    padding: 12px 20px;
+    background: var(--bbpac-subtle-bg);
+    border-bottom: 1px solid var(--bbpac-border-color);
 
     > h2 {
-      display: none;
+      margin: 0;
+      padding: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--bbpac-text-primary);
     }
 
-    * {
-      margin: 0;
-      font-weight: 500;
+    > p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--bbpac-text-muted);
+    }
+  }
+
+  // Save bar.
+  .bbpac-panel p.submit {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 14px 20px;
+    background: var(--bbpac-subtle-bg);
+    border-top: 1px solid var(--bbpac-border-color);
+  }
+
+  .button-primary {
+    background: var(--bbpac-main-color);
+    border-color: var(--bbpac-main-color);
+    color: #fff;
+
+    &:hover,
+    &:focus {
+      background: var(--bbpac-main-hover);
+      border-color: var(--bbpac-main-hover);
+      color: #fff;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--bbpac-main-hover);
     }
   }
 
@@ -156,39 +233,55 @@
 
   // Child combinators so nested tables (Database tab reports) keep WP core table styles.
   .form-table {
+    margin: 0;
+
     > tbody > tr > td,
     > tbody > tr > td p,
     > tbody > tr > th {
-      font-size: 15px;
+      font-size: 14px;
     }
 
     > tbody > tr > th {
       width: auto;
       padding: 0;
-      color: var(--bbpac-main-color);
-      font-weight: 700;
+      color: var(--bbpac-text-primary);
+      font-weight: 600;
     }
 
     > tbody > tr > td p {
+      margin: 4px 0 0;
       color: var(--bbpac-text-primary);
     }
 
+    > tbody > tr > td p.description {
+      font-size: 13px;
+      color: var(--bbpac-text-muted);
+    }
+
+    // Divided rows, the field is placed in the right padding.
     > tbody > tr {
       position: relative;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
-      width: 80%;
-      // Keep room for the field, it is placed right of the row.
-      max-width: calc(100% - 275px);
-      margin: 20px 0;
-      padding-right: 40px;
+      width: 100%;
+      margin: 0;
+      padding: 16px 300px 16px 20px;
 
       @media screen and (max-width: 782px) {
-        width: 50%;
-        max-width: none;
-        padding-right: 20px;
+        padding: 16px 20px;
       }
+    }
+
+    > tbody > tr + tr {
+      border-top: 1px solid var(--bbpac-border-color);
+    }
+
+    // Actions, reports and checkbox lists hold tables or lists, so they use the full width.
+    > tbody > tr.bbpac-row-action,
+    > tbody > tr.bbpac-row-report,
+    > tbody > tr.bbpac-row-checkbox_list {
+      padding-right: 20px;
     }
 
     > tbody > tr > td {
@@ -196,15 +289,20 @@
 
       > .bbpac-field {
         position: absolute;
-        left: 100%;
-        width: 275px;
-        height: 100%;
         top: 0;
+        right: 20px;
+        width: 260px;
+        height: 100%;
         display: flex;
         align-items: center;
+        justify-content: flex-end;
 
         @media screen and (max-width: 782px) {
-          width: 65%;
+          position: static;
+          width: auto;
+          height: auto;
+          margin-top: 8px;
+          justify-content: flex-start;
         }
       }
     }
@@ -491,7 +589,8 @@
   }
 
   .form-table tr.bbpac-child {
-    padding-left: 24px;
+    // Row padding (20px) plus the indent.
+    padding-left: 44px;
 
     th {
       font-weight: 500;
@@ -954,19 +1053,24 @@
   > .bbpac-field.checkbox-list {
   position: static;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 6px 16px;
+  // CSS min(), not the Sass function, which can't mix % and px.
+  grid-template-columns: repeat(auto-fill, minmax(#{"min(100%, 280px)"}, 1fr));
+  gap: 8px 16px;
   width: auto;
   height: auto;
   margin: 8px 0;
   padding: 0;
   border: 0;
 
+  // Long size names have no spaces, let them wrap instead of overlapping the next column.
   label {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
+    min-width: 0;
     font-size: 14px;
+    line-height: 20px;
+    overflow-wrap: anywhere;
     cursor: pointer;
   }
 }
