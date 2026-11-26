@@ -108,10 +108,12 @@ final class Tab_Advanced extends Settings_Tab {
 				'description' => \__( 'Stops WordPress from changing "Wordpress" to "WordPress" in content. Negligible performance impact.', 'bloatbuster-performance-asset-cleaner' ),
 			),
 			array(
-				'type'        => 'checkbox',
-				'id'          => 'delete_data_on_uninstall',
-				'label'       => \__( 'Delete plugin data on uninstall', 'bloatbuster-performance-asset-cleaner' ),
-				'description' => \__( 'Remove all BloatBuster settings from the database when the plugin is deleted.', 'bloatbuster-performance-asset-cleaner' ),
+				'type'         => 'checkbox',
+				'id'           => 'delete_data_on_uninstall',
+				'label'        => \__( 'Delete plugin data on uninstall', 'bloatbuster-performance-asset-cleaner' ),
+				'description'  => \__( 'Remove all BloatBuster settings from the database when the plugin is deleted.', 'bloatbuster-performance-asset-cleaner' ),
+				// Not counted in the "optimizations active" header badge.
+				'optimization' => false,
 			),
 		);
 	}

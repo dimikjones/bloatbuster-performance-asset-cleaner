@@ -169,6 +169,7 @@ Fields don't need a `tab` key. It's set from `get_slug()`. Tabs without fields a
 | `confirm` | `action` | Confirmation message shown before the action runs. |
 | `render_callback` | `action`, `report` | Callable that prints the content. For `action`, returning `false` disables the button. |
 | `locked`, `locked_message` | all | Disables the field and shows the message (HTML, run through `wp_kses_post()`). |
+| `optimization` | toggle, checkbox, checkbox_list | Default `true`. `false` leaves the field out of the "optimizations active" header count. |
 
 `action` and `report` fields are not saved.
 

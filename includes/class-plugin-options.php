@@ -555,9 +555,12 @@ final class Plugin_Options {
 	}
 
 	/**
-	 * Count the enabled toggle and checkbox settings.
+	 * Count the enabled optimizations that take effect.
 	 *
-	 * @return int - Number of enabled settings.
+	 * Locked fields have no effect, child fields only refine their parent, and
+	 * fields with 'optimization' => false (e.g. delete data on uninstall) are not optimizations.
+	 *
+	 * @return int - Number of active optimizations.
 	 *
 	 * @since 1.0.0
 	 */
@@ -571,10 +574,19 @@ final class Plugin_Options {
 		$count = 0;
 
 		foreach ( self::get_fields() as $field ) {
-			if ( ! in_array( $field['type'], array( 'toggle', 'checkbox' ), true ) ) {
+			if ( ! in_array( $field['type'], array( 'toggle', 'checkbox', 'checkbox_list' ), true ) ) {
 				continue;
 			}
 
+			if ( ! empty( $field['locked'] ) || ! empty( $field['parent'] ) ) {
+				continue;
+			}
+
+			if ( isset( $field['optimization'] ) && false === $field['optimization'] ) {
+				continue;
+			}
+
+			// A checkbox list, e.g. disabled image sizes, counts as one optimization.
 			if ( ! empty( $options[ $field['id'] ] ) ) {
 				++$count;
 			}
