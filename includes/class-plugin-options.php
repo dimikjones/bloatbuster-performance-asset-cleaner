@@ -586,8 +586,16 @@ final class Plugin_Options {
 				continue;
 			}
 
+			$value = $options[ $field['id'] ] ?? null;
+
+			// Only choices that still exist can take effect, e.g. image sizes of a previous theme can't.
+			if ( 'checkbox_list' === $field['type'] ) {
+				$available = isset( $field['options'] ) && is_array( $field['options'] ) ? array_keys( $field['options'] ) : array();
+				$value     = is_array( $value ) ? array_intersect( $value, $available ) : array();
+			}
+
 			// A checkbox list, e.g. disabled image sizes, counts as one optimization.
-			if ( ! empty( $options[ $field['id'] ] ) ) {
+			if ( ! empty( $value ) ) {
 				++$count;
 			}
 		}
