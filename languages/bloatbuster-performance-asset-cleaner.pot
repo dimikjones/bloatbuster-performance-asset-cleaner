@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-26T22:06:07+01:00\n"
+"POT-Creation-Date: 2026-11-26T23:07:49+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -665,20 +665,27 @@ msgstr ""
 msgid "Bust bloat (Settings)"
 msgstr ""
 
-#: includes/class-plugin-options.php:443
+#: includes/class-plugin-options.php:454
 msgid "Settings Saved"
 msgstr ""
 
-#: includes/class-plugin-options.php:461
+#. translators: %s: number of enabled optimizations.
+#: includes/class-plugin-options.php:536
+msgid "%s optimization active"
+msgid_plural "%s optimizations active"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-plugin-options.php:545
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
-#: includes/class-plugin-options.php:525
+#: includes/class-plugin-options.php:622
 #: includes/class-settings-transfer.php:802
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-plugin-options.php:568
+#: includes/class-plugin-options.php:665
 msgid "BloatBuster"
 msgstr ""
 
@@ -906,29 +913,29 @@ msgid "Remove all BloatBuster settings from the database when the plugin is dele
 msgstr ""
 
 #. translators: %d: number of changed settings.
-#: includes/settings/tabs/class-tab-advanced.php:138
+#: includes/settings/tabs/class-tab-advanced.php:140
 msgid "Settings imported, %d setting changed."
 msgid_plural "Settings imported, %d settings changed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/tabs/class-tab-advanced.php:140
+#: includes/settings/tabs/class-tab-advanced.php:142
 msgid "All settings were reset to their defaults."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:142
+#: includes/settings/tabs/class-tab-advanced.php:144
 msgid "The settings could not be reset. Try again."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:167
+#: includes/settings/tabs/class-tab-advanced.php:169
 msgid "Speculative loading is already configured by the Speculative Loading plugin."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:169
+#: includes/settings/tabs/class-tab-advanced.php:171
 msgid "Go to its settings"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:174
+#: includes/settings/tabs/class-tab-advanced.php:176
 msgid "Speculative loading requires WordPress 6.8 or newer."
 msgstr ""
 
