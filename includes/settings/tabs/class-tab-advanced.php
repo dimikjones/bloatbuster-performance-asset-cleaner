@@ -74,32 +74,36 @@ final class Tab_Advanced extends Settings_Tab {
 
 		return array(
 			array(
-				'type'           => 'select',
-				'id'             => 'speculative_loading_mode',
-				'label'          => \__( 'Speculative loading mode', 'bloatbuster-performance-asset-cleaner' ),
-				'description'    => \__( 'Prerender loads pages faster than prefetch, but prefetch is safer for interactive content. Disabled turns speculative loading off completely.', 'bloatbuster-performance-asset-cleaner' ),
-				'options'        => array(
+				'type'               => 'select',
+				'id'                 => 'speculative_loading_mode',
+				'label'              => \__( 'Speculative loading mode', 'bloatbuster-performance-asset-cleaner' ),
+				'description'        => \__( 'Prerender loads pages faster than prefetch, but prefetch is safer for interactive content. Disabled turns speculative loading off completely.', 'bloatbuster-performance-asset-cleaner' ),
+				'options'            => array(
 					''          => \__( 'WordPress default', 'bloatbuster-performance-asset-cleaner' ),
 					'disabled'  => \__( 'Disabled', 'bloatbuster-performance-asset-cleaner' ),
 					'prefetch'  => \__( 'Prefetch', 'bloatbuster-performance-asset-cleaner' ),
 					'prerender' => \__( 'Prerender', 'bloatbuster-performance-asset-cleaner' ),
 				),
-				'locked'         => $lock,
-				'locked_message' => $locked_message,
+				'locked'             => $lock,
+				'locked_message'     => $locked_message,
+				// Mode and eagerness count as one optimization in the header badge.
+				'optimization_group' => 'speculative_loading',
 			),
 			array(
-				'type'           => 'select',
-				'id'             => 'speculative_loading_eagerness',
-				'label'          => \__( 'Speculative loading eagerness', 'bloatbuster-performance-asset-cleaner' ),
-				'description'    => \__( 'When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open.', 'bloatbuster-performance-asset-cleaner' ),
-				'options'        => array(
+				'type'               => 'select',
+				'id'                 => 'speculative_loading_eagerness',
+				'label'              => \__( 'Speculative loading eagerness', 'bloatbuster-performance-asset-cleaner' ),
+				'description'        => \__( 'When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open.', 'bloatbuster-performance-asset-cleaner' ),
+				'options'            => array(
 					''             => \__( 'WordPress default', 'bloatbuster-performance-asset-cleaner' ),
 					'conservative' => \__( 'Conservative (typically on click)', 'bloatbuster-performance-asset-cleaner' ),
 					'moderate'     => \__( 'Moderate (typically on hover)', 'bloatbuster-performance-asset-cleaner' ),
 					'eager'        => \__( 'Eager (on slightest suggestion)', 'bloatbuster-performance-asset-cleaner' ),
 				),
-				'locked'         => $lock,
-				'locked_message' => $locked_message,
+				'locked'             => $lock,
+				'locked_message'     => $locked_message,
+				// Mode and eagerness count as one optimization in the header badge.
+				'optimization_group' => 'speculative_loading',
 			),
 			array(
 				'type'        => 'toggle',

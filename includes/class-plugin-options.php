@@ -559,6 +559,8 @@ final class Plugin_Options {
 	 *
 	 * Locked fields have no effect, child fields only refine their parent, and
 	 * fields with 'optimization' => false (e.g. delete data on uninstall) are not optimizations.
+	 * Selects count when set to a value other than the WordPress default (empty).
+	 * Fields with the same 'optimization_group' count once, e.g. speculative loading mode and eagerness.
 	 *
 	 * @return int - Number of active optimizations.
 	 *
@@ -571,10 +573,11 @@ final class Plugin_Options {
 			return 0;
 		}
 
-		$count = 0;
+		$count          = 0;
+		$counted_groups = array();
 
 		foreach ( self::get_fields() as $field ) {
-			if ( ! in_array( $field['type'], array( 'toggle', 'checkbox', 'checkbox_list' ), true ) ) {
+			if ( ! in_array( $field['type'], array( 'toggle', 'checkbox', 'checkbox_list', 'select' ), true ) ) {
 				continue;
 			}
 
@@ -594,10 +597,28 @@ final class Plugin_Options {
 				$value     = is_array( $value ) ? array_intersect( $value, $available ) : array();
 			}
 
-			// A checkbox list, e.g. disabled image sizes, counts as one optimization.
-			if ( ! empty( $value ) ) {
-				++$count;
+			// A select takes effect only with a known, non-default value.
+			if ( 'select' === $field['type'] ) {
+				$is_known = is_scalar( $value ) && isset( $field['options'][ $value ] );
+				$value    = $is_known ? $value : '';
 			}
+
+			// A checkbox list, e.g. disabled image sizes, counts as one optimization.
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			$group = isset( $field['optimization_group'] ) && is_string( $field['optimization_group'] ) ? $field['optimization_group'] : '';
+
+			if ( '' !== $group ) {
+				if ( isset( $counted_groups[ $group ] ) ) {
+					continue;
+				}
+
+				$counted_groups[ $group ] = true;
+			}
+
+			++$count;
 		}
 
 		return $count;

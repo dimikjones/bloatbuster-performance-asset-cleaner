@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-26T23:07:49+01:00\n"
+"POT-Creation-Date: 2026-11-26T23:32:11+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: bloatbuster-performance-asset-cleaner\n"
@@ -680,12 +680,12 @@ msgstr[1] ""
 msgid "Streamline your site's performance instantly. BloatBuster strips away unwanted WordPress bloat, reduces HTTP requests, and optimizes background API execution - all without breaking your site. Toggle the features below to keep your frontend fast, light, and clean."
 msgstr ""
 
-#: includes/class-plugin-options.php:622
+#: includes/class-plugin-options.php:643
 #: includes/class-settings-transfer.php:802
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-plugin-options.php:665
+#: includes/class-plugin-options.php:686
 msgid "BloatBuster"
 msgstr ""
 
@@ -860,7 +860,7 @@ msgid "Prerender loads pages faster than prefetch, but prefetch is safer for int
 msgstr ""
 
 #: includes/settings/tabs/class-tab-advanced.php:82
-#: includes/settings/tabs/class-tab-advanced.php:96
+#: includes/settings/tabs/class-tab-advanced.php:98
 msgid "WordPress default"
 msgstr ""
 
@@ -876,66 +876,66 @@ msgstr ""
 msgid "Prerender"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:93
+#: includes/settings/tabs/class-tab-advanced.php:95
 msgid "Speculative loading eagerness"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:94
+#: includes/settings/tabs/class-tab-advanced.php:96
 msgid "When pages start loading in the background. Eager starts the soonest, Conservative loads only pages the user is about to open."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:97
+#: includes/settings/tabs/class-tab-advanced.php:99
 msgid "Conservative (typically on click)"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:98
+#: includes/settings/tabs/class-tab-advanced.php:100
 msgid "Moderate (typically on hover)"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:99
+#: includes/settings/tabs/class-tab-advanced.php:101
 msgid "Eager (on slightest suggestion)"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:107
+#: includes/settings/tabs/class-tab-advanced.php:111
 msgid "Disable capital_P_dangit"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:108
+#: includes/settings/tabs/class-tab-advanced.php:112
 msgid "Stops WordPress from changing \"Wordpress\" to \"WordPress\" in content. Negligible performance impact."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:113
+#: includes/settings/tabs/class-tab-advanced.php:117
 msgid "Delete plugin data on uninstall"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:114
+#: includes/settings/tabs/class-tab-advanced.php:118
 msgid "Remove all BloatBuster settings from the database when the plugin is deleted."
 msgstr ""
 
 #. translators: %d: number of changed settings.
-#: includes/settings/tabs/class-tab-advanced.php:140
+#: includes/settings/tabs/class-tab-advanced.php:144
 msgid "Settings imported, %d setting changed."
 msgid_plural "Settings imported, %d settings changed."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/tabs/class-tab-advanced.php:142
+#: includes/settings/tabs/class-tab-advanced.php:146
 msgid "All settings were reset to their defaults."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:144
+#: includes/settings/tabs/class-tab-advanced.php:148
 msgid "The settings could not be reset. Try again."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:169
+#: includes/settings/tabs/class-tab-advanced.php:173
 msgid "Speculative loading is already configured by the Speculative Loading plugin."
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:171
+#: includes/settings/tabs/class-tab-advanced.php:175
 msgid "Go to its settings"
 msgstr ""
 
-#: includes/settings/tabs/class-tab-advanced.php:176
+#: includes/settings/tabs/class-tab-advanced.php:180
 msgid "Speculative loading requires WordPress 6.8 or newer."
 msgstr ""
 
