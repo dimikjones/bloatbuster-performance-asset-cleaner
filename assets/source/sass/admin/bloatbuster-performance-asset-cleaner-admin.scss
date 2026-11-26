@@ -4,12 +4,25 @@
  */
 
 :root {
-  // Color variables
-  --bbpac-main-color: #f66f44;
-  --bbpac-active-color: #3bb66b;
-  --bbpac-gray-bg-color: #b5b3b5;
-  --bbpac-border-color: #dedede;
-  --bbpac-border-active: #c1c1c1;
+  // Brand accents. Text on soft tints uses the *-text shades for WCAG AA contrast.
+  --bbpac-main-color: #cf4b1b;
+  --bbpac-main-hover: #b8441a;
+  --bbpac-main-soft: #fff4ef;
+  --bbpac-main-text: #b8441a;
+  --bbpac-active-color: #169c53;
+  --bbpac-active-hover: #117a40;
+  --bbpac-active-soft: #eefbf3;
+  --bbpac-active-text: #117a40;
+
+  // Neutrals, matching WordPress admin.
+  --bbpac-surface-bg: #ffffff;
+  --bbpac-subtle-bg: #f6f7f7;
+  --bbpac-text-primary: #1d2327;
+  --bbpac-text-muted: #646970;
+  --bbpac-border-color: #dcdcde;
+  --bbpac-border-active: #c3c4c7;
+
+  // Status colors.
   --bbpac-warning-color: #dba617;
   --bbpac-status-good-color: #008a20;
   --bbpac-status-warning-color: #996800;
@@ -18,7 +31,7 @@
 
 .toplevel_page_bloatbuster_performance_asset_cleaner_options {
   #wpwrap {
-    background: #fcfcfc;
+    background: #f0f0f1;
   }
   #wpcontent {
     padding-left: 0;
@@ -92,7 +105,7 @@
     }
 
     > tbody > tr > td p {
-      color: #313131;
+      color: var(--bbpac-text-primary);
     }
 
     > tbody > tr {
@@ -159,7 +172,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: var(--bbpac-gray-bg-color);
+        background-color: var(--bbpac-border-active);
         -webkit-transition: 0.3s;
         transition: 0.3s;
 
@@ -182,6 +195,12 @@
 
       input:focus + .slider {
         box-shadow: none;
+      }
+
+      // Keyboard focus ring, the input itself is invisible.
+      input:focus-visible + .slider {
+        outline: 2px solid var(--bbpac-main-color);
+        outline-offset: 2px;
       }
 
       input:checked + .slider:before {
@@ -452,7 +471,7 @@
 
   .bbpac-card-label {
     font-size: 13px;
-    color: #50575e;
+    color: var(--bbpac-text-muted);
   }
 
   .bbpac-card-value {
@@ -464,7 +483,7 @@
   .bbpac-card-meta {
     overflow: hidden;
     font-size: 12px;
-    color: #646970;
+    color: var(--bbpac-text-muted);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -524,7 +543,7 @@
   .bbpac-inspector-views,
   .bbpac-inspector-filters {
     .button[aria-pressed="true"] {
-      background: #f0f0f1;
+      background: var(--bbpac-subtle-bg);
       border-color: #8c8f94;
       box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5);
     }
@@ -536,7 +555,7 @@
   }
 
   .bbpac-inspector-count {
-    color: #646970;
+    color: var(--bbpac-text-muted);
   }
 
   .bbpac-inspector-table-wrap {
@@ -582,7 +601,7 @@
       cursor: pointer;
 
       &:hover td {
-        background: #f6f7f7;
+        background: var(--bbpac-subtle-bg);
       }
     }
 
@@ -610,7 +629,7 @@
   .bbpac-inspector-meta {
     display: block;
     font-size: 12px;
-    color: #646970;
+    color: var(--bbpac-text-muted);
   }
 
   // Environment tab.
@@ -673,7 +692,7 @@
 
   .bbpac-env-check-value {
     margin-left: 6px;
-    color: #50575e;
+    color: var(--bbpac-text-muted);
     overflow-wrap: anywhere;
   }
 
@@ -711,7 +730,7 @@
       display: block;
       margin-top: 4px;
       font-size: 12px;
-      color: #646970;
+      color: var(--bbpac-text-muted);
 
       &.bbpac-owner-inactive,
       &.bbpac-owner-unknown {
@@ -731,8 +750,8 @@
     border-radius: 10px;
     font-size: 12px;
     line-height: 1.5;
-    background: #f0f0f1;
-    color: #50575e;
+    background: var(--bbpac-subtle-bg);
+    color: var(--bbpac-text-muted);
 
     &.bbpac-badge-on {
       background: #e6f4ea;
@@ -834,7 +853,7 @@
   }
 
   .bbpac-value-meta {
-    color: #646970;
+    color: var(--bbpac-text-muted);
   }
 
   .bbpac-value-notice {
@@ -848,7 +867,7 @@
     overflow: auto;
     margin: 0;
     padding: 12px;
-    background: #f6f7f7;
+    background: var(--bbpac-subtle-bg);
     white-space: pre-wrap;
     word-break: break-all;
   }
